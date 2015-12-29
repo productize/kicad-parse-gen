@@ -61,8 +61,10 @@ fn parse_module(s: Sexp) -> ERes<Module> {
 }
 
 fn parse(s: &str) -> ERes<Module> {
-    let s = rustysexp::parse_str(s);
-    parse_module(s)
+    match rustysexp::parse_str(s) {
+        Ok(s) => parse_module(s),
+        Err(x) => err("IOError") // TODO...
+    }
 }
 
 
