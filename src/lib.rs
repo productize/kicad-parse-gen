@@ -1,4 +1,4 @@
-// (c) 2015 Joost Yervante Damad <joost@damad.be>
+// (c) 2015-2016 Joost Yervante Damad <joost@damad.be>
 
 use std::fmt;
 use std::fs::File;
@@ -15,8 +15,8 @@ fn err<T>(msg: &str) -> ERes<T> {
 }
 
 pub enum Element {
-    Layer,
-    Descr,
+    Layer(String),
+    Descr(String),
     FpText,
     Pad,
     FpPoly,
@@ -51,8 +51,8 @@ impl fmt::Display for Module {
 impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
-            Element::Layer => write!(f, "(layer)"),
-            Element::Descr => write!(f, "(descr)"),
+            Element::Layer(ref s) => write!(f, "(layer {})", s),
+            Element::Descr(ref s) => write!(f, "(descr \"{}\")", s),
             Element::FpText => write!(f, "(fp_text)"),
             Element::Pad => write!(f, "(pad)"),
             Element::FpPoly => write!(f, "(fp_poly)"),
@@ -63,10 +63,21 @@ impl fmt::Display for Element {
 }
 
 fn parse_layer(v: &Vec<Sexp>) -> ERes<Element> {
-    Ok(Element::Layer)
+    match v[1] {
+        Sexp::Atom(Atom::S(ref s)) => {
+            Ok(Element::Layer(s.clone()))
+        }
+        ref x => Err(format!("unexpected element in layer: {}", x))
+    }
 }
+
 fn parse_descr(v: &Vec<Sexp>) -> ERes<Element> {
-    Ok(Element::Descr)
+    match v[1] {
+        Sexp::Atom(Atom::Q(ref s)) => {
+            Ok(Element::Descr(s.clone()))
+        }
+        ref x => Err(format!("unexpected element in descr: {}", x))
+    }
 }
 fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::FpText)
