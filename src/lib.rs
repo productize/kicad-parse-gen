@@ -50,7 +50,7 @@ impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
             Element::Layer => write!(f, "(layer)"),
-            Element::Descr => write!(f, "(desc)"),
+            Element::Descr => write!(f, "(descr)"),
             Element::FpText => write!(f, "(fp_text)"),
             Element::Pad => write!(f, "(pad)"),
             Element::FpPoly => write!(f, "(fp_poly)"),
@@ -60,11 +60,54 @@ impl fmt::Display for Element {
     }
 }
 
-fn parse_element(s: &Sexp) -> ERes<Element> {
+fn parse_layer(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::Layer)
 }
+fn parse_descr(v: &Vec<Sexp>) -> ERes<Element> {
+    Ok(Element::Descr)
+}
+fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
+    Ok(Element::FpText)
+}
+fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
+    Ok(Element::Pad)
+}
+fn parse_fp_poly(v: &Vec<Sexp>) -> ERes<Element> {
+    Ok(Element::FpPoly)
+}
+fn parse_fp_line(v: &Vec<Sexp>) -> ERes<Element> {
+    Ok(Element::FpLine)
+}
+fn parse_fp_circle(v: &Vec<Sexp>) -> ERes<Element> {
+    Ok(Element::FpCircle)
+}
 
-fn parse_module_list(v: Vec<Sexp>) -> ERes<Module> {
+fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
+    match v[0] {
+        Sexp::Atom(Atom::S(ref s)) => {
+            match &s[..] {
+                "layer" => parse_layer(v),
+                "descr" => parse_descr(v),
+                "fp_text" => parse_fp_text(v),
+                "pad" => parse_pad(v),
+                "fp_poly" => parse_fp_poly(v),
+                "fp_line" => parse_fp_line(v),
+                "fp_circle" => parse_fp_circle(v),
+                _ => err("unknown element in module")
+            }
+        }
+        _ => err("expecting atom")
+    }
+}
+
+fn parse_element(s: &Sexp) -> ERes<Element> {
+    match *s {
+        Sexp::List(ref v) => parse_element_list(&v),
+        _ => err("expecting element list in module")
+    }
+}
+
+fn parse_module_list(v: &Vec<Sexp>) -> ERes<Module> {
     let mut module = (match v[0] {
         Sexp::Atom(Atom::S(ref s)) if s == "module" => {
             match v[1] {
@@ -85,7 +128,7 @@ fn parse_module_list(v: Vec<Sexp>) -> ERes<Module> {
 
 fn parse_module(s: Sexp) -> ERes<Module> {
     match s {
-        Sexp::List(v) => parse_module_list(v),
+        Sexp::List(v) => parse_module_list(&v),
         _ => err("expecting top level list")
     }
 }
