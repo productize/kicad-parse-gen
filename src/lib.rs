@@ -14,6 +14,7 @@ fn err<T>(msg: &str) -> ERes<T> {
     Err(String::from(msg))
 }
 
+#[derive(Debug)]
 pub struct Module {
     name: String,
     elements: Vec<Element>
@@ -38,6 +39,7 @@ impl fmt::Display for Module {
     }
 }
 
+#[derive(Debug)]
 pub enum Element {
     Layer(String),
     Descr(String),
@@ -62,6 +64,7 @@ impl fmt::Display for Element {
     }
 }
 
+#[derive(Debug)]
 pub struct FpText {
     name: String,
     value: String,
@@ -90,6 +93,7 @@ impl fmt::Display for FpText {
     }
 }
 
+#[derive(Debug)]
 pub struct At {
     x: f64,
     y: f64,
@@ -108,6 +112,7 @@ impl fmt::Display for At {
     }
 }
 
+#[derive(Debug)]
 pub struct Effects {
     todo: String
 }
