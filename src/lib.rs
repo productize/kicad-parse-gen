@@ -8,9 +8,11 @@ extern crate rustysexp;
 use rustysexp::Sexp;
 use rustysexp::Atom;
 
-type ERes<T> = Result<T, &'static str>;
+type ERes<T> = Result<T, String>;
 
-fn err<T>(msg: &'static str) -> ERes<T> { Err(msg) }
+fn err<T>(msg: &str) -> ERes<T> {
+    Err(String::from(msg))
+}
 
 pub enum Element {
     Layer,
@@ -93,7 +95,7 @@ fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
                 "fp_poly" => parse_fp_poly(v),
                 "fp_line" => parse_fp_line(v),
                 "fp_circle" => parse_fp_circle(v),
-                _ => err("unknown element in module")
+                x => Err(format!("unknown element in module: {}", x))
             }
         }
         _ => err("expecting atom")
@@ -114,7 +116,7 @@ fn parse_module_list(v: &Vec<Sexp>) -> ERes<Module> {
                 Sexp::Atom(Atom::S(ref s)) => {
                     Ok(Module::new(s))
                 }
-                _ => return err("expecting module name")
+                ref x => return Err(format!("expecting module name got {}", x))
             }
         }
         _ => err("expecting module")
@@ -136,7 +138,7 @@ fn parse_module(s: Sexp) -> ERes<Module> {
 fn parse(s: &str) -> ERes<Module> {
     match rustysexp::parse_str(s) {
         Ok(s) => parse_module(s),
-        Err(x) => err("IOError") // TODO...
+        Err(x) => Err(format!("IOError: {}", x))
     }
 }
 
