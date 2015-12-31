@@ -14,10 +14,54 @@ fn err<T>(msg: &str) -> ERes<T> {
     Err(String::from(msg))
 }
 
+pub struct Effects {
+    todo: String
+}
+
+impl Effects {
+    fn new() -> Effects {
+        Effects { todo: String::from("todo") }
+    }
+}
+
+pub struct At {
+    x: f64,
+    y: f64,
+    rot: f64
+}
+
+impl At {
+    fn new(x:f64 ,y:f64, rot:f64) -> At {
+        At { x:x, y:y, rot:rot }
+    }
+}
+
+pub struct FpText {
+    name: String,
+    value: String,
+    at: At,
+    layer: String,
+    effects: Effects,
+    hide: bool,
+}
+
+impl FpText {
+    fn new(name: &String, value: &String) -> FpText {
+        FpText {
+            name: name.clone(),
+            value: value.clone(),
+            at: At::new(0.,0.,0.),
+            layer: String::from("cow"),
+            effects: Effects::new(),
+            hide: false
+        }
+    }
+}
+
 pub enum Element {
     Layer(String),
     Descr(String),
-    FpText,
+    FpText(FpText),
     Pad,
     FpPoly,
     FpLine,
@@ -48,12 +92,30 @@ impl fmt::Display for Module {
     }
 }
 
+impl fmt::Display for Effects {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(effects)")
+    }
+}
+
+impl fmt::Display for At {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(at {} {} {})", self.x, self.y, self.rot)
+    }
+}
+
+impl fmt::Display for FpText {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(fp_text {} \"{}\" {} (layer {}) {})", self.name, self.value, self.at, self.layer, self.effects)
+    }
+}
+
 impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
             Element::Layer(ref s) => write!(f, "(layer {})", s),
             Element::Descr(ref s) => write!(f, "(descr \"{}\")", s),
-            Element::FpText => write!(f, "(fp_text)"),
+            Element::FpText(ref p) => write!(f, "{}", p),
             Element::Pad => write!(f, "(pad)"),
             Element::FpPoly => write!(f, "(fp_poly)"),
             Element::FpLine => write!(f, "(fp_line)"),
@@ -80,7 +142,18 @@ fn parse_descr(v: &Vec<Sexp>) -> ERes<Element> {
     }
 }
 fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
-    Ok(Element::FpText)
+    let name = try!(match v[1] {
+        Sexp::Atom(Atom::S(ref s)) => Ok(s),
+        ref x => err("expecting name for fp_text")
+    });
+    let value = try!(match v[2] {
+        Sexp::Atom(Atom::Q(ref s)) => Ok(s),
+        ref x => err("expecting value for fp_text")
+    });
+    let mut fp = FpText::new(name, value);
+    for e in &v[3..] {
+    }
+    Ok(Element::FpText(fp))
 }
 fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::Pad)
