@@ -14,25 +14,51 @@ fn err<T>(msg: &str) -> ERes<T> {
     Err(String::from(msg))
 }
 
-pub struct Effects {
-    todo: String
+pub struct Module {
+    name: String,
+    elements: Vec<Element>
 }
 
-impl Effects {
-    fn new() -> Effects {
-        Effects { todo: String::from("todo") }
+impl Module {
+    fn new(name: &String) -> Module {
+        Module { name: name.clone(), elements: vec![] }
+    }
+    fn append(&mut self, e: Element) {
+        self.elements.push(e)
     }
 }
 
-pub struct At {
-    x: f64,
-    y: f64,
-    rot: f64
+impl fmt::Display for Module {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(write!(f, "(module {}\n", self.name));
+        for e in &self.elements {
+            try!(write!(f, "{}\n", e))
+        };
+        write!(f, ")")
+    }
 }
 
-impl At {
-    fn new(x:f64 ,y:f64, rot:f64) -> At {
-        At { x:x, y:y, rot:rot }
+pub enum Element {
+    Layer(String),
+    Descr(String),
+    FpText(FpText),
+    Pad,
+    FpPoly,
+    FpLine,
+    FpCircle
+}
+
+impl fmt::Display for Element {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            Element::Layer(ref s) => write!(f, "(layer {})", s),
+            Element::Descr(ref s) => write!(f, "(descr \"{}\")", s),
+            Element::FpText(ref p) => write!(f, "{}", p),
+            Element::Pad => write!(f, "(pad)"),
+            Element::FpPoly => write!(f, "(fp_poly)"),
+            Element::FpLine => write!(f, "(fp_line)"),
+            Element::FpCircle => write!(f, "(fp_circle)"),
+        }
     }
 }
 
@@ -58,43 +84,21 @@ impl FpText {
     }
 }
 
-pub enum Element {
-    Layer(String),
-    Descr(String),
-    FpText(FpText),
-    Pad,
-    FpPoly,
-    FpLine,
-    FpCircle
-}
-
-pub struct Module {
-    name: String,
-    elements: Vec<Element>
-}
-
-impl Module {
-    fn new(name: &String) -> Module {
-        Module { name: name.clone(), elements: vec![] }
-    }
-    fn append(&mut self, e: Element) {
-        self.elements.push(e)
-    }
-}
-
-impl fmt::Display for Module {
+impl fmt::Display for FpText {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        try!(write!(f, "(module {}\n", self.name));
-        for e in &self.elements {
-            try!(write!(f, "{}\n", e))
-        };
-        write!(f, ")")
+        write!(f, "(fp_text {} \"{}\" {} (layer {}) {})", self.name, self.value, self.at, self.layer, self.effects)
     }
 }
 
-impl fmt::Display for Effects {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(effects)")
+pub struct At {
+    x: f64,
+    y: f64,
+    rot: f64
+}
+
+impl At {
+    fn new(x:f64 ,y:f64, rot:f64) -> At {
+        At { x:x, y:y, rot:rot }
     }
 }
 
@@ -104,23 +108,19 @@ impl fmt::Display for At {
     }
 }
 
-impl fmt::Display for FpText {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(fp_text {} \"{}\" {} (layer {}) {})", self.name, self.value, self.at, self.layer, self.effects)
+pub struct Effects {
+    todo: String
+}
+
+impl Effects {
+    fn new() -> Effects {
+        Effects { todo: String::from("todo") }
     }
 }
 
-impl fmt::Display for Element {
+impl fmt::Display for Effects {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        match *self {
-            Element::Layer(ref s) => write!(f, "(layer {})", s),
-            Element::Descr(ref s) => write!(f, "(descr \"{}\")", s),
-            Element::FpText(ref p) => write!(f, "{}", p),
-            Element::Pad => write!(f, "(pad)"),
-            Element::FpPoly => write!(f, "(fp_poly)"),
-            Element::FpLine => write!(f, "(fp_line)"),
-            Element::FpCircle => write!(f, "(fp_circle)"),
-        }
+        write!(f, "(effects)")
     }
 }
 
