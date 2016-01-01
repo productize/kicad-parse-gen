@@ -129,6 +129,26 @@ impl fmt::Display for Effects {
     }
 }
 
+#[derive(Debug)]
+pub struct Xy {
+    x: f64,
+    y: f64,
+}
+
+
+#[derive(Debug)]
+enum Parts {
+    At(At),
+    Layer(String),
+    Hide,
+    Effects(Effects),
+    Layers(Vec<String>),
+    Width(f64),
+    Start(Xy),
+    End(Xy),
+    Pts(Vec<Xy>),
+}
+
 fn parse_layer(v: &Vec<Sexp>) -> ERes<Element> {
     match v[1] {
         Sexp::Atom(Atom::S(ref s)) => {
