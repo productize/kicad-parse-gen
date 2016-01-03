@@ -92,7 +92,7 @@ impl FpText {
 
 impl fmt::Display for FpText {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(fp_text {} \"{}\" {} (layer {}) {})", self.name, self.value, self.at, self.layer, self.effects)
+        write!(f, "(fp_text {} \"{}\" {} (layer {}){} {})", self.name, self.value, self.at, self.layer, if self.hide { " hide" } else { "" }, self.effects)
     }
 }
 
