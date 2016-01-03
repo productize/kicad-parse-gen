@@ -85,6 +85,9 @@ impl FpText {
             hide: false
         }
     }
+    fn set_at(&mut self, at: &At) {
+        self.at.set(at)
+    }
 }
 
 impl fmt::Display for FpText {
@@ -103,6 +106,11 @@ pub struct At {
 impl At {
     fn new(x:f64 ,y:f64, rot:f64) -> At {
         At { x:x, y:y, rot:rot }
+    }
+    fn set(&mut self, at: &At) {
+        self.x = at.x;
+        self.y = at.y;
+        self.rot = at.rot;
     }
 }
 
@@ -130,25 +138,71 @@ impl fmt::Display for Effects {
 }
 
 #[derive(Debug)]
+pub enum XyType {
+    Xy,
+    Start,
+    End,
+}
+
+#[derive(Debug)]
 pub struct Xy {
     x: f64,
     y: f64,
+    t: XyType,
 }
 
+impl fmt::Display for Xy {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match self.t {
+            XyType::Xy => write!(f,"(xy {} {})", self.x, self.y),
+            XyType::Start => write!(f,"(start {} {})", self.x, self.y),
+            XyType::End => write!(f,"(end {} {})", self.x, self.y),
+        }
+    }
+}
 
 #[derive(Debug)]
-enum Parts {
+enum Part {
     At(At),
     Layer(String),
     Hide,
     Effects(Effects),
     Layers(Vec<String>),
     Width(f64),
-    Start(Xy),
-    End(Xy),
+    Xy(Xy),
     Pts(Vec<Xy>),
 }
 
+impl fmt::Display for Part {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            Part::At(ref at)           => write!(f, "{}", at),
+            Part::Layer(ref layer)     => write!(f, "(layer {})", layer),
+            Part::Hide                 => write!(f, "hide"),
+            Part::Effects(ref effects) => write!(f, "{}", effects),
+            Part::Layers(_)            => write!(f, "(layers TODO"),
+            Part::Width(ref w)         => write!(f, "(width {}", w),
+            Part::Xy(ref xy)           => write!(f, "{}", xy),
+            Part::Pts(_)               => write!(f, "(pts TODO)"),
+            
+        }
+    }
+}
+
+fn parse_part(part: &Sexp) -> ERes<Part> {
+    Ok(Part::Hide)
+}
+
+
+fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
+    let mut res = Vec::new();
+    for e in v {
+        res.push(try!(parse_part(e)))
+    }
+    Ok(res)
+}
+
+    
 fn parse_layer(v: &Vec<Sexp>) -> ERes<Element> {
     match v[1] {
         Sexp::Atom(Atom::S(ref s)) => {
@@ -176,7 +230,22 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
         ref x => err("expecting value for fp_text")
     });
     let mut fp = FpText::new(name, value);
-    for e in &v[3..] {
+    let parts = try!(parse_parts(&v[3..]));
+    for part in &parts[..] {
+        match *part {
+            Part::At(ref at) => {
+                fp.set_at(at)
+            },
+            Part::Layer(ref layer) => {
+                fp.layer = layer.clone()
+            }
+            Part::Hide => {
+                fp.hide = true
+            },
+            ref x => {
+                println!("ignoring {}", x)
+            }
+        }
     }
     Ok(Element::FpText(fp))
 }
