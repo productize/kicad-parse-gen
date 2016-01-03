@@ -189,8 +189,64 @@ impl fmt::Display for Part {
     }
 }
 
-fn parse_part(part: &Sexp) -> ERes<Part> {
+fn parse_part_at(v: &Vec<Sexp>) -> ERes<Part> {
     Ok(Part::Hide)
+}
+
+fn parse_part_layer(v: &Vec<Sexp>) -> ERes<Part> {
+    Ok(Part::Hide)
+}
+
+fn parse_part_effects(v: &Vec<Sexp>) -> ERes<Part> {
+    Ok(Part::Hide)
+}
+
+fn parse_part_layers(v: &Vec<Sexp>) -> ERes<Part> {
+    Ok(Part::Hide)
+}
+
+fn parse_part_width(v: &Vec<Sexp>) -> ERes<Part> {
+    Ok(Part::Hide)
+}
+
+fn parse_part_pts(v: &Vec<Sexp>) -> ERes<Part> {
+    Ok(Part::Hide)
+}
+
+fn parse_part_xy(t: XyType, v: &Vec<Sexp>) -> ERes<Part> {
+    Ok(Part::Hide)
+}
+
+fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
+    match v[0] {
+        Sexp::Atom(Atom::S(ref s)) => {
+            match &s[..] {
+                "at" => parse_part_at(v),
+                "layer" => parse_part_layer(v),
+                "effects" => parse_part_effects(v),
+                "layers" => parse_part_layers(v),
+                "width" => parse_part_width(v),
+                "start" => parse_part_xy(XyType::Start, v),
+                "end" => parse_part_xy(XyType::End, v),
+                "pts" => parse_part_pts(v),
+                x => Err(format!("unknown part {}", x))
+            }
+        }
+        _ => err("expecting atom in part")
+    }
+}
+
+fn parse_part(part: &Sexp) -> ERes<Part> {
+    match *part {
+        Sexp::Atom(Atom::S(ref s)) => {
+            match &s[..] {
+                "hide" => Ok(Part::Hide),
+                x => Err(format!("unknown part in element: {}", x))
+            }
+        },
+        Sexp::List(ref v) => parse_part_list(&v),
+        ref x => Err(format!("unknown part in element: {}", x))
+    }
 }
 
 
