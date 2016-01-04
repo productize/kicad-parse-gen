@@ -237,21 +237,16 @@ fn parse_part_xy(t: XyType, v: &Vec<Sexp>) -> ERes<Part> {
 }
 
 fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
-    match v[0] {
-        Sexp::Atom(Atom::S(ref s)) => {
-            match &s[..] {
-                "at" => parse_part_at(v),
-                "layer" => parse_part_layer(v),
-                "effects" => parse_part_effects(v),
-                "layers" => parse_part_layers(v),
-                "width" => parse_part_width(v),
-                "start" => parse_part_xy(XyType::Start, v),
-                "end" => parse_part_xy(XyType::End, v),
-                "pts" => parse_part_pts(v),
-                x => Err(format!("unknown part {}", x))
-            }
-        }
-        _ => err("expecting atom in part")
+    match &try!(try!(v[0].atom()).string())[..] {
+        "at" => parse_part_at(v),
+        "layer" => parse_part_layer(v),
+        "effects" => parse_part_effects(v),
+        "layers" => parse_part_layers(v),
+        "width" => parse_part_width(v),
+        "start" => parse_part_xy(XyType::Start, v),
+        "end" => parse_part_xy(XyType::End, v),
+        "pts" => parse_part_pts(v),
+        x => Err(format!("unknown part {}", x))
     }
 }
 
