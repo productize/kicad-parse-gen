@@ -116,7 +116,11 @@ impl At {
 
 impl fmt::Display for At {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(at {} {} {})", self.x, self.y, self.rot)
+        if self.rot == 0.0 {
+            write!(f, "(at {} {})", self.x, self.y)
+        } else {
+            write!(f, "(at {} {} {})", self.x, self.y, self.rot)
+        }
     }
 }
 
@@ -189,12 +193,27 @@ impl fmt::Display for Part {
     }
 }
 
+// (at 0.0 -4.0) (at -2.575 -1.625 180)
 fn parse_part_at(v: &Vec<Sexp>) -> ERes<Part> {
-    Ok(Part::Hide)
+    match v.len() {
+        3 => {
+            let x = try!(try!(v[1].atom()).f());
+            let y = try!(try!(v[2].atom()).f());
+            Ok(Part::At(At::new(x, y, 0.0)))
+        }
+        4 => {
+            let x = try!(try!(v[1].atom()).f());
+            let y = try!(try!(v[2].atom()).f());
+            let rot = try!(try!(v[4].atom()).f());
+            Ok(Part::At(At::new(x, y, rot)))
+        }
+        _ => err("at with wrong length")
+    }
 }
 
 fn parse_part_layer(v: &Vec<Sexp>) -> ERes<Part> {
-    Ok(Part::Hide)
+    let layer = try!(try!(v[1].atom()).string());
+    Ok(Part::Layer(layer))
 }
 
 fn parse_part_effects(v: &Vec<Sexp>) -> ERes<Part> {
