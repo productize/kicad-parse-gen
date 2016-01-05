@@ -373,12 +373,13 @@ impl fmt::Display for Layers {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let len = self.layers.len();
         if len == 0 {
-            return Ok(())
+            return write!(f,"(layers)");
         }
-        for layer in &self.layers[..(len-1)] {
-            try!(write!(f, "{} ", layer))
+        try!(write!(f, "(layers"));
+        for layer in &self.layers[..] {
+            try!(write!(f, " {}", layer))
         }
-        write!(f, "{}", self.layers[len-1])
+        write!(f, ")")
     }
 }
 
@@ -474,7 +475,13 @@ fn parse_part_effects(v: &Vec<Sexp>) -> ERes<Part> {
 }
 
 fn parse_part_layers(v: &Vec<Sexp>) -> ERes<Part> {
-    Ok(Part::Hide)
+    let mut l = Layers::new();
+    for v1 in &v[1..] {
+        let x = try!(try!(v1.atom()).string());
+        let layer = try!(Layer::from_string(x));
+        l.append(&layer)
+    }
+    Ok(Part::Layers(l))
 }
 
 fn parse_part_width(v: &Vec<Sexp>) -> ERes<Part> {
