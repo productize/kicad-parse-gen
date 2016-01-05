@@ -69,7 +69,7 @@ pub struct FpText {
     name: String,
     value: String,
     at: At,
-    layer: String,
+    layer: Layer,
     effects: Effects,
     hide: bool,
 }
@@ -80,7 +80,7 @@ impl FpText {
             name: name.clone(),
             value: value.clone(),
             at: At::new(0.,0.,0.),
-            layer: String::from("cow"),
+            layer: Layer::default(),
             effects: Effects::new(),
             hide: false
         }
@@ -90,6 +90,9 @@ impl FpText {
     }
     fn set_effects(&mut self, effects: &Effects) {
         self.effects.clone_from(effects)
+    }
+    fn set_layer(&mut self, layer: &Layer) {
+        self.layer.clone_from(layer)
     }
 }
 
@@ -212,10 +215,10 @@ impl fmt::Display for Xy {
 #[derive(Debug)]
 enum Part {
     At(At),
-    Layer(String),
+    Layer(Layer),
     Hide,
     Effects(Effects),
-    Layers(Vec<String>),
+    Layers(Layers),
     Width(f64),
     Xy(Xy),
     Pts(Vec<Xy>),
@@ -269,36 +272,62 @@ impl fmt::Display for PadShape {
     }
 }
 
+#[derive(Clone)]
 #[derive(Debug)]
 enum LayerSide {
     Front,
     Back,
 }
 
+#[derive(Clone)]
 #[derive(Debug)]
 enum LayerType {
     Cu,
     Paste,
     Mask,
+    SilkS,
     // TODO
 }
 
+#[derive(Clone)]
 #[derive(Debug)]
 struct Layer {
     side: LayerSide,
-    t: LayerType
+    t: LayerType,
+}
+
+impl Layer {
+    fn from_string(s: String) -> ERes<Layer> {
+        let side = match &s[0..2] {
+            "F." => LayerSide::Front,
+            "B." => LayerSide::Back,
+            x => return Err(format!("unknown layer side {}", x))
+        };
+        let t = match &s[2..] {
+            "Cu" => LayerType::Cu,
+            "Paste" => LayerType::Paste,
+            "Mask" => LayerType::Mask,
+            "SilkS" => LayerType::SilkS,
+            x => return Err(format!("unknown layer type {}", x))
+        };
+        Ok(Layer { side:side, t:t, })
+    }
+    fn default() -> Layer {
+        Layer { side: LayerSide::Front, t: LayerType::Cu }
+    }
 }
 
 impl fmt::Display for Layer {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match self.side {
             LayerSide::Front => write!(f, "F."),
-            LayerSide::Back => write!(f, "B."),
+            LayerSide::Back  => write!(f, "B."),
         };
         match self.t {
-            LayerType::Cu => write!(f,"Cu"),
+            LayerType::Cu    => write!(f,"Cu"),
             LayerType::Paste => write!(f,"Paste"),
-            LayerType::Mask => write!(f,"Mask"),
+            LayerType::Mask  => write!(f,"Mask"),
+            LayerType::SilkS => write!(f,"SilkS"),
         }
     }
 }
@@ -369,6 +398,7 @@ fn parse_part_at(v: &Vec<Sexp>) -> ERes<Part> {
 
 fn parse_part_layer(v: &Vec<Sexp>) -> ERes<Part> {
     let layer = try!(try!(v[1].atom()).string());
+    let layer = try!(Layer::from_string(layer));
     Ok(Part::Layer(layer))
 }
 
@@ -507,7 +537,7 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
                 fp.set_at(at)
             },
             Part::Layer(ref layer) => {
-                fp.layer = layer.clone()
+                fp.set_layer(layer)
             }
             Part::Hide => {
                 fp.hide = true
