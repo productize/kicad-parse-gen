@@ -56,7 +56,7 @@ impl fmt::Display for Element {
             Element::Layer(ref s) => write!(f, "(layer {})", s),
             Element::Descr(ref s) => write!(f, "(descr \"{}\")", s),
             Element::FpText(ref p) => write!(f, "{}", p),
-            Element::Pad(_) => write!(f, "(pad)"),
+            Element::Pad(ref pad) => write!(f, "{}", pad),
             Element::FpPoly => write!(f, "(fp_poly)"),
             Element::FpLine => write!(f, "(fp_line)"),
             Element::FpCircle => write!(f, "(fp_circle)"),
@@ -249,6 +249,16 @@ enum PadType {
     Pth,
 }
 
+impl PadType {
+    fn from_string(s: String) -> ERes<PadType> {
+        match &s[..] {
+            "smd" => Ok(PadType::Smd),
+            "pth" => Ok(PadType::Pth),
+            x => Err(format!("unknown PadType {}", x))
+        }
+    }
+}
+
 impl fmt::Display for PadType {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
@@ -262,6 +272,15 @@ impl fmt::Display for PadType {
 enum PadShape {
     Rect,
     // TODO
+}
+
+impl PadShape {
+    fn from_string(s: String) -> ERes<PadShape> {
+        match &s[..] {
+            "rect" => Ok(PadShape::Rect),
+            x => Err(format!("unknown PadShape: {}", x))
+        }
+    }
 }
 
 impl fmt::Display for PadShape {
@@ -334,7 +353,7 @@ impl fmt::Display for Layer {
 
 #[derive(Debug)]
 struct Layers {
-    layers: Vec<String>,
+    layers: Vec<Layer>,
 }
 
 impl Layers {
@@ -342,6 +361,9 @@ impl Layers {
         Layers {
             layers: vec![]
         }
+    }
+    fn append(&mut self, layer: &Layer) {
+        self.layers.push(layer.clone())
     }
 }
 
@@ -366,15 +388,21 @@ pub struct Pad {
 }
 
 impl Pad {
-    fn new() -> Pad {
+    fn new(name: String, t:PadType, shape: PadShape) -> Pad {
         Pad {
-            name: String::from("foo"),
-            t: PadType::Smd,
-            shape: PadShape::Rect,
+            name: name,
+            t: t,
+            shape: shape,
             size: Xy::new_empty(XyType::Size),
             at: At::new_empty(),
             layers: Layers::new(),
         }
+    }
+}
+
+impl fmt::Display for Pad {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(pad {} {} {})", self.name, self.t, self.shape)
     }
 }
 
@@ -485,7 +513,6 @@ fn parse_part(part: &Sexp) -> ERes<Part> {
     }
 }
 
-
 fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
     let mut res = Vec::new();
     for e in v {
@@ -493,7 +520,6 @@ fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
     }
     Ok(res)
 }
-
     
 fn parse_layer(v: &Vec<Sexp>) -> ERes<Element> {
     match v[1] {
@@ -548,10 +574,15 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
     }
     Ok(Element::FpText(fp))
 }
-fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
-    let pad = Pad::new();
-    Ok(Element::Pad(pad))
+fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> { 
+    let name = try!(try!(v[1].atom()).as_string());
+    let t = try!(try!(v[2].atom()).string());
+    let t = try!(PadType::from_string(t));
+    let shape = try!(try!(v[3].atom()).string());
+    let shape = try!(PadShape::from_string(shape));
+    Ok(Element::Pad(Pad::new(name, t, shape)))
 }
+
 fn parse_fp_poly(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::FpPoly)
 }
