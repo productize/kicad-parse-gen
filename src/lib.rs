@@ -44,7 +44,7 @@ pub enum Element {
     Layer(String),
     Descr(String),
     FpText(FpText),
-    Pad,
+    Pad(Pad),
     FpPoly,
     FpLine,
     FpCircle
@@ -56,7 +56,7 @@ impl fmt::Display for Element {
             Element::Layer(ref s) => write!(f, "(layer {})", s),
             Element::Descr(ref s) => write!(f, "(descr \"{}\")", s),
             Element::FpText(ref p) => write!(f, "{}", p),
-            Element::Pad => write!(f, "(pad)"),
+            Element::Pad(_) => write!(f, "(pad)"),
             Element::FpPoly => write!(f, "(fp_poly)"),
             Element::FpLine => write!(f, "(fp_line)"),
             Element::FpCircle => write!(f, "(fp_circle)"),
@@ -109,6 +109,9 @@ pub struct At {
 impl At {
     fn new(x:f64 ,y:f64, rot:f64) -> At {
         At { x:x, y:y, rot:rot }
+    }
+    fn new_empty() -> At {
+        At { x:0.0, y:0.0, rot:0.0 }
     }
     fn set(&mut self, at: &At) {
         self.x = at.x;
@@ -190,6 +193,9 @@ impl Xy {
     fn new(x: f64, y: f64, t: XyType) -> Xy {
         Xy { x:x, y:y, t:t }
     }
+    fn new_empty(t: XyType) -> Xy {
+        Xy { x:0.0, y:0.0, t:t }
+    }
 }
 
 impl fmt::Display for Xy {
@@ -229,6 +235,116 @@ impl fmt::Display for Part {
             Part::Pts(_)               => write!(f, "(pts TODO)"),
             Part::Thickness(ref x)     => write!(f, "(thickness {})", x),
             
+        }
+    }
+}
+
+
+#[derive(Debug)]
+enum PadType {
+    Smd,
+    Pth,
+}
+
+impl fmt::Display for PadType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            PadType::Smd => write!(f, "smd"),
+            PadType::Pth => write!(f, "pth"), // TODO
+        }
+    }
+}
+
+#[derive(Debug)]
+enum PadShape {
+    Rect,
+    // TODO
+}
+
+impl fmt::Display for PadShape {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            PadShape::Rect => write!(f, "rect"),
+        }
+    }
+}
+
+#[derive(Debug)]
+enum LayerSide {
+    Front,
+    Back,
+}
+
+#[derive(Debug)]
+enum LayerType {
+    Cu,
+    Paste,
+    Mask,
+    // TODO
+}
+
+#[derive(Debug)]
+struct Layer {
+    side: LayerSide,
+    t: LayerType
+}
+
+impl fmt::Display for Layer {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match self.side {
+            LayerSide::Front => write!(f, "F."),
+            LayerSide::Back => write!(f, "B."),
+        };
+        match self.t {
+            LayerType::Cu => write!(f,"Cu"),
+            LayerType::Paste => write!(f,"Paste"),
+            LayerType::Mask => write!(f,"Mask"),
+        }
+    }
+}
+
+#[derive(Debug)]
+struct Layers {
+    layers: Vec<String>,
+}
+
+impl Layers {
+    fn new() -> Layers {
+        Layers {
+            layers: vec![]
+        }
+    }
+}
+
+impl fmt::Display for Layers {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        let len = self.layers.len();
+        for layer in &self.layers[..(len-1)] {
+            try!(write!(f, "{} ", layer))
+        }
+        write!(f, "{} ", self.layers[len-1])
+    }
+}
+
+#[derive(Debug)]
+pub struct Pad {
+    name: String,
+    t: PadType,
+    shape: PadShape,
+    size: Xy,
+    at: At,
+    layers: Layers,
+}
+
+impl Pad {
+    fn new() -> Pad {
+        Pad {
+            name: String::from("foo"),
+            t: PadType::Smd,
+            shape: PadShape::Rect,
+            size: Xy::new_empty(XyType::Size),
+            at: At::new_empty(),
+            layers: Layers::new(),
         }
     }
 }
@@ -370,7 +486,11 @@ fn parse_descr(v: &Vec<Sexp>) -> ERes<Element> {
         ref x => Err(format!("unexpected element in descr: {}", x))
     }
 }
+
 fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
+    // TODO: introduce try with error msg argument/fn
+    //let name = try!(try!(v[1].atom()).string());
+    //let value = try!(try!(v[1].atom()).string());
     let name = try!(match v[1] {
         Sexp::Atom(Atom::S(ref s)) => Ok(s),
         ref x => err("expecting name for fp_text")
@@ -403,7 +523,8 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::FpText(fp))
 }
 fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
-    Ok(Element::Pad)
+    let pad = Pad::new();
+    Ok(Element::Pad(pad))
 }
 fn parse_fp_poly(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::FpPoly)
