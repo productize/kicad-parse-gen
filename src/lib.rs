@@ -102,6 +102,7 @@ impl fmt::Display for FpText {
     }
 }
 
+#[derive(Clone)]
 #[derive(Debug)]
 pub struct At {
     x: f64,
@@ -351,6 +352,7 @@ impl fmt::Display for Layer {
     }
 }
 
+#[derive(Clone)]
 #[derive(Debug)]
 struct Layers {
     layers: Vec<Layer>,
@@ -370,10 +372,13 @@ impl Layers {
 impl fmt::Display for Layers {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let len = self.layers.len();
+        if len == 0 {
+            return Ok(())
+        }
         for layer in &self.layers[..(len-1)] {
             try!(write!(f, "{} ", layer))
         }
-        write!(f, "{} ", self.layers[len-1])
+        write!(f, "{}", self.layers[len-1])
     }
 }
 
@@ -398,11 +403,20 @@ impl Pad {
             layers: Layers::new(),
         }
     }
+    fn set_at(&mut self, at:&At) {
+        self.at.clone_from(at)
+    }
+    fn set_size(&mut self, size:&Xy) {
+        self.size.clone_from(size)
+    }
+    fn set_layers(&mut self, l:&Layers) {
+        self.layers.clone_from(l)
+    }
 }
 
 impl fmt::Display for Pad {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(pad {} {} {})", self.name, self.t, self.shape)
+        write!(f, "(pad {} {} {} {} {} {})", self.name, self.t, self.shape, self.size, self.at, self.layers)
     }
 }
 
@@ -417,7 +431,7 @@ fn parse_part_at(v: &Vec<Sexp>) -> ERes<Part> {
         4 => {
             let x = try!(try!(v[1].atom()).f());
             let y = try!(try!(v[2].atom()).f());
-            let rot = try!(try!(v[4].atom()).f());
+            let rot = try!(try!(v[3].atom()).f());
             Ok(Part::At(At::new(x, y, rot)))
         }
         _ => err("at with wrong length")
@@ -464,7 +478,8 @@ fn parse_part_layers(v: &Vec<Sexp>) -> ERes<Part> {
 }
 
 fn parse_part_width(v: &Vec<Sexp>) -> ERes<Part> {
-    Ok(Part::Hide)
+    let f = try!(try!(v[1].atom()).f());
+    Ok(Part::Width(f))
 }
 
 fn parse_part_thickness(v: &Vec<Sexp>) -> ERes<Part> {
@@ -516,7 +531,9 @@ fn parse_part(part: &Sexp) -> ERes<Part> {
 fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
     let mut res = Vec::new();
     for e in v {
-        res.push(try!(parse_part(e)))
+        let p = try!(parse_part(e));
+        println!("{}", p);
+        res.push(p);
     }
     Ok(res)
 }
@@ -580,7 +597,18 @@ fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
     let t = try!(PadType::from_string(t));
     let shape = try!(try!(v[3].atom()).string());
     let shape = try!(PadShape::from_string(shape));
-    Ok(Element::Pad(Pad::new(name, t, shape)))
+    let mut pad = Pad::new(name, t, shape);
+    //println!("{}", pad);
+    let parts = try!(parse_parts(&v[4..]));
+    for part in &parts[..] {
+        match *part {
+            Part::At(ref at) => pad.set_at(at),
+            Part::Xy(ref xy) if xy.t == XyType::Size => pad.set_size(xy),
+            Part::Layers(ref l) => pad.set_layers(l),
+            ref x => println!("ignoring {}", x),
+        }
+    }
+    Ok(Element::Pad(pad))
 }
 
 fn parse_fp_poly(v: &Vec<Sexp>) -> ERes<Element> {
