@@ -88,6 +88,9 @@ impl FpText {
     fn set_at(&mut self, at: &At) {
         self.at.set(at)
     }
+    fn set_effects(&mut self, effects: &Effects) {
+        self.effects.clone_from(effects)
+    }
 }
 
 impl fmt::Display for FpText {
@@ -124,35 +127,69 @@ impl fmt::Display for At {
     }
 }
 
+#[derive(Clone)]
+#[derive(Debug)]
+pub struct Font {
+    size: Xy,
+    thickness: f64,
+}
+
+impl Font {
+    fn new() -> Font {
+        Font { size: Xy::new(0.0, 0.0, XyType::Size), thickness: 0.0 }
+    }
+}
+
+
+impl fmt::Display for Font {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(font (size {} {}) (thickness {}))", self.size.x, self.size.y, self.thickness)
+    }
+}
+
+#[derive(Clone)]
 #[derive(Debug)]
 pub struct Effects {
-    todo: String
+    font: Font
 }
 
 impl Effects {
     fn new() -> Effects {
-        Effects { todo: String::from("todo") }
+        Effects { font: Font::new() }
+    }
+    fn from_font(font: Font) -> Effects {
+        Effects { font: font }
     }
 }
 
 impl fmt::Display for Effects {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(effects)")
+        write!(f, "(effects (font (size {} {}) (thickness {})))", self.font.size.x, self.font.size.y, self.font.thickness)
     }
 }
 
+#[derive(PartialEq)]
+#[derive(Clone)]
 #[derive(Debug)]
 pub enum XyType {
     Xy,
     Start,
     End,
+    Size,
 }
 
+#[derive(Clone)]
 #[derive(Debug)]
 pub struct Xy {
     x: f64,
     y: f64,
     t: XyType,
+}
+
+impl Xy {
+    fn new(x: f64, y: f64, t: XyType) -> Xy {
+        Xy { x:x, y:y, t:t }
+    }
 }
 
 impl fmt::Display for Xy {
@@ -161,6 +198,7 @@ impl fmt::Display for Xy {
             XyType::Xy => write!(f,"(xy {} {})", self.x, self.y),
             XyType::Start => write!(f,"(start {} {})", self.x, self.y),
             XyType::End => write!(f,"(end {} {})", self.x, self.y),
+            XyType::Size => write!(f,"(size {} {})", self.x, self.y),
         }
     }
 }
@@ -175,6 +213,7 @@ enum Part {
     Width(f64),
     Xy(Xy),
     Pts(Vec<Xy>),
+    Thickness(f64),
 }
 
 impl fmt::Display for Part {
@@ -188,6 +227,7 @@ impl fmt::Display for Part {
             Part::Width(ref w)         => write!(f, "(width {}", w),
             Part::Xy(ref xy)           => write!(f, "{}", xy),
             Part::Pts(_)               => write!(f, "(pts TODO)"),
+            Part::Thickness(ref x)     => write!(f, "(thickness {})", x),
             
         }
     }
@@ -217,7 +257,32 @@ fn parse_part_layer(v: &Vec<Sexp>) -> ERes<Part> {
 }
 
 fn parse_part_effects(v: &Vec<Sexp>) -> ERes<Part> {
-    Ok(Part::Hide)
+    let l = try!(v[1].list());
+    for x in &l[..] {
+        println!("effects el: {}", x)
+    }
+    let f = try!(try!(l[0].atom()).string());
+    if &f[..] != "font" {
+        return err("expecting font")
+    }
+    let parts = try!(parse_parts(&l[1..]));
+    let mut font = Font::new();
+    for part in &parts[..] {
+        println!("part: {}", part);
+        try!(match *part {
+            Part::Xy(ref xy) if xy.t == XyType::Size => {
+                font.size.x = xy.x;
+                font.size.y = xy.y;
+                Ok(())
+            }
+            Part::Thickness(ref t) => {
+                font.thickness = *t;
+                Ok(())
+            }
+            ref x => Err(format!("unknown element in font: {}", x))
+        })
+    } 
+    Ok(Part::Effects(Effects::from_font(font)))
 }
 
 fn parse_part_layers(v: &Vec<Sexp>) -> ERes<Part> {
@@ -228,16 +293,25 @@ fn parse_part_width(v: &Vec<Sexp>) -> ERes<Part> {
     Ok(Part::Hide)
 }
 
+fn parse_part_thickness(v: &Vec<Sexp>) -> ERes<Part> {
+    let f = try!(try!(v[1].atom()).f());
+    Ok(Part::Thickness(f))
+}
+
 fn parse_part_pts(v: &Vec<Sexp>) -> ERes<Part> {
     Ok(Part::Hide)
 }
 
 fn parse_part_xy(t: XyType, v: &Vec<Sexp>) -> ERes<Part> {
-    Ok(Part::Hide)
+    let x = try!(try!(v[1].atom()).f());
+    let y = try!(try!(v[2].atom()).f());
+    Ok(Part::Xy(Xy::new(x,y,t)))
 }
 
 fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
-    match &try!(try!(v[0].atom()).string())[..] {
+    let name = &try!(try!(v[0].atom()).string())[..];
+    println!("name: {}", name);
+    match name {
         "at" => parse_part_at(v),
         "layer" => parse_part_layer(v),
         "effects" => parse_part_effects(v),
@@ -245,7 +319,9 @@ fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
         "width" => parse_part_width(v),
         "start" => parse_part_xy(XyType::Start, v),
         "end" => parse_part_xy(XyType::End, v),
+        "size" => parse_part_xy(XyType::Size, v),
         "pts" => parse_part_pts(v),
+        "thickness" => parse_part_thickness(v),
         x => Err(format!("unknown part {}", x))
     }
 }
@@ -269,6 +345,10 @@ fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
     for e in v {
         res.push(try!(parse_part(e)))
     }
+    for x in &res[..] {
+        println!("pp: {}", x)
+    }
+    
     Ok(res)
 }
 
@@ -299,8 +379,8 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
         Sexp::Atom(Atom::Q(ref s)) => Ok(s),
         ref x => err("expecting value for fp_text")
     });
-    let mut fp = FpText::new(name, value);
     let parts = try!(parse_parts(&v[3..]));
+    let mut fp = FpText::new(name, value);
     for part in &parts[..] {
         match *part {
             Part::At(ref at) => {
@@ -312,6 +392,9 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
             Part::Hide => {
                 fp.hide = true
             },
+            Part::Effects(ref effects) => {
+                fp.set_effects(effects)
+            }
             ref x => {
                 println!("ignoring {}", x)
             }
