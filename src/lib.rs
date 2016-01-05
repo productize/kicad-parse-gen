@@ -226,6 +226,16 @@ enum Part {
     Thickness(f64),
 }
 
+impl Part {
+    fn xy(&self) -> ERes<Xy> {
+        match *self {
+            Part::Xy(ref xy) => Ok(xy.clone()),
+            ref x => Err(format!("expecting xy got {}", x))
+        }
+    }
+}
+
+
 impl fmt::Display for Part {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
@@ -533,7 +543,13 @@ fn parse_part_thickness(v: &Vec<Sexp>) -> ERes<Part> {
 }
 
 fn parse_part_pts(v: &Vec<Sexp>) -> ERes<Part> {
-    Ok(Part::Hide)
+    let mut pts = vec![];
+    for e in &v[1..] {
+        let v2 = try!(e.list());
+        let p = try!(try!(parse_part_xy(XyType::Xy, v2)).xy());
+        pts.push(p)
+    }
+    Ok(Part::Pts(pts))
 }
 
 fn parse_part_xy(t: XyType, v: &Vec<Sexp>) -> ERes<Part> {
