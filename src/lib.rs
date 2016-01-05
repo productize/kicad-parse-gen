@@ -45,7 +45,7 @@ pub enum Element {
     Descr(String),
     FpText(FpText),
     Pad(Pad),
-    FpPoly,
+    FpPoly(FpPoly),
     FpLine,
     FpCircle
 }
@@ -57,7 +57,7 @@ impl fmt::Display for Element {
             Element::Descr(ref s) => write!(f, "(descr \"{}\")", s),
             Element::FpText(ref p) => write!(f, "{}", p),
             Element::Pad(ref pad) => write!(f, "{}", pad),
-            Element::FpPoly => write!(f, "(fp_poly)"),
+            Element::FpPoly(ref p) => write!(f, "{}", p),
             Element::FpLine => write!(f, "(fp_line)"),
             Element::FpCircle => write!(f, "(fp_circle)"),
         }
@@ -297,6 +297,7 @@ impl fmt::Display for PadShape {
 enum LayerSide {
     Front,
     Back,
+    Dwgs,
 }
 
 #[derive(Clone)]
@@ -306,6 +307,7 @@ enum LayerType {
     Paste,
     Mask,
     SilkS,
+    User,
     // TODO
 }
 
@@ -318,17 +320,23 @@ struct Layer {
 
 impl Layer {
     fn from_string(s: String) -> ERes<Layer> {
-        let side = match &s[0..2] {
-            "F." => LayerSide::Front,
-            "B." => LayerSide::Back,
-            x => return Err(format!("unknown layer side {}", x))
+        let sp:Vec<&str> = s.split('.').collect();
+        if sp.len() != 2 {
+            return Err(format!("unknown layer {}", s))
+        }
+        let side = match sp[0] {
+            "F" => LayerSide::Front,
+            "B" => LayerSide::Back,
+            "Dwgs" => LayerSide::Dwgs,
+            x => return Err(format!("unknown layer side {}", x)),
         };
-        let t = match &s[2..] {
+        let t = match sp[1] {
             "Cu" => LayerType::Cu,
             "Paste" => LayerType::Paste,
             "Mask" => LayerType::Mask,
             "SilkS" => LayerType::SilkS,
-            x => return Err(format!("unknown layer type {}", x))
+            "User" => LayerType::User,
+            x => return Err(format!("unknown layer type {}", x)),
         };
         Ok(Layer { side:side, t:t, })
     }
@@ -342,12 +350,14 @@ impl fmt::Display for Layer {
         let _ = match self.side {
             LayerSide::Front => write!(f, "F."),
             LayerSide::Back  => write!(f, "B."),
+            LayerSide::Dwgs  => write!(f, "Dwgs."),
         };
         match self.t {
             LayerType::Cu    => write!(f,"Cu"),
             LayerType::Paste => write!(f,"Paste"),
             LayerType::Mask  => write!(f,"Mask"),
             LayerType::SilkS => write!(f,"SilkS"),
+            LayerType::User  => write!(f,"User"),
         }
     }
 }
@@ -373,7 +383,7 @@ impl fmt::Display for Layers {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let len = self.layers.len();
         if len == 0 {
-            return write!(f,"(layers)");
+            return write!(f,"(layers)"); // or nothing?
         }
         try!(write!(f, "(layers"));
         for layer in &self.layers[..] {
@@ -418,6 +428,34 @@ impl Pad {
 impl fmt::Display for Pad {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(f, "(pad {} {} {} {} {} {})", self.name, self.t, self.shape, self.size, self.at, self.layers)
+    }
+}
+
+#[derive(Debug)]
+pub struct FpPoly {
+    pts:Vec<Xy>
+}
+
+impl FpPoly {
+    fn new() -> FpPoly {
+        FpPoly { pts:vec![] }
+    }
+    fn set_pts(&mut self, pts:&Vec<Xy>) {
+        self.pts.clone_from(pts)
+    }
+}
+
+impl fmt::Display for FpPoly {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        let l = self.pts.len();
+        if l == 0 {
+            return Ok(())
+        }
+        try!(write!(f, "(fp_poly (pts"));
+        for x in &self.pts[..] {
+            try!(write!(f, " {}", x))
+        }
+        write!(f, "))")
     }
 }
 
@@ -619,7 +657,15 @@ fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
 }
 
 fn parse_fp_poly(v: &Vec<Sexp>) -> ERes<Element> {
-    Ok(Element::FpPoly)
+    let mut fp_poly = FpPoly::new();
+    let parts = try!(parse_parts(&v[1..]));
+    for part in &parts[..] {
+        match *part {
+            Part::Pts(ref pts) => fp_poly.set_pts(pts),
+            ref x => println!("ignoring {}", x),
+        }
+    } 
+    Ok(Element::FpPoly(fp_poly))
 }
 fn parse_fp_line(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::FpLine)
