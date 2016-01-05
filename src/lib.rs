@@ -319,7 +319,7 @@ impl Layer {
 
 impl fmt::Display for Layer {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        match self.side {
+        let _ = match self.side {
             LayerSide::Front => write!(f, "F."),
             LayerSide::Back  => write!(f, "B."),
         };
@@ -404,9 +404,9 @@ fn parse_part_layer(v: &Vec<Sexp>) -> ERes<Part> {
 
 fn parse_part_effects(v: &Vec<Sexp>) -> ERes<Part> {
     let l = try!(v[1].list());
-    for x in &l[..] {
-        println!("effects el: {}", x)
-    }
+    //for x in &l[..] {
+    //    println!("effects el: {}", x)
+    //}
     let f = try!(try!(l[0].atom()).string());
     if &f[..] != "font" {
         return err("expecting font")
@@ -414,7 +414,7 @@ fn parse_part_effects(v: &Vec<Sexp>) -> ERes<Part> {
     let parts = try!(parse_parts(&l[1..]));
     let mut font = Font::new();
     for part in &parts[..] {
-        println!("part: {}", part);
+        //println!("part: {}", part);
         try!(match *part {
             Part::Xy(ref xy) if xy.t == XyType::Size => {
                 font.size.x = xy.x;
@@ -456,7 +456,7 @@ fn parse_part_xy(t: XyType, v: &Vec<Sexp>) -> ERes<Part> {
 
 fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
     let name = &try!(try!(v[0].atom()).string())[..];
-    println!("name: {}", name);
+    //println!("name: {}", name);
     match name {
         "at" => parse_part_at(v),
         "layer" => parse_part_layer(v),
@@ -491,10 +491,6 @@ fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
     for e in v {
         res.push(try!(parse_part(e)))
     }
-    for x in &res[..] {
-        println!("pp: {}", x)
-    }
-    
     Ok(res)
 }
 
