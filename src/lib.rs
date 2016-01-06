@@ -20,7 +20,7 @@ pub struct Module {
     elements: Vec<Element>
 }
 
-impl Module {
+impl Module { /* ... */
     fn new(name: &String) -> Module {
         Module { name: name.clone(), elements: vec![] }
     }
