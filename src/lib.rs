@@ -8,6 +8,12 @@ extern crate rustysexp;
 use rustysexp::Sexp;
 use rustysexp::Atom;
 
+macro_rules! fail {
+    ($expr:expr) => (
+        return Err(::std::error::FromError::from_error($expr));
+    )
+}
+
 type ERes<T> = Result<T, String>;
 
 fn err<T>(msg: &str) -> ERes<T> {
@@ -443,16 +449,25 @@ impl fmt::Display for Pad {
 
 #[derive(Debug)]
 pub struct FpPoly {
-    pts:Vec<Xy>
+    pts:Vec<Xy>,
+    width:f64,
+    layer:Layer,
 }
 
 impl FpPoly {
     fn new() -> FpPoly {
-        FpPoly { pts:vec![] }
+        FpPoly { pts:vec![], width:0.0, layer:Layer::default() }
     }
     fn set_pts(&mut self, pts:&Vec<Xy>) {
         self.pts.clone_from(pts)
     }
+    fn set_width(&mut self, w:f64) {
+        self.width = w
+    }
+    fn set_layer(&mut self, layer:&Layer) {
+        self.layer.clone_from(layer)
+    }
+    
 }
 
 impl fmt::Display for FpPoly {
@@ -465,7 +480,7 @@ impl fmt::Display for FpPoly {
         for x in &self.pts[..] {
             try!(write!(f, " {}", x))
         }
-        write!(f, "))")
+        write!(f, ") (layer {}) (width {}))", self.layer, self.width)
     }
 }
 
@@ -646,7 +661,7 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
                 fp.set_effects(effects)
             }
             ref x => {
-                println!("ignoring {}", x)
+                println!("fp_text: ignoring {}", x)
             }
         }
     }
@@ -666,7 +681,7 @@ fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
             Part::At(ref at) => pad.set_at(at),
             Part::Xy(ref xy) if xy.t == XyType::Size => pad.set_size(xy),
             Part::Layers(ref l) => pad.set_layers(l),
-            ref x => println!("ignoring {}", x),
+            ref x => println!("pad: ignoring {}", x),
         }
     }
     Ok(Element::Pad(pad))
@@ -678,7 +693,9 @@ fn parse_fp_poly(v: &Vec<Sexp>) -> ERes<Element> {
     for part in &parts[..] {
         match *part {
             Part::Pts(ref pts) => fp_poly.set_pts(pts),
-            ref x => println!("ignoring {}", x),
+            Part::Width(w) => fp_poly.set_width(w),
+            Part::Layer(ref layer) => fp_poly.set_layer(layer),
+            ref x => println!("fp_poly: ignoring {}", x),
         }
     } 
     Ok(Element::FpPoly(fp_poly))
