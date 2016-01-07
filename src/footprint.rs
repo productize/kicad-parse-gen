@@ -708,11 +708,11 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
     //let value = try!(try!(v[1].atom()).string());
     let name = try!(match v[1] {
         Sexp::Atom(Atom::S(ref s)) => Ok(s),
-        ref x => err("expecting name for fp_text")
+        _ => err("expecting name for fp_text")
     });
     let value = try!(match v[2] {
         Sexp::Atom(Atom::Q(ref s)) => Ok(s),
-        ref x => err("expecting value for fp_text")
+        _ => err("expecting value for fp_text")
     });
     let parts = try!(parse_parts(&v[3..]));
     let mut fp = FpText::new(name, value);
