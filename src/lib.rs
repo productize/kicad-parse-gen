@@ -52,7 +52,7 @@ pub enum Element {
     FpText(FpText),
     Pad(Pad),
     FpPoly(FpPoly),
-    FpLine,
+    FpLine(FpLine),
     FpCircle
 }
 
@@ -64,7 +64,7 @@ impl fmt::Display for Element {
             Element::FpText(ref p) => write!(f, "{}", p),
             Element::Pad(ref pad) => write!(f, "{}", pad),
             Element::FpPoly(ref p) => write!(f, "{}", p),
-            Element::FpLine => write!(f, "(fp_line)"),
+            Element::FpLine(ref p) => write!(f, "{}", p),
             Element::FpCircle => write!(f, "(fp_circle)"),
         }
     }
@@ -484,6 +484,40 @@ impl fmt::Display for FpPoly {
     }
 }
 
+#[derive(Debug)]
+pub struct FpLine {
+    start:Xy,
+    end:Xy,
+    layer:Layer,
+    width:f64,
+}
+
+impl FpLine {
+    fn new() -> FpLine {
+        FpLine { start:Xy::new_empty(XyType::Start), end:Xy::new_empty(XyType::End), layer:Layer::default(), width:0.0 }
+    }
+    fn set_start(&mut self, xy:&Xy) {
+        self.start.clone_from(xy)
+    }
+    fn set_end(&mut self, xy:&Xy) {
+        self.end.clone_from(xy)
+    }
+    fn set_layer(&mut self, layer:&Layer) {
+        self.layer.clone_from(layer)
+    }
+    fn set_width(&mut self, w:f64) {
+        self.width = w
+    }
+}
+
+
+impl fmt::Display for FpLine {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(fp_line {} {} (layer {}) (width {}))", self.start, self.end, self.layer, self.width)
+    }
+}
+
+
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
 fn parse_part_at(v: &Vec<Sexp>) -> ERes<Part> {
     match v.len() {
@@ -608,7 +642,7 @@ fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
     let mut res = Vec::new();
     for e in v {
         let p = try!(parse_part(e));
-        println!("{}", p);
+        //println!("{}", p);
         res.push(p);
     }
     Ok(res)
@@ -701,7 +735,18 @@ fn parse_fp_poly(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::FpPoly(fp_poly))
 }
 fn parse_fp_line(v: &Vec<Sexp>) -> ERes<Element> {
-    Ok(Element::FpLine)
+    let mut fp_line = FpLine::new();
+    let parts = try!(parse_parts(&v[1..]));
+    for part in &parts[..] {
+        match *part {
+            Part::Xy(ref xy) if xy.t == XyType::Start => fp_line.set_start(xy),
+            Part::Xy(ref xy) if xy.t == XyType::End => fp_line.set_end(xy),
+            Part::Layer(ref layer) => fp_line.set_layer(layer),
+            Part::Width(w) => fp_line.set_width(w),
+            ref x => println!("fp_line: ignoring {}", x),
+        }
+    }
+    Ok(Element::FpLine(fp_line))
 }
 fn parse_fp_circle(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::FpCircle)
