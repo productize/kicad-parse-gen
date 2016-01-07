@@ -2,8 +2,11 @@
 
 use std;
 use std::fmt;
-use std::fs::File;
-use std::io::Read;
+
+// get from parent
+use ERes;
+use err;
+use read_file;
 
 extern crate rustysexp;
 use self::rustysexp::Sexp;
@@ -13,12 +16,6 @@ macro_rules! fail {
     ($expr:expr) => (
         return Err(::std::error::FromError::from_error($expr));
     )
-}
-
-type ERes<T> = Result<T, String>;
-
-fn err<T>(msg: &str) -> ERes<T> {
-    Err(String::from(msg))
 }
 
 #[derive(Debug)]
@@ -855,14 +852,6 @@ fn parse(s: &str) -> ERes<Module> {
         Ok(s) => parse_module(s),
         Err(x) => Err(format!("IOError: {}", x))
     }
-}
-
-
-fn read_file(name: &str) -> Result<String,std::io::Error> {
-    let mut f = try!(File::open(name));
-    let mut s = String::new();
-    try!(f.read_to_string(&mut s));
-    Ok(s)
 }
 
 pub fn parse_str(s: &str) -> Module {
