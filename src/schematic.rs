@@ -66,10 +66,7 @@ impl ParseState {
 fn parse(s: &str) -> ERes<Schematic> {
     let mut sch = Schematic::new();
     let v:Vec<&str> = s.lines().collect();
-    fn from (x:&&str) -> String {
-        String::from(*x)
-    }
-    let v = v.iter().map(from).collect();
+    let v = v.iter().map(|x| String::from(*x)).collect();
     let mut p = ParseState {i:0, v: v };
     assume_line!(p, "EESchema Schematic File Version 2");
     while !p.eof() {
