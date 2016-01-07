@@ -53,7 +53,7 @@ pub enum Element {
     Pad(Pad),
     FpPoly(FpPoly),
     FpLine(FpLine),
-    FpCircle
+    FpCircle(FpCircle),
 }
 
 impl fmt::Display for Element {
@@ -65,7 +65,7 @@ impl fmt::Display for Element {
             Element::Pad(ref pad) => write!(f, "{}", pad),
             Element::FpPoly(ref p) => write!(f, "{}", p),
             Element::FpLine(ref p) => write!(f, "{}", p),
-            Element::FpCircle => write!(f, "(fp_circle)"),
+            Element::FpCircle(ref p) => write!(f, "{}", p),
         }
     }
 }
@@ -189,6 +189,7 @@ pub enum XyType {
     Start,
     End,
     Size,
+    Center,
 }
 
 #[derive(Clone)]
@@ -215,6 +216,7 @@ impl fmt::Display for Xy {
             XyType::Start => write!(f,"(start {} {})", self.x, self.y),
             XyType::End => write!(f,"(end {} {})", self.x, self.y),
             XyType::Size => write!(f,"(size {} {})", self.x, self.y),
+            XyType::Center => write!(f,"(center {} {})", self.x, self.y),
         }
     }
 }
@@ -517,6 +519,38 @@ impl fmt::Display for FpLine {
     }
 }
 
+impl FpCircle {
+    fn new() -> FpCircle {
+        FpCircle { center:Xy::new_empty(XyType::Center), end:Xy::new_empty(XyType::End), layer:Layer::default(), width:0.0 }
+    }
+    fn set_center(&mut self, xy:&Xy) {
+        self.center.clone_from(xy)
+    }
+    fn set_end(&mut self, xy:&Xy) {
+        self.end.clone_from(xy)
+    }
+    fn set_layer(&mut self, layer:&Layer) {
+        self.layer.clone_from(layer)
+    }
+    fn set_width(&mut self, w:f64) {
+        self.width = w
+    }
+}
+
+#[derive(Debug)]
+pub struct FpCircle {
+    center:Xy,
+    end:Xy,
+    layer:Layer,
+    width:f64,
+}
+
+impl fmt::Display for FpCircle {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(fp_circle {} {} (layer {}) (width {}))", self.center, self.end, self.layer, self.width)
+    }
+}
+
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
 fn parse_part_at(v: &Vec<Sexp>) -> ERes<Part> {
@@ -619,6 +653,7 @@ fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
         "start" => parse_part_xy(XyType::Start, v),
         "end" => parse_part_xy(XyType::End, v),
         "size" => parse_part_xy(XyType::Size, v),
+        "center" => parse_part_xy(XyType::Center, v),
         "pts" => parse_part_pts(v),
         "thickness" => parse_part_thickness(v),
         x => Err(format!("unknown part {}", x))
@@ -749,7 +784,18 @@ fn parse_fp_line(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::FpLine(fp_line))
 }
 fn parse_fp_circle(v: &Vec<Sexp>) -> ERes<Element> {
-    Ok(Element::FpCircle)
+    let mut fp_circle = FpCircle::new();
+    let parts = try!(parse_parts(&v[1..]));
+    for part in &parts[..] {
+        match *part {
+            Part::Xy(ref xy) if xy.t == XyType::Center => fp_circle.set_center(xy),
+            Part::Xy(ref xy) if xy.t == XyType::End => fp_circle.set_end(xy),
+            Part::Layer(ref layer) => fp_circle.set_layer(layer),
+            Part::Width(w) => fp_circle.set_width(w),
+            ref x => println!("fp_circle: ignoring {}", x),
+        }
+    }
+    Ok(Element::FpCircle(fp_circle))
 }
 
 fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
