@@ -1,7 +1,7 @@
 [package]
 name = "rustykicad"
 version = "0.1.0"
-authors = ["Joost Damad <joost@damad.be>"]
+authors = ["Joost Damad <joost@productize.be>"]
 
 [dependencies.rustysexp]
-git = "git://github.com/andete/rust_sexp.git"
+git = "git://github.com/andete/rustys-exp.git"
