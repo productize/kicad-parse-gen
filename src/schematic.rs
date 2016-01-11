@@ -34,8 +34,6 @@ impl Schematic {
     fn append_component(&mut self, c:Component) {
         self.components.push(c)
     }
-    
-    
 }
 
 impl fmt::Display for Schematic {
@@ -71,22 +69,23 @@ struct ParseState {
 }
 
 impl ParseState {
+    fn new(v2:Vec<&str>) -> ParseState {
+        ParseState {
+            i:0,
+            v:v2.iter().map(|x| String::from(*x)).collect(),
+        }
+    }
+    
     fn here(&self) -> &String {
         return &self.v[self.i]
     }
 
-    fn next(&mut self) -> () {
-        self.i += 1
+    fn next(&mut self) {
+        self.i += 1;
     }
 
     fn eof(&self) -> bool {
         self.i >= self.v.len()
-    }
-    fn parse_description(&mut self) -> ERes<Description> {
-        Ok(Description::new())
-    }
-    fn parse_component(&mut self) -> ERes<Component> {
-        Ok(Component::new())
     }
 }
 
@@ -132,12 +131,18 @@ impl fmt::Display for Component {
     }
 }
 
+fn parse_description(p:&mut ParseState) -> ERes<Description> {
+    Ok(Description::new())
+}
+
+fn parse_component(p:&mut ParseState) -> ERes<Component> {
+    Ok(Component::new())
+}
 
 fn parse(s: &str) -> ERes<Schematic> {
     let mut sch = Schematic::new();
     let v:Vec<&str> = s.lines().collect();
-    let v = v.iter().map(|x| String::from(*x)).collect();
-    let mut p = ParseState {i:0, v: v };
+    let p = &mut ParseState::new(v);
     assume_line!(p, "EESchema Schematic File Version 2");
     while !p.eof() {
         {
@@ -152,16 +157,20 @@ fn parse(s: &str) -> ERes<Schematic> {
     assume_line!(p, "EELAYER 25 0");
     assume_line!(p, "EELAYER END");
     while !p.eof() {
-        match &p.here()[..] {
-            "$Descr" => {
-                let d = try!(p.parse_description());
-                sch.set_description(&d)
-            },
-            "$Comp" => {
-                let c = try!(p.parse_component());
-                sch.append_component(c)
-            },
-            _ => println!("TODO: parse other")
+        {
+            match &p.here()[..] {
+                "$Descr" => {
+                    let d = try!(parse_description(p));
+                    sch.set_description(&d)
+                },
+                "$Comp" => {
+                    let d = try!(parse_component(p));
+                    sch.append_component(d)
+                },
+                _ => {
+                    println!("TODO other parts");
+                }
+            }
         }
         p.next()
     }
