@@ -262,7 +262,7 @@ fn parse_description(p:&mut ParseState) -> ERes<Description> {
     d.set_dimy(try!(i64_from_string(&v[3])));
     p.next(); // $Descr
     p.next(); // encoding
-    try!(assume_string("Sheet 1 1", &p.here()));
+    try!(assume_string("Sheet 1 1", &p.here())); // TODO
     p.next(); // Sheet
     try!(word_and_qstring(&mut d, "Title", &p.here(), |d, x| d.set_title(x)));
     p.next();
