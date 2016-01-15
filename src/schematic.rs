@@ -235,6 +235,9 @@ impl fmt::Display for Component {
         try!(writeln!(f, "L {} {}", self.name, self.reference));
         try!(writeln!(f, "{}", self.u));
         try!(writeln!(f, "P {} {}", self.x, self.y));
+        for x in &self.fields[..] {
+            try!(writeln!(f, "{}", x))
+        }
         writeln!(f, "$EndComp")
     }
 }
@@ -253,6 +256,15 @@ impl Orientation {
             _ => Err(format!("unknown orientation {}", c))
         }
         
+    }
+}
+
+impl fmt::Display for Orientation {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            Orientation::Horizontal => write!(f, "H"),
+            Orientation::Vertical => write!(f, "V"),
+        }
     }
 }
 
@@ -278,6 +290,19 @@ impl Justify {
         }
     }
 }
+
+impl fmt::Display for Justify {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            Justify::Left => write!(f, "L"),
+            Justify::Right => write!(f, "R"),
+            Justify::Center => write!(f, "C"),
+            Justify::Bottom => write!(f, "B"),
+            Justify::Top => write!(f, "T"),
+        }
+    }
+}
+
 
 
 #[derive(Debug)]
@@ -323,6 +348,22 @@ impl ComponentField {
         Ok(c)
     }
 }
+
+impl fmt::Display for ComponentField {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(write!(f, "F {} \"{}\" {} ", self.i, self.value, self.orientation));
+        try!(write!(f, "{} {} {} ", self.x, self.y, self.size));
+        try!(write!(f, "{} ", if self.visible { "0000" } else { "0001" }));
+        try!(write!(f, "{} {}", self.hjustify, self.vjustify));
+        try!(write!(f, "{}", if self.italic { 'I' } else { 'N' }));
+        try!(write!(f, "{}", if self.bold { 'B' } else { 'N' }));
+        match self.name {
+            Some(ref name) => write!(f, " \"{}\"", name),
+            None => Ok(()),
+        }
+    }
+}
+
 
 fn char_at(s:&String, p:usize) -> char {
     let v:Vec<char> = s.chars().collect();
@@ -409,8 +450,6 @@ fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> ERes<bool> {
     }
     Err(format!("unknown boolean {}, expected {} or {}", i, t, f))
 }
-
-
 
 // this is not perfect
 fn unquote_string(s:&String) -> ERes<String> {
