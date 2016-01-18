@@ -177,7 +177,7 @@ impl fmt::Display for Element {
 }
 
 #[derive(Debug)]
-struct Component {
+pub struct Component {
     name:String,
     reference:String,
     u:String, // TODO
@@ -239,7 +239,7 @@ impl fmt::Display for Component {
 }
 
 #[derive(Debug)]
-struct ComponentRotation  {
+pub struct ComponentRotation  {
     a:i64,
     b:i64,
     c:i64,
@@ -247,7 +247,7 @@ struct ComponentRotation  {
 }
 
 #[derive(Debug)]
-enum Orientation {
+pub enum Orientation {
     Horizontal,
     Vertical
 }
@@ -274,7 +274,7 @@ impl fmt::Display for Orientation {
 
 
 #[derive(Debug)]
-enum Justify {
+pub enum Justify {
     Left,
     Right,
     Center,
@@ -310,7 +310,7 @@ impl fmt::Display for Justify {
 
 
 #[derive(Debug)]
-struct ComponentField {
+pub struct ComponentField {
     i:i64,
     value:String,
     orientation:Orientation,
