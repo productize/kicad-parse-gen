@@ -24,12 +24,12 @@ impl Schematic {
         }
     }
 
-    fn add_library(&mut self, s:&str) {
-        self.libraries.push(String::from(s))
+    fn add_library(&mut self, s:String) {
+        self.libraries.push(s)
     }
 
-    fn set_description(&mut self, d:&Description) {
-        self.description.clone_from(d)
+    fn set_description(&mut self, d:Description) {
+        self.description = d;
     }
 
     fn append_component(&mut self, c:Component) {
@@ -134,8 +134,8 @@ impl Description {
             comment4:String::from(""),
         }
     }
-    fn set_size(&mut self, s:&String) {
-        self.size.clone_from(s)
+    fn set_size(&mut self, s:String) {
+        self.size = s;
     }
     fn set_dimx(&mut self, i:i64) {
         self.dimx = i;
@@ -143,29 +143,29 @@ impl Description {
     fn set_dimy(&mut self, i:i64) {
         self.dimy = i;
     }
-    fn set_title(&mut self, s:&String) {
-        self.title.clone_from(s)
+    fn set_title(&mut self, s:String) {
+        self.title = s;
     }
-    fn set_date(&mut self, s:&String) {
-        self.date.clone_from(s)
+    fn set_date(&mut self, s:String) {
+        self.date = s;
     }
-    fn set_rev(&mut self, s:&String) {
-        self.rev.clone_from(s)
+    fn set_rev(&mut self, s:String) {
+        self.rev = s;
     }
-    fn set_comp(&mut self, s:&String) {
-        self.comp.clone_from(s)
+    fn set_comp(&mut self, s:String) {
+        self.comp = s;
     }
-    fn set_comment1(&mut self, s:&String) {
-        self.comment1.clone_from(s)
+    fn set_comment1(&mut self, s:String) {
+        self.comment1 = s;
     }
-    fn set_comment2(&mut self, s:&String) {
-        self.comment2.clone_from(s)
+    fn set_comment2(&mut self, s:String) {
+        self.comment2 = s;
     }
-    fn set_comment3(&mut self, s:&String) {
-        self.comment3.clone_from(s)
+    fn set_comment3(&mut self, s:String) {
+        self.comment3 = s;
     }
-    fn set_comment4(&mut self, s:&String) {
-        self.comment4.clone_from(s)
+    fn set_comment4(&mut self, s:String) {
+        self.comment4 = s;
     }
 }
 
@@ -479,11 +479,11 @@ fn unquote_string(s:&String) -> ERes<String> {
 
 
 fn word_and_qstring<F>(d:&mut Description, name:&'static str, s:&String, setter:F) -> ERes<()>
-    where F:Fn(&mut Description, &String) -> ()
+    where F:Fn(&mut Description, String) -> ()
 {
     let v = try!(parse_split_n(2, s));
     try!(assume_string(name, &v[0]));
-    setter(d, &try!(unquote_string(&v[1])));
+    setter(d, try!(unquote_string(&v[1])));
     Ok(())
 }
     
@@ -491,7 +491,7 @@ fn word_and_qstring<F>(d:&mut Description, name:&'static str, s:&String, setter:
 fn parse_description(p:&mut ParseState) -> ERes<Description> {
     let mut d = Description::new();
     let v = try!(parse_split_n(4, &p.here()));
-    d.set_size(&v[1]);
+    d.set_size(v[1].clone());
     d.set_dimx(try!(i64_from_string(&v[2])));
     d.set_dimy(try!(i64_from_string(&v[3])));
     p.next(); // $Descr
@@ -594,7 +594,7 @@ fn parse(s: &str) -> ERes<Schematic> {
           if !s.starts_with("LIBS:") {
               break
           }
-            sch.add_library(&s[5..]);
+            sch.add_library(String::from(&s[5..]));
         }
         p.next();
     }
@@ -605,7 +605,7 @@ fn parse(s: &str) -> ERes<Schematic> {
             match p.here().split_whitespace().next() {
                 Some("$Descr") => {
                     let d = try!(parse_description(p));
-                    sch.set_description(&d)
+                    sch.set_description(d)
                 },
                 Some("$Comp") => {
                     let d = try!(parse_component(p));
