@@ -39,6 +39,17 @@ impl Schematic {
     fn append_other(&mut self, c:String) {
         self.elements.push(Element::Other(c))
     }
+
+    fn components(&self) -> Vec<&Component> {
+        let mut v = vec![];
+        for ref x in self.elements.iter() {
+            match **x {
+                Element::Component(ref c) => v.push(c),
+                Element::Other(_) => (),
+            }
+        }
+        v
+    }
 }
 
 impl fmt::Display for Schematic {
