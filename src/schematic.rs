@@ -162,7 +162,7 @@ impl fmt::Display for Description {
 }
 
 #[derive(Debug)]
-enum Element {
+pub enum Element {
     Component(Component),
     Other(String),
 }
