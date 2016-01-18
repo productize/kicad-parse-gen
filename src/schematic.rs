@@ -40,7 +40,7 @@ impl Schematic {
         self.elements.push(Element::Other(c))
     }
 
-    fn components(&self) -> Vec<&Component> {
+    pub fn components(&self) -> Vec<&Component> {
         let mut v = vec![];
         for ref x in self.elements.iter() {
             match **x {
