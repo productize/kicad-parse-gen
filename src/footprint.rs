@@ -853,12 +853,15 @@ fn parse(s: &str) -> ERes<Module> {
     }
 }
 
-pub fn parse_str(s: &str) -> Module {
-    parse(s).unwrap()
+pub fn parse_str(s: &str) -> ERes<Module> {
+    parse(s)
 }
 
-pub fn parse_file(name: &str) -> Module {
-    let s = read_file(name).unwrap();
-    parse(&s[..]).unwrap()
+pub fn parse_file(name: &str) -> ERes<Module> {
+    let s = try!(match read_file(name) {
+        Ok(s) => Ok(s),
+        Err(x) => Err(format!("io error: {}", x))
+    });
+    parse(&s[..])
 }
 
