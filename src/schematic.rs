@@ -12,7 +12,7 @@ use read_file;
 pub struct Schematic {
     libraries:Vec<String>,
     description:Description,
-    components:Vec<Component>,
+    elements:Vec<Element>,
 }
 
 impl Schematic {
@@ -20,7 +20,7 @@ impl Schematic {
         Schematic {
             libraries:vec![],
             description:Description::new(),
-            components:vec![],
+            elements:vec![],
         }
     }
 
@@ -33,7 +33,11 @@ impl Schematic {
     }
 
     fn append_component(&mut self, c:Component) {
-        self.components.push(c)
+        self.elements.push(Element::Component(c))
+    }
+    
+    fn append_other(&mut self, c:String) {
+        self.elements.push(Element::Other(c))
     }
 }
 
@@ -44,7 +48,7 @@ impl fmt::Display for Schematic {
             try!(writeln!(f, "LIBS:{}", v))
         }
         try!(write!(f, "{}", self.description));
-        for v in &self.components[..] {
+        for v in &self.elements[..] {
             try!(write!(f, "{}", v))
         }
         Ok(())
@@ -183,6 +187,21 @@ impl fmt::Display for Description {
         try!(writeln!(f, "Comment3 \"{}\"", self.comment3));
         try!(writeln!(f, "Comment4 \"{}\"", self.comment4));
         writeln!(f, "$EndDescr")
+    }
+}
+
+#[derive(Debug)]
+enum Element {
+    Component(Component),
+    Other(String),
+}
+
+impl fmt::Display for Element {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            Element::Component(ref c) => write!(f, "{}", c),
+            Element::Other(ref c) => write!(f, "{}", c),
+        }
     }
 }
 
