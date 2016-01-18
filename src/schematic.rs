@@ -200,7 +200,7 @@ impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
             Element::Component(ref c) => write!(f, "{}", c),
-            Element::Other(ref c) => write!(f, "{}", c),
+            Element::Other(ref c) => write!(f, "{}\n", c),
         }
     }
 }
@@ -631,7 +631,7 @@ fn parse(s: &str) -> ERes<Schematic> {
                     sch.append_component(d)
                 },
                 Some(_) => {
-                    //println!("TODO other parts: {}", x);
+                    sch.append_other(p.here())
                 },
                 None => unreachable!()
             }
