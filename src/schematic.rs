@@ -10,8 +10,8 @@ use read_file;
 
 #[derive(Debug)]
 pub struct Schematic {
-    libraries:Vec<String>,
-    description:Description,
+    pub libraries:Vec<String>,
+    pub description:Description,
     pub elements:Vec<Element>,
 }
 
@@ -111,18 +111,18 @@ $EndDesc
 */
 #[derive(Debug,Clone)]
 pub struct Description {
-    size:String,
-    dimx:i64,
-    dimy:i64,
-    title:String,
-    date:String,
-    rev:String,
-    comp:String,
-    comment1:String,
-    comment2:String,
-    comment3:String,
-    comment4:String,
-    sheet:i64,
+    pub size:String,
+    pub dimx:i64,
+    pub dimy:i64,
+    pub title:String,
+    pub date:String,
+    pub rev:String,
+    pub comp:String,
+    pub comment1:String,
+    pub comment2:String,
+    pub comment3:String,
+    pub comment4:String,
+    pub sheet:i64,
 }
 
 impl Description {
@@ -178,13 +178,13 @@ impl fmt::Display for Element {
 
 #[derive(Debug)]
 pub struct Component {
-    name:String,
-    reference:String,
-    u:String, // TODO
-    x:f64,
-    y:f64,
-    fields:Vec<ComponentField>,
-    rotation:ComponentRotation,
+    pub name:String,
+    pub reference:String,
+    pub u:String, // TODO
+    pub x:f64,
+    pub y:f64,
+    pub fields:Vec<ComponentField>,
+    pub rotation:ComponentRotation,
 }
 
 impl Component {
