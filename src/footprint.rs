@@ -24,8 +24,8 @@ pub struct Module {
 }
 
 impl Module {
-    fn new(name: &String) -> Module {
-        Module { name: name.clone(), elements: vec![] }
+    fn new(name: String) -> Module {
+        Module { name: name, elements: vec![] }
     }
     fn append(&mut self, e: Element) {
         self.elements.push(e)
@@ -78,18 +78,15 @@ pub struct FpText {
 }
 
 impl FpText {
-    fn new(name: &String, value: &String) -> FpText {
+    fn new(name: String, value: String) -> FpText {
         FpText {
-            name: name.clone(),
-            value: value.clone(),
-            at: At::new(0.,0.,0.),
+            name: name,
+            value: value,
+            at: At::new_empty(),
             layer: Layer::default(),
             effects: Effects::new(),
             hide: false
         }
-    }
-    fn set_at(&mut self, at: &At) {
-        self.at.set(at)
     }
     fn set_effects(&mut self, effects: &Effects) {
         self.effects.clone_from(effects)
@@ -119,11 +116,6 @@ impl At {
     }
     fn new_empty() -> At {
         At { x:0.0, y:0.0, rot:0.0 }
-    }
-    fn set(&mut self, at: &At) {
-        self.x = at.x;
-        self.y = at.y;
-        self.rot = at.rot;
     }
 }
 
@@ -240,7 +232,7 @@ impl Part {
     }
 }
 
-
+// as parts are intermediate only Display doesn't really matter
 impl fmt::Display for Part {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
@@ -429,15 +421,6 @@ impl Pad {
             layers: Layers::new(),
         }
     }
-    fn set_at(&mut self, at:&At) {
-        self.at.clone_from(at)
-    }
-    fn set_size(&mut self, size:&Xy) {
-        self.size.clone_from(size)
-    }
-    fn set_layers(&mut self, l:&Layers) {
-        self.layers.clone_from(l)
-    }
 }
 
 impl fmt::Display for Pad {
@@ -457,16 +440,6 @@ impl FpPoly {
     fn new() -> FpPoly {
         FpPoly { pts:vec![], width:0.0, layer:Layer::default() }
     }
-    fn set_pts(&mut self, pts:&Vec<Xy>) {
-        self.pts.clone_from(pts)
-    }
-    fn set_width(&mut self, w:f64) {
-        self.width = w
-    }
-    fn set_layer(&mut self, layer:&Layer) {
-        self.layer.clone_from(layer)
-    }
-    
 }
 
 impl fmt::Display for FpPoly {
@@ -495,18 +468,6 @@ impl FpLine {
     fn new() -> FpLine {
         FpLine { start:Xy::new_empty(XyType::Start), end:Xy::new_empty(XyType::End), layer:Layer::default(), width:0.0 }
     }
-    fn set_start(&mut self, xy:&Xy) {
-        self.start.clone_from(xy)
-    }
-    fn set_end(&mut self, xy:&Xy) {
-        self.end.clone_from(xy)
-    }
-    fn set_layer(&mut self, layer:&Layer) {
-        self.layer.clone_from(layer)
-    }
-    fn set_width(&mut self, w:f64) {
-        self.width = w
-    }
 }
 
 
@@ -519,18 +480,6 @@ impl fmt::Display for FpLine {
 impl FpCircle {
     fn new() -> FpCircle {
         FpCircle { center:Xy::new_empty(XyType::Center), end:Xy::new_empty(XyType::End), layer:Layer::default(), width:0.0 }
-    }
-    fn set_center(&mut self, xy:&Xy) {
-        self.center.clone_from(xy)
-    }
-    fn set_end(&mut self, xy:&Xy) {
-        self.end.clone_from(xy)
-    }
-    fn set_layer(&mut self, layer:&Layer) {
-        self.layer.clone_from(layer)
-    }
-    fn set_width(&mut self, w:f64) {
-        self.width = w
     }
 }
 
@@ -711,11 +660,11 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
         _ => err("expecting value for fp_text")
     });
     let parts = try!(parse_parts(&v[3..]));
-    let mut fp = FpText::new(name, value);
+    let mut fp = FpText::new(name.clone(), value.clone());
     for part in &parts[..] {
         match *part {
             Part::At(ref at) => {
-                fp.set_at(at)
+                fp.at.clone_from(at)
             },
             Part::Layer(ref layer) => {
                 fp.set_layer(layer)
@@ -744,9 +693,9 @@ fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
     let parts = try!(parse_parts(&v[4..]));
     for part in &parts[..] {
         match *part {
-            Part::At(ref at) => pad.set_at(at),
-            Part::Xy(ref xy) if xy.t == XyType::Size => pad.set_size(xy),
-            Part::Layers(ref l) => pad.set_layers(l),
+            Part::At(ref at) => pad.at.clone_from(at),
+            Part::Xy(ref xy) if xy.t == XyType::Size => pad.size.clone_from(xy),
+            Part::Layers(ref l) => pad.layers.clone_from(l),
             ref x => println!("pad: ignoring {}", x),
         }
     }
@@ -758,9 +707,9 @@ fn parse_fp_poly(v: &Vec<Sexp>) -> ERes<Element> {
     let parts = try!(parse_parts(&v[1..]));
     for part in &parts[..] {
         match *part {
-            Part::Pts(ref pts) => fp_poly.set_pts(pts),
-            Part::Width(w) => fp_poly.set_width(w),
-            Part::Layer(ref layer) => fp_poly.set_layer(layer),
+            Part::Pts(ref pts) => fp_poly.pts.clone_from(pts),
+            Part::Width(w) => fp_poly.width = w,
+            Part::Layer(ref layer) => fp_poly.layer.clone_from(layer),
             ref x => println!("fp_poly: ignoring {}", x),
         }
     } 
@@ -771,10 +720,10 @@ fn parse_fp_line(v: &Vec<Sexp>) -> ERes<Element> {
     let parts = try!(parse_parts(&v[1..]));
     for part in &parts[..] {
         match *part {
-            Part::Xy(ref xy) if xy.t == XyType::Start => fp_line.set_start(xy),
-            Part::Xy(ref xy) if xy.t == XyType::End => fp_line.set_end(xy),
-            Part::Layer(ref layer) => fp_line.set_layer(layer),
-            Part::Width(w) => fp_line.set_width(w),
+            Part::Xy(ref xy) if xy.t == XyType::Start => fp_line.start.clone_from(xy),
+            Part::Xy(ref xy) if xy.t == XyType::End => fp_line.end.clone_from(xy),
+            Part::Layer(ref layer) => fp_line.layer.clone_from(layer),
+            Part::Width(w) => fp_line.width = w,
             ref x => println!("fp_line: ignoring {}", x),
         }
     }
@@ -785,10 +734,10 @@ fn parse_fp_circle(v: &Vec<Sexp>) -> ERes<Element> {
     let parts = try!(parse_parts(&v[1..]));
     for part in &parts[..] {
         match *part {
-            Part::Xy(ref xy) if xy.t == XyType::Center => fp_circle.set_center(xy),
-            Part::Xy(ref xy) if xy.t == XyType::End => fp_circle.set_end(xy),
-            Part::Layer(ref layer) => fp_circle.set_layer(layer),
-            Part::Width(w) => fp_circle.set_width(w),
+            Part::Xy(ref xy) if xy.t == XyType::Center => fp_circle.center.clone_from(xy),
+            Part::Xy(ref xy) if xy.t == XyType::End => fp_circle.end.clone_from(xy),
+            Part::Layer(ref layer) => fp_circle.layer.clone_from(layer),
+            Part::Width(w) => fp_circle.width = w,
             ref x => println!("fp_circle: ignoring {}", x),
         }
     }
@@ -825,7 +774,7 @@ fn parse_module_list(v: &Vec<Sexp>) -> ERes<Module> {
         Sexp::Atom(Atom::S(ref s)) if s == "module" => {
             match v[1] {
                 Sexp::Atom(Atom::S(ref s)) => {
-                    Ok(Module::new(s))
+                    Ok(Module::new(s.clone()))
                 }
                 ref x => return Err(format!("expecting module name got {}", x))
             }
