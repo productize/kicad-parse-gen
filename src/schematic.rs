@@ -210,14 +210,14 @@ impl Component {
         }
     }
 
-    fn set_name(&mut self, s:&String) {
-        self.name.clone_from(s)
+    fn set_name(&mut self, s:String) {
+        self.name = s;
     }
-    fn set_reference(&mut self, s:&String) {
-        self.reference.clone_from(s)
+    fn set_reference(&mut self, s:String) {
+        self.reference = s;
     }
-    fn set_u(&mut self, s:&String) {
-        self.u.clone_from(s)
+    fn set_u(&mut self, s:String) {
+        self.u = s;
     }
     fn set_x(&mut self, x:f64) {
         self.x = x
@@ -520,13 +520,13 @@ fn parse_description(p:&mut ParseState) -> ERes<Description> {
 
 fn parse_component_l(p:&mut ParseState, d:&mut Component) -> ERes<()> {
     let v = try!(parse_split_n(3, &p.here()));
-    d.set_name(&v[1]);
-    d.set_reference(&v[2]);
+    d.set_name(v[1].clone());
+    d.set_reference(v[2].clone());
     Ok(())
 }
 
 fn parse_component_u(p:&mut ParseState, d:&mut Component) -> ERes<()> {
-    d.set_u(&p.here());
+    d.set_u(p.here());
     Ok(())
 }
 
@@ -623,12 +623,15 @@ fn parse(s: &str) -> ERes<Schematic> {
 }
 
 
-pub fn parse_str(s: &str) -> Schematic {
-    parse(s).unwrap()
+pub fn parse_str(s: &str) -> ERes<Schematic> {
+    parse(s)
 }
 
-pub fn parse_file(name: &str) -> Schematic {
-    let s = read_file(name).unwrap();
-    parse(&s[..]).unwrap()
+pub fn parse_file(name: &str) -> ERes<Schematic> {
+    let s = try!(match read_file(name) {
+        Ok(s) => Ok(s),
+        Err(x) => Err(format!("io error: {}", x))
+    });
+    parse(&s[..])
 }
 

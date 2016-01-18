@@ -3,6 +3,6 @@
 extern crate rustykicad;
 
 fn main() {
-    let s = rustykicad::schematic::parse_file("../examples/hgminiUSBC.sch");
+    let s = rustykicad::schematic::parse_file("../examples/hgminiUSBC.sch").unwrap();
     println!("{}", s);
 }
