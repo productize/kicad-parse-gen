@@ -12,7 +12,7 @@ use read_file;
 pub struct Schematic {
     libraries:Vec<String>,
     description:Description,
-    elements:Vec<Element>,
+    pub elements:Vec<Element>,
 }
 
 impl Schematic {
