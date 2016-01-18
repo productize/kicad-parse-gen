@@ -47,6 +47,8 @@ impl fmt::Display for Schematic {
         for v in &self.libraries[..] {
             try!(writeln!(f, "LIBS:{}", v))
         }
+        try!(writeln!(f, "EELAYER 25 0"));
+        try!(writeln!(f, "EELAYER END"));
         try!(write!(f, "{}", self.description));
         for v in &self.elements[..] {
             try!(write!(f, "{}", v))
@@ -120,6 +122,7 @@ pub struct Description {
     comment2:String,
     comment3:String,
     comment4:String,
+    sheet:i64,
 }
 
 impl Description {
@@ -136,40 +139,8 @@ impl Description {
             comment2:String::from(""),
             comment3:String::from(""),
             comment4:String::from(""),
+            sheet:1,
         }
-    }
-    fn set_size(&mut self, s:String) {
-        self.size = s;
-    }
-    fn set_dimx(&mut self, i:i64) {
-        self.dimx = i;
-    }
-    fn set_dimy(&mut self, i:i64) {
-        self.dimy = i;
-    }
-    fn set_title(&mut self, s:String) {
-        self.title = s;
-    }
-    fn set_date(&mut self, s:String) {
-        self.date = s;
-    }
-    fn set_rev(&mut self, s:String) {
-        self.rev = s;
-    }
-    fn set_comp(&mut self, s:String) {
-        self.comp = s;
-    }
-    fn set_comment1(&mut self, s:String) {
-        self.comment1 = s;
-    }
-    fn set_comment2(&mut self, s:String) {
-        self.comment2 = s;
-    }
-    fn set_comment3(&mut self, s:String) {
-        self.comment3 = s;
-    }
-    fn set_comment4(&mut self, s:String) {
-        self.comment4 = s;
     }
 }
 
@@ -177,7 +148,7 @@ impl fmt::Display for Description {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(writeln!(f, "$Descr {} {} {}", self.size, self.dimx, self.dimy));
         try!(writeln!(f, "encoding utf-8"));
-        try!(writeln!(f, "Sheet 1 1")); // TODO: handle sheet
+        try!(writeln!(f, "Sheet 1 {}", self.sheet));
         try!(writeln!(f, "Title \"{}\"", self.title));
         try!(writeln!(f, "Date \"{}\"", self.date));
         try!(writeln!(f, "Rev \"{}\"", self.rev));
@@ -510,28 +481,31 @@ fn word_and_qstring<F>(d:&mut Description, name:&'static str, s:&String, setter:
 fn parse_description(p:&mut ParseState) -> ERes<Description> {
     let mut d = Description::new();
     let v = try!(parse_split_n(4, &p.here()));
-    d.set_size(v[1].clone());
-    d.set_dimx(try!(i64_from_string(&v[2])));
-    d.set_dimy(try!(i64_from_string(&v[3])));
+    d.size = v[1].clone();
+    d.dimx = try!(i64_from_string(&v[2]));
+    d.dimy = try!(i64_from_string(&v[3]));
     p.next(); // $Descr
     p.next(); // encoding
-    try!(assume_string("Sheet 1 1", &p.here())); // TODO
+    let v = try!(parse_split_n(3, &p.here()));
+    if v[0] != "Sheet" { return Err(String::from("Expecting 'Sheet'")) };
+    if v[1] != "1" { return Err(String::from("Expecting 'Sheet 1'")) };
+    d.sheet = try!(i64_from_string(&v[2]));
     p.next(); // Sheet
-    try!(word_and_qstring(&mut d, "Title", &p.here(), |d, x| d.set_title(x)));
+    try!(word_and_qstring(&mut d, "Title", &p.here(), |d, x| d.title = x));
     p.next();
-    try!(word_and_qstring(&mut d, "Date", &p.here(), |d, x| d.set_date(x)));
+    try!(word_and_qstring(&mut d, "Date", &p.here(), |d, x| d.date = x));
     p.next();
-    try!(word_and_qstring(&mut d, "Rev", &p.here(), |d, x| d.set_rev(x)));
+    try!(word_and_qstring(&mut d, "Rev", &p.here(), |d, x| d.rev = x));
     p.next();
-    try!(word_and_qstring(&mut d, "Comp", &p.here(), |d, x| d.set_comp(x)));
+    try!(word_and_qstring(&mut d, "Comp", &p.here(), |d, x| d.comp = x));
     p.next();
-    try!(word_and_qstring(&mut d, "Comment1", &p.here(), |d, x| d.set_comment1(x)));
+    try!(word_and_qstring(&mut d, "Comment1", &p.here(), |d, x| d.comment1 = x));
     p.next();
-    try!(word_and_qstring(&mut d, "Comment2", &p.here(), |d, x| d.set_comment2(x)));
+    try!(word_and_qstring(&mut d, "Comment2", &p.here(), |d, x| d.comment2 = x));
     p.next();
-    try!(word_and_qstring(&mut d, "Comment3", &p.here(), |d, x| d.set_comment3(x)));
+    try!(word_and_qstring(&mut d, "Comment3", &p.here(), |d, x| d.comment3 = x));
     p.next();
-    try!(word_and_qstring(&mut d, "Comment4", &p.here(), |d, x| d.set_comment4(x)));
+    try!(word_and_qstring(&mut d, "Comment4", &p.here(), |d, x| d.comment4 = x));
     p.next();
     try!(assume_string("$EndDescr", &p.here()));
     Ok(d)
