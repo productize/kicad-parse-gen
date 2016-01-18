@@ -194,6 +194,7 @@ struct Component {
     x:f64,
     y:f64,
     fields:Vec<ComponentField>,
+    rotation:ComponentRotation,
 }
 
 impl Component {
@@ -205,6 +206,7 @@ impl Component {
             x:0.0,
             y:0.0,
             fields:vec![],
+            rotation:ComponentRotation {a:0,b:0,c:0,d:0},
         }
     }
 
@@ -226,7 +228,9 @@ impl Component {
     fn add_field(&mut self, f:ComponentField) {
         self.fields.push(f)
     }
-    
+    fn set_rotation(&mut self, rot:ComponentRotation) {
+        self.rotation = rot;
+    }
 }
 
 impl fmt::Display for Component {
@@ -238,8 +242,18 @@ impl fmt::Display for Component {
         for x in &self.fields[..] {
             try!(writeln!(f, "{}", x))
         }
+        try!(writeln!(f, "\t1 {} {}", self.x, self.y));
+        try!(writeln!(f, "\t{} {} {} {}", self.rotation.a, self.rotation.b, self.rotation.c, self.rotation.d));
         writeln!(f, "$EndComp")
     }
+}
+
+#[derive(Debug)]
+struct ComponentRotation  {
+    a:i64,
+    b:i64,
+    c:i64,
+    d:i64
 }
 
 #[derive(Debug)]
@@ -531,6 +545,21 @@ fn parse_component_f(p:&mut ParseState, d:&mut Component) -> ERes<()> {
     Ok(())
 }
 
+fn parse_component_rotation(p:&mut ParseState, d:&mut Component) -> ERes<()> {
+    p.next(); // skip redundant position line
+    let s = p.here();
+    let v:Vec<&str> = s.split_whitespace().collect();
+    if v.len() != 4 {
+        return Err(format!("expecting 4 elements in {}", s))
+    }
+    let a = try!(i64_from_string(&String::from(v[0])));
+    let b = try!(i64_from_string(&String::from(v[1])));
+    let c = try!(i64_from_string(&String::from(v[2])));
+    let d1 = try!(i64_from_string(&String::from(v[3])));
+    let rot = ComponentRotation { a:a, b:b, c:c, d:d1 };
+    d.set_rotation(rot);
+    Ok(())
+}
 
 fn parse_component(p:&mut ParseState) -> ERes<Component> {
     let mut d = Component::new();
@@ -545,6 +574,8 @@ fn parse_component(p:&mut ParseState) -> ERes<Component> {
             Some("U") => try!(parse_component_u(p, &mut d)),
             Some("P") => try!(parse_component_p(p, &mut d)),
             Some("F") => try!(parse_component_f(p, &mut d)),
+            Some("1") => try!(parse_component_rotation(p, &mut d)),
+            Some("0") => try!(parse_component_rotation(p, &mut d)),
             _ => println!("skipping unknown component line {}", s)
         }
         p.next()
