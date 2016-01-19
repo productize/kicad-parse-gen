@@ -38,6 +38,10 @@ impl Schematic {
         self.elements.push(Element::Component(c))
     }
     
+    fn append_sheet(&mut self, c:Sheet) {
+        self.sheets.push(c)
+    }
+    
     fn append_other(&mut self, c:String) {
         self.elements.push(Element::Other(c))
     }
@@ -64,6 +68,9 @@ impl fmt::Display for Schematic {
         try!(writeln!(f, "EELAYER END"));
         try!(write!(f, "{}", self.description));
         for v in &self.elements[..] {
+            try!(write!(f, "{}", v))
+        }
+        for v in &self.sheets[..] {
             try!(write!(f, "{}", v))
         }
         Ok(())
@@ -398,10 +405,26 @@ pub struct Sheet {
 impl Sheet {
     fn new() -> Sheet {
         Sheet { x:0, y:0, dimx:0, dimy:0, unique:String::from(""),
-                name:String::from(""), name_size:60,
+                name:String::from("DUMMY"), name_size:60,
                 filename:String::from(""), filename_size:60,
                 labels:vec![],
         }
+    }
+}
+
+impl fmt::Display for Sheet {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(writeln!(f, "$Sheet"));
+        try!(writeln!(f, "S {} {} {} {}", self.x, self.y, self.dimx, self.dimy));
+        try!(writeln!(f, "U {}", self.unique));
+        try!(writeln!(f, "F0 \"{}\" {}", self.name, self.name_size));
+        try!(writeln!(f, "F1 \"{}\" {}", self.filename, self.filename_size));
+        let mut i = 2;
+        for label in &self.labels[..] {
+            try!(writeln!(f, "F{} {}", i, label));
+            i += 1;
+        }
+        writeln!(f, "$EndSheet")
     }
 }
 
@@ -426,12 +449,42 @@ impl SheetLabel {
     }
 }
 
+impl fmt::Display for SheetLabel {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "\"{}\" {} {} {} {} {}", self.name, self.form, self.side, self.x, self.y, self.size)
+    }
+}
+
 #[derive(Debug)]
 pub enum LabelForm { Input, Output, BiDi, TriState, Unspecified }
+
+impl fmt::Display for LabelForm {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        let c = match *self {
+            LabelForm::Input => 'I',
+            LabelForm::Output => 'O',
+            LabelForm::BiDi => 'B',
+            LabelForm::TriState => 'T',
+            LabelForm::Unspecified => 'U',
+        };
+        write!(f, "{}", c)
+    }
+}
 
 #[derive(Debug)]
 pub enum LabelSide { Left, Right, Top, Bottom }
 
+impl fmt::Display for LabelSide {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        let c = match *self {
+            LabelSide::Left => 'L',
+            LabelSide::Right => 'R',
+            LabelSide::Top => 'T',
+            LabelSide::Bottom => 'B',
+        };
+        write!(f, "{}", c)
+    }
+}
 
 fn char_at(s:&String, p:usize) -> char {
     let v:Vec<char> = s.chars().collect();
@@ -640,6 +693,11 @@ fn parse_component(p:&mut ParseState) -> ERes<Component> {
     Ok(d)
 }
 
+fn parse_sheet(p:&mut ParseState) -> ERes<Sheet> {
+    Ok(Sheet::new())
+}
+
+
 fn parse(s: &str) -> ERes<Schematic> {
     let mut sch = Schematic::new();
     let v:Vec<&str> = s.lines().collect();
@@ -667,6 +725,10 @@ fn parse(s: &str) -> ERes<Schematic> {
                 Some("$Comp") => {
                     let d = try!(parse_component(p));
                     sch.append_component(d)
+                },
+                Some("$Sheet") => {
+                    let d = try!(parse_sheet(p));
+                    sch.append_sheet(d)
                 },
                 Some(_) => {
                     sch.append_other(p.here())
