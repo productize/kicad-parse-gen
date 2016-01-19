@@ -13,6 +13,7 @@ pub struct Schematic {
     pub libraries:Vec<String>,
     pub description:Description,
     pub elements:Vec<Element>,
+    pub sheets:Vec<Sheet>,
 }
 
 impl Schematic {
@@ -21,6 +22,7 @@ impl Schematic {
             libraries:vec![],
             description:Description::new(),
             elements:vec![],
+            sheets:vec![],
         }
     }
 
@@ -378,6 +380,57 @@ impl fmt::Display for ComponentField {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct Sheet {
+    pub x:i64,
+    pub y:i64,
+    pub dimx:i64,
+    pub dimy:i64,
+    pub unique:String, // U timestamp field
+    pub name:String, // F0
+    pub name_size:i64,
+    pub filename:String, // F1
+    pub filename_size:i64,
+    pub labels:Vec<SheetLabel>, // starting at F2
+}
+
+impl Sheet {
+    fn new() -> Sheet {
+        Sheet { x:0, y:0, dimx:0, dimy:0, unique:String::from(""),
+                name:String::from(""), name_size:60,
+                filename:String::from(""), filename_size:60,
+                labels:vec![],
+        }
+    }
+}
+
+// F3 "P0.02/AIN0" I L 5250 2450 60
+// form = I (input) O (output) B (BiDi) T (tri state) U (unspecified)
+// side = R (right) , L (left)., T (tpo) , B (bottom)
+#[derive(Debug)]
+pub struct SheetLabel {
+    pub name:String,
+    pub form:LabelForm,
+    pub side:LabelSide,
+    pub x:i64,
+    pub y:i64,
+    pub size:i64,
+}
+
+impl SheetLabel {
+    fn new() -> SheetLabel {
+        SheetLabel { name:String::from(""), form:LabelForm::Input,
+                     side:LabelSide::Left, x:0, y:0, size:60,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum LabelForm { Input, Output, BiDi, TriState, Unspecified }
+
+#[derive(Debug)]
+pub enum LabelSide { Left, Right, Top, Bottom }
 
 
 fn char_at(s:&String, p:usize) -> char {
