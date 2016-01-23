@@ -146,6 +146,7 @@ pub struct Description {
     pub comment3:String,
     pub comment4:String,
     pub sheet:i64,
+    pub sheet_count:i64,
 }
 
 impl Description {
@@ -163,6 +164,7 @@ impl Description {
             comment3:String::from(""),
             comment4:String::from(""),
             sheet:1,
+            sheet_count:1,
         }
     }
 }
@@ -171,7 +173,7 @@ impl fmt::Display for Description {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(writeln!(f, "$Descr {} {} {}", self.size, self.dimx, self.dimy));
         try!(writeln!(f, "encoding utf-8"));
-        try!(writeln!(f, "Sheet 1 {}", self.sheet));
+        try!(writeln!(f, "Sheet {} {}", self.sheet, self.sheet_count));
         try!(writeln!(f, "Title \"{}\"", self.title));
         try!(writeln!(f, "Date \"{}\"", self.date));
         try!(writeln!(f, "Rev \"{}\"", self.rev));
@@ -629,8 +631,8 @@ fn parse_description(p:&mut ParseState) -> ERes<Description> {
     p.next(); // encoding
     let v = try!(parse_split_quote_aware_n(3, &p.here()));
     if v[0] != "Sheet" { return Err(String::from("Expecting 'Sheet'")) };
-    if v[1] != "1" { return Err(format!("expecting Sheet 1 actual {}", p.here())) };
-    d.sheet = try!(i64_from_string(p, &v[2]));
+    d.sheet = try!(i64_from_string(p, &v[1]));
+    d.sheet_count = try!(i64_from_string(p, &v[2]));
     p.next(); // Sheet
     try!(word_and_qstring(&mut d, "Title", &p.here(), |d, x| d.title = x));
     p.next();
