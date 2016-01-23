@@ -2,6 +2,7 @@
 
 use std::fmt;
 use std::str::FromStr;
+use std::path::Path;
 
 // get from parent
 use ERes;
@@ -876,6 +877,9 @@ pub fn parse_file(name:&str) -> ERes<Schematic> {
     parse(&s[..])
 }
 
-pub fn parse_file_for_sheet(sheet:&Sheet) -> ERes<Schematic> {
-    parse_file(&sheet.filename[..])
+pub fn parse_file_for_sheet(dir:&Path, sheet:&Sheet) -> ERes<Schematic> {
+    let mut dir = dir.clone();
+    let f = dir.join(sheet.filename.clone());
+    let f = f.to_str().unwrap();
+    parse_file(f)
 }
