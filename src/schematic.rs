@@ -344,7 +344,7 @@ impl ComponentField {
             return Err(format!("expecting 10 or 11 parts got {} in {}", v.len(), p.here()))
         }
         let name = if v.len() == 11 {
-            Some(try!(unquote_string(&v[10])))
+            Some(v[10].clone())
         } else {
             None
         };
