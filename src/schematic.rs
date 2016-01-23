@@ -870,5 +870,6 @@ pub fn parse_file_for_sheet(dir:&Path, sheet:&Sheet) -> ERes<Schematic> {
     let dir = dir.clone();
     let f = dir.join(sheet.filename.clone());
     let f = f.to_str().unwrap();
+    println!("filename: {}", f);
     parse_file(f)
 }
