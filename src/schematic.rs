@@ -2,7 +2,7 @@
 
 use std::fmt;
 use std::str::FromStr;
-use std::path::Path;
+use std::path::PathBuf;
 
 // get from parent
 use ERes;
@@ -11,6 +11,7 @@ use read_file;
 
 #[derive(Debug)]
 pub struct Schematic {
+    pub filename:Option<PathBuf>,
     pub libraries:Vec<String>,
     pub description:Description,
     pub elements:Vec<Element>,
@@ -20,6 +21,7 @@ pub struct Schematic {
 impl Schematic {
     fn new() -> Schematic {
         Schematic {
+            filename:None,
             libraries:vec![],
             description:Description::new(),
             elements:vec![],
@@ -813,8 +815,9 @@ fn parse_sheet(p:&mut ParseState) -> ERes<Sheet> {
 }
 
 
-fn parse(s: &str) -> ERes<Schematic> {
+fn parse(filename:Option<PathBuf>, s: &str) -> ERes<Schematic> {
     let mut sch = Schematic::new();
+    sch.filename = filename;
     let v:Vec<&str> = s.lines().collect();
     let p = &mut ParseState::new(v);
     assume_line!(p, "EESchema Schematic File Version 2");
@@ -858,21 +861,28 @@ fn parse(s: &str) -> ERes<Schematic> {
 
 
 pub fn parse_str(s:&str) -> ERes<Schematic> {
-    parse(s)
+    parse(None, s)
 }
 
-pub fn parse_file(name:&str) -> ERes<Schematic> {
+pub fn parse_file(filename:PathBuf) -> ERes<Schematic> {
+    let name = filename.to_str().unwrap();
     let s = try!(match read_file(name) {
         Ok(s) => Ok(s),
         Err(x) => Err(format!("io error: {}", x))
     });
-    parse(&s[..])
+    parse(Some(filename.clone()), &s[..])
 }
 
-pub fn parse_file_for_sheet(dir:&Path, sheet:&Sheet) -> ERes<Schematic> {
-    let dir = dir.clone();
-    let f = dir.join(sheet.filename.clone());
-    let f = f.to_str().unwrap();
-    println!("filename: {}", f);
+pub fn parse_file_for_sheet(schematic:&Schematic, sheet:&Sheet) -> ERes<Schematic> {
+    let path = try!(match schematic.filename {
+        Some(ref path) => Ok(path),
+        None => Err(format!("can't load sheet when there is no filename for the schematic")),
+    });
+    let dir = try!(match path.parent() {
+        Some(dir) => Ok(dir),
+        None => Err(format!("can't load sheet when I don't know the dir of the schematic")),
+    });
+    
+    let f = dir.join(&sheet.filename);
     parse_file(f)
 }
