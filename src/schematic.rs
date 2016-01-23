@@ -629,7 +629,7 @@ fn parse_description(p:&mut ParseState) -> ERes<Description> {
     p.next(); // encoding
     let v = try!(parse_split_quote_aware_n(3, &p.here()));
     if v[0] != "Sheet" { return Err(String::from("Expecting 'Sheet'")) };
-    if v[1] != "1" { return Err(String::from("Expecting 'Sheet 1'")) };
+    if v[1] != "1" { return Err(format!("expecting Sheet 1 actual {}", p.here())) };
     d.sheet = try!(i64_from_string(p, &v[2]));
     p.next(); // Sheet
     try!(word_and_qstring(&mut d, "Title", &p.here(), |d, x| d.title = x));
@@ -878,7 +878,7 @@ pub fn parse_file(name:&str) -> ERes<Schematic> {
 }
 
 pub fn parse_file_for_sheet(dir:&Path, sheet:&Sheet) -> ERes<Schematic> {
-    let mut dir = dir.clone();
+    let dir = dir.clone();
     let f = dir.join(sheet.filename.clone());
     let f = f.to_str().unwrap();
     parse_file(f)
