@@ -104,7 +104,9 @@ impl ParseState {
     }
     
     fn here(&self) -> String {
-        return (self.v[self.i]).clone()
+        let s =  (self.v[self.i]).clone();
+        //println!("{}", s);
+        s
     }
 
     fn next(&mut self) {
@@ -226,20 +228,8 @@ impl Component {
     fn set_reference(&mut self, s:String) {
         self.reference = s;
     }
-    fn set_u(&mut self, s:String) {
-        self.u = s;
-    }
-    fn set_x(&mut self, x:f64) {
-        self.x = x
-    }
-    fn set_y(&mut self, y:f64) {
-        self.y = y
-    }
     fn add_field(&mut self, f:ComponentField) {
         self.fields.push(f)
-    }
-    fn set_rotation(&mut self, rot:ComponentRotation) {
-        self.rotation = rot;
     }
 }
 
@@ -346,9 +336,9 @@ pub struct ComponentField {
 }
 
 impl ComponentField {
-    fn new(v:&Vec<String>) -> ERes<ComponentField> {
+    fn new(p:&ParseState, v:&Vec<String>) -> ERes<ComponentField> {
         if v.len() != 10 && v.len() != 11 {
-            return Err(format!("expecting 10 or 11 parts got {}", v.len()))
+            return Err(format!("expecting 10 or 11 parts got {} in {}", v.len(), p.here()))
         }
         let name = if v.len() == 11 {
             Some(try!(unquote_string(&v[10])))
@@ -356,12 +346,12 @@ impl ComponentField {
             None
         };
         let c = ComponentField {
-            i:try!(i64_from_string(&v[1])),
-            value:try!(unquote_string(&v[2])),
+            i:try!(i64_from_string(p, &v[1])),
+            value:v[2].clone(),
             orientation:try!(Orientation::new(char_at(&v[3],0))),
-            x:try!(f64_from_string(&v[4])),
-            y:try!(f64_from_string(&v[5])),
-            size:try!(i64_from_string(&v[6])),
+            x:try!(f64_from_string(p, &v[4])),
+            y:try!(f64_from_string(p, &v[5])),
+            size:try!(i64_from_string(p, &v[6])),
             visible:try!(bool_from_string(&v[7],"0000","0001")),
             hjustify:try!(Justify::new(char_at(&v[8], 0))),
             vjustify:try!(Justify::new(char_at(&v[9], 0))),
@@ -499,19 +489,49 @@ fn assume_string(e:&'static str, s:&String) -> ERes<()> {
     return Ok(())
 }
 
-fn parse_split_n(n:usize, s:&String) -> ERes<Vec<String>> {
-    let sp:Vec<&str> = s.splitn(n, ' ').collect();
-    if sp.len() < n {
-        return Err(format!("expecting {} elements in {}", n, s))
+fn parse_split_quote_aware(s:&String) -> Vec<String> {
+    let mut v:Vec<String> = vec![];
+    let mut in_q:bool = false;
+    let mut q_seen:bool = false;
+    let mut s2:String = String::from("");
+    for c in s.chars() {
+        if !in_q && c == '\"' {
+            in_q = true;
+            //s2.push(c);
+            continue
+        }
+        if in_q && c == '\"' {
+            in_q = false;
+            //s2.push(c);
+            q_seen = true;
+            continue
+        }
+        if c == ' ' {
+            if s2.len() > 0 || q_seen {
+                v.push(s2.clone());
+                s2.clear();
+            }
+            q_seen = false;
+            continue;
+        }
+        s2.push(c);
     }
-    return Ok(sp.iter().map(|x| String::from(*x)).collect())
+    if s2.len() > 0 {
+        v.push(s2.clone())
+    }
+    return v
 }
 
-fn parse_split_quote_aware(s:&String) -> Vec<String> {
+fn parse_split_quote_aware_n(n:usize, s:&String) -> ERes<Vec<String>> {
+    let mut i = 0;
     let mut v:Vec<String> = vec![];
     let mut in_q:bool = false;
     let mut s2:String = String::from("");
     for c in s.chars() {
+        if i == n { // if we're in the nth. just keep collecting in current string
+            s2.push(c);
+            continue;
+        }
         if !in_q && c == '\"' {
             in_q = true;
             s2.push(c);
@@ -524,6 +544,7 @@ fn parse_split_quote_aware(s:&String) -> Vec<String> {
         }
         if c == ' ' {
             if s2.len() > 0 {
+                i += 1;
                 v.push(s2.clone());
                 s2.clear();
             }
@@ -534,21 +555,23 @@ fn parse_split_quote_aware(s:&String) -> Vec<String> {
     if s2.len() > 0 {
         v.push(s2.clone())
     }
-    return v
-    
+    if v.len() < n {
+        return Err(format!("expecting {} elements in {}", n, s))
+    }
+    Ok(v)
 }
 
-fn i64_from_string(s:&String) -> ERes<i64> {
+fn i64_from_string(p:&ParseState, s:&String) -> ERes<i64> {
     match i64::from_str(&s[..]) {
         Ok(i) => Ok(i),
-        _ => Err(format!("int parse error in {}", s))
+        _ => Err(format!("int parse error in {}; line: {}", s, p.here()))
     }
 }
 
-fn f64_from_string(s:&String) -> ERes<f64> {
+fn f64_from_string(p:&ParseState, s:&String) -> ERes<f64> {
     match f64::from_str(&s[..]) {
         Ok(i) => Ok(i),
-        _ => Err(format!("float parse error in {}", s))
+        _ => Err(format!("float parse error in {}; line: {}", s, p.here()))
     }
 }
 
@@ -588,25 +611,25 @@ fn unquote_string(s:&String) -> ERes<String> {
 fn word_and_qstring<F>(d:&mut Description, name:&'static str, s:&String, setter:F) -> ERes<()>
     where F:Fn(&mut Description, String) -> ()
 {
-    let v = try!(parse_split_n(2, s));
+    let v = try!(parse_split_quote_aware_n(2, s));
     try!(assume_string(name, &v[0]));
-    setter(d, try!(unquote_string(&v[1])));
+    setter(d, v[1].clone());
     Ok(())
 }
     
     
 fn parse_description(p:&mut ParseState) -> ERes<Description> {
     let mut d = Description::new();
-    let v = try!(parse_split_n(4, &p.here()));
+    let v = try!(parse_split_quote_aware_n(4, &p.here()));
     d.size = v[1].clone();
-    d.dimx = try!(i64_from_string(&v[2]));
-    d.dimy = try!(i64_from_string(&v[3]));
+    d.dimx = try!(i64_from_string(p, &v[2]));
+    d.dimy = try!(i64_from_string(p, &v[3]));
     p.next(); // $Descr
     p.next(); // encoding
-    let v = try!(parse_split_n(3, &p.here()));
+    let v = try!(parse_split_quote_aware_n(3, &p.here()));
     if v[0] != "Sheet" { return Err(String::from("Expecting 'Sheet'")) };
     if v[1] != "1" { return Err(String::from("Expecting 'Sheet 1'")) };
-    d.sheet = try!(i64_from_string(&v[2]));
+    d.sheet = try!(i64_from_string(p, &v[2]));
     p.next(); // Sheet
     try!(word_and_qstring(&mut d, "Title", &p.here(), |d, x| d.title = x));
     p.next();
@@ -629,28 +652,31 @@ fn parse_description(p:&mut ParseState) -> ERes<Description> {
 }
 
 fn parse_component_l(p:&mut ParseState, d:&mut Component) -> ERes<()> {
-    let v = try!(parse_split_n(3, &p.here()));
+    let v = try!(parse_split_quote_aware_n(3, &p.here()));
     d.set_name(v[1].clone());
     d.set_reference(v[2].clone());
     Ok(())
 }
 
 fn parse_component_u(p:&mut ParseState, d:&mut Component) -> ERes<()> {
-    d.set_u(p.here());
+    d.u = p.here();
     Ok(())
 }
 
 fn parse_component_p(p:&mut ParseState, d:&mut Component) -> ERes<()> {
-    let v = try!(parse_split_n(3, &p.here()));
-    d.set_x(try!(f64_from_string(&v[1])));
-    d.set_y(try!(f64_from_string(&v[2])));
+    let v = try!(parse_split_quote_aware_n(3, &p.here()));
+    d.x = try!(f64_from_string(p, &v[1]));
+    d.y = try!(f64_from_string(p, &v[2]));
     Ok(())
 }
 
 fn parse_component_f(p:&mut ParseState, d:&mut Component) -> ERes<()> {
     //println!("{}", p.here());
     let v = parse_split_quote_aware(&p.here());
-    let f = try!(ComponentField::new(&v));
+    //for i in &v[..] {
+    //    println!("'{}'", i)
+    //}
+    let f = try!(ComponentField::new(p, &v));
     d.add_field(f);
     Ok(())
 }
@@ -662,12 +688,12 @@ fn parse_component_rotation(p:&mut ParseState, d:&mut Component) -> ERes<()> {
     if v.len() != 4 {
         return Err(format!("expecting 4 elements in {}", s))
     }
-    let a = try!(i64_from_string(&String::from(v[0])));
-    let b = try!(i64_from_string(&String::from(v[1])));
-    let c = try!(i64_from_string(&String::from(v[2])));
-    let d1 = try!(i64_from_string(&String::from(v[3])));
+    let a = try!(i64_from_string(p, &String::from(v[0])));
+    let b = try!(i64_from_string(p, &String::from(v[1])));
+    let c = try!(i64_from_string(p, &String::from(v[2])));
+    let d1 = try!(i64_from_string(p, &String::from(v[3])));
     let rot = ComponentRotation { a:a, b:b, c:c, d:d1 };
-    d.set_rotation(rot);
+    d.rotation = rot;
     Ok(())
 }
 
@@ -693,8 +719,104 @@ fn parse_component(p:&mut ParseState) -> ERes<Component> {
     Ok(d)
 }
 
+// S 5250 2300 950  3100
+fn parse_sheet_s(p:&mut ParseState, s:&mut Sheet) -> ERes<()> {
+    let v = try!(parse_split_quote_aware_n(5, &p.here()));
+    s.x = try!(i64_from_string(p, &v[1]));
+    s.y = try!(i64_from_string(p, &v[2]));
+    s.dimx = try!(i64_from_string(p, &v[3]));
+    s.dimy = try!(i64_from_string(p, &v[4]));
+    Ok(())
+}
+
+// U 5655A9F3
+fn parse_sheet_u(p:&mut ParseState, s:&mut Sheet) -> ERes<()> {
+    let v = try!(parse_split_quote_aware_n(2, &p.here()));
+    s.unique = v[1].clone();
+    Ok(())
+}
+
+fn parse_label_form(s:&String) -> ERes<LabelForm> {
+    match &s[..] {
+        "I" => Ok(LabelForm::Input),
+        "O" => Ok(LabelForm::Output),
+        "B" => Ok(LabelForm::BiDi),
+        "T" => Ok(LabelForm::TriState),
+        "U" => Ok(LabelForm::Unspecified),
+        _ => Err(format!("unknown labelform {}", s))
+    }
+}
+
+fn parse_label_side(s:&String) -> ERes<LabelSide> {
+    match &s[..] {
+        "L" => Ok(LabelSide::Left),
+        "R" => Ok(LabelSide::Right),
+        "T" => Ok(LabelSide::Top),
+        "B" => Ok(LabelSide::Bottom),
+        _ => Err(format!("unknown labelside {}", s))
+    }
+}
+
+
+// F3 "P0.02/AIN0" I L 5250 2450 60 
+fn parse_sheet_label(p:&ParseState, s:&String) -> ERes<SheetLabel> {
+    let mut l = SheetLabel::new();
+    let v = try!(parse_split_quote_aware_n(7, s));
+    l.name = try!(unquote_string(&v[1]));
+    l.form = try!(parse_label_form(&v[2]));
+    l.side = try!(parse_label_side(&v[3]));
+    l.x = try!(i64_from_string(p, &v[4]));
+    l.y = try!(i64_from_string(p, &v[5]));
+    l.size = try!(i64_from_string(p, &v[6]));
+    Ok(l)
+}
+
+fn parse_sheet_f(p:&mut ParseState, s:&mut Sheet, f:&str) -> ERes<()> {
+    //s.u = p.here();
+    let mut f = String::from(f);
+    f.remove(0);
+    let i = try!(i64_from_string(p, &f));
+    if i == 0 {
+        let v = try!(parse_split_quote_aware_n(3, &p.here()));
+        s.name = try!(unquote_string(&v[1]));
+        s.name_size = try!(i64_from_string(p, &v[2]));
+    }
+    else if i == 1 {
+        let v = try!(parse_split_quote_aware_n(3, &p.here()));
+        s.filename = try!(unquote_string(&v[1]));
+        s.filename_size = try!(i64_from_string(p, &v[2]));
+    }
+    else {
+        let l = try!(parse_sheet_label(p, &p.here()));
+        s.labels.push(l)
+    }
+    Ok(())
+}
+
+
 fn parse_sheet(p:&mut ParseState) -> ERes<Sheet> {
-    Ok(Sheet::new())
+    let mut s = Sheet::new();
+    p.next();
+    loop {
+        let st = p.here();
+        if st == "$EndSheet" {
+            break;
+        }
+        match st.split_whitespace().next() {
+            Some("S") => try!(parse_sheet_s(p, &mut s)),
+            Some("U") => try!(parse_sheet_u(p, &mut s)),
+            Some(x) => {
+                if x.starts_with("F") {
+                    try!(parse_sheet_f(p, &mut s, x))
+                } else {
+                    println!("skipping unknown sheet line {}", st)
+                }
+            },
+            _ => println!("skipping unknown sheet line {}", st),
+        }
+        p.next();
+    }
+    Ok(s)
 }
 
 
