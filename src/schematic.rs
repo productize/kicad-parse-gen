@@ -598,19 +598,6 @@ fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> ERes<bool> {
     Err(format!("unknown boolean {}, expected {} or {}", i, t, f))
 }
 
-// this is not perfect
-fn unquote_string(s:&String) -> ERes<String> {
-    let l = s.len();
-    if s.starts_with("\"") && s.ends_with("\"") {
-        let mut s = s.clone();
-        s.remove(l-1);
-        s.remove(0);
-        return Ok(s)
-    }
-    Err(format!("expecting quoted string: {}", s))
-}
-
-
 fn word_and_qstring<F>(d:&mut Description, name:&'static str, s:&String, setter:F) -> ERes<()>
     where F:Fn(&mut Description, String) -> ()
 {
@@ -765,7 +752,7 @@ fn parse_label_side(s:&String) -> ERes<LabelSide> {
 fn parse_sheet_label(p:&ParseState, s:&String) -> ERes<SheetLabel> {
     let mut l = SheetLabel::new();
     let v = try!(parse_split_quote_aware_n(7, s));
-    l.name = try!(unquote_string(&v[1]));
+    l.name = v[1].clone();
     l.form = try!(parse_label_form(&v[2]));
     l.side = try!(parse_label_side(&v[3]));
     l.x = try!(i64_from_string(p, &v[4]));
@@ -781,12 +768,12 @@ fn parse_sheet_f(p:&mut ParseState, s:&mut Sheet, f:&str) -> ERes<()> {
     let i = try!(i64_from_string(p, &f));
     if i == 0 {
         let v = try!(parse_split_quote_aware_n(3, &p.here()));
-        s.name = try!(unquote_string(&v[1]));
+        s.name = v[1].clone();
         s.name_size = try!(i64_from_string(p, &v[2]));
     }
     else if i == 1 {
         let v = try!(parse_split_quote_aware_n(3, &p.here()));
-        s.filename = try!(unquote_string(&v[1]));
+        s.filename = v[1].clone();
         s.filename_size = try!(i64_from_string(p, &v[2]));
     }
     else {
