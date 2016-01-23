@@ -864,11 +864,11 @@ fn parse(s: &str) -> ERes<Schematic> {
 }
 
 
-pub fn parse_str(s: &str) -> ERes<Schematic> {
+pub fn parse_str(s:&str) -> ERes<Schematic> {
     parse(s)
 }
 
-pub fn parse_file(name: &str) -> ERes<Schematic> {
+pub fn parse_file(name:&str) -> ERes<Schematic> {
     let s = try!(match read_file(name) {
         Ok(s) => Ok(s),
         Err(x) => Err(format!("io error: {}", x))
@@ -876,3 +876,6 @@ pub fn parse_file(name: &str) -> ERes<Schematic> {
     parse(&s[..])
 }
 
+pub fn parse_file_for_sheet(sheet:&Sheet) -> ERes<Schematic> {
+    parse_file(&sheet.filename[..])
+}
