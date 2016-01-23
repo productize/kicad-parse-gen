@@ -519,7 +519,7 @@ fn parse_split_quote_aware(s:&String) -> Vec<String> {
         }
         s2.push(c);
     }
-    if s2.len() > 0 {
+    if s2.len() > 0 || q_seen {
         v.push(s2.clone())
     }
     return v
@@ -529,6 +529,7 @@ fn parse_split_quote_aware_n(n:usize, s:&String) -> ERes<Vec<String>> {
     let mut i = 0;
     let mut v:Vec<String> = vec![];
     let mut in_q:bool = false;
+    let mut q_seen:bool = false;
     let mut s2:String = String::from("");
     for c in s.chars() {
         if i == n { // if we're in the nth. just keep collecting in current string
@@ -537,25 +538,27 @@ fn parse_split_quote_aware_n(n:usize, s:&String) -> ERes<Vec<String>> {
         }
         if !in_q && c == '\"' {
             in_q = true;
-            s2.push(c);
+            //s2.push(c);
             continue
         }
         if in_q && c == '\"' {
             in_q = false;
-            s2.push(c);
+            //s2.push(c);
+            q_seen = true;
             continue
         }
         if c == ' ' {
-            if s2.len() > 0 {
+            if s2.len() > 0 || q_seen {
                 i += 1;
                 v.push(s2.clone());
                 s2.clear();
             }
+            q_seen = false;
             continue;
         }
         s2.push(c);
     }
-    if s2.len() > 0 {
+    if s2.len() > 0 || q_seen {
         v.push(s2.clone())
     }
     if v.len() < n {
