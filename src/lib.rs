@@ -17,7 +17,7 @@ macro_rules! fail {
     )
 }
 
-fn read_file(name: &str) -> ERes<String> {
+pub fn read_file(name: &str) -> ERes<String> {
     let mut f = try!(match File::open(name) {
         Ok(f) => Ok(f),
         Err(err) => Err(format!("open error in file '{}': {}", name, err))
