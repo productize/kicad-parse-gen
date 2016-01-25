@@ -5,3 +5,6 @@ authors = ["Joost Damad <joost@productize.be>"]
 
 [dependencies.rustysexp]
 git = "git://github.com/productize/rustys-exp.git"
+
+[dependencies]
+rustc-serialize = "0.3"

@@ -3,6 +3,8 @@
 use std::fs::File;
 use std::io::Read;
 
+extern crate rustc_serialize;
+
 pub type ERes<T> = Result<T, String>;
 
 pub fn err<T>(msg: &str) -> ERes<T> {

@@ -4,6 +4,9 @@ use std::fmt;
 use std::str::FromStr;
 use std::path::PathBuf;
 
+//extern crate serialize;
+//use serialize::json;
+
 // get from parent
 use ERes;
 use err;
@@ -203,7 +206,7 @@ impl fmt::Display for Element {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, RustcEncodable)]
 pub struct Component {
     pub name:String,
     pub reference:String,
@@ -253,7 +256,7 @@ impl fmt::Display for Component {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,RustcEncodable)]
 pub struct ComponentRotation  {
     a:i64,
     b:i64,
@@ -261,7 +264,7 @@ pub struct ComponentRotation  {
     d:i64
 }
 
-#[derive(Debug)]
+#[derive(Debug,RustcEncodable)]
 pub enum Orientation {
     Horizontal,
     Vertical
@@ -288,7 +291,7 @@ impl fmt::Display for Orientation {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug,RustcEncodable)]
 pub enum Justify {
     Left,
     Right,
@@ -324,7 +327,7 @@ impl fmt::Display for Justify {
 
 
 
-#[derive(Debug)]
+#[derive(Debug,RustcEncodable)]
 pub struct ComponentField {
     i:i64,
     value:String,
