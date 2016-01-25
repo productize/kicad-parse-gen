@@ -62,6 +62,15 @@ impl Schematic {
         }
         v
     }
+
+    pub fn collect_components(&self, v:&mut Vec<Component>) {
+        for ref x in self.elements.iter() {
+            match **x {
+                Element::Component(ref c) => v.push(c.clone()),
+                Element::Other(_) => (),
+            }
+        }
+    }
 }
 
 impl fmt::Display for Schematic {
@@ -206,7 +215,7 @@ impl fmt::Display for Element {
     }
 }
 
-#[derive(Debug, RustcEncodable)]
+#[derive(Debug, RustcEncodable, Clone)]
 pub struct Component {
     pub name:String,
     pub reference:String,
@@ -256,7 +265,7 @@ impl fmt::Display for Component {
     }
 }
 
-#[derive(Debug,RustcEncodable)]
+#[derive(Debug,RustcEncodable,Clone)]
 pub struct ComponentRotation  {
     a:i64,
     b:i64,
@@ -264,7 +273,7 @@ pub struct ComponentRotation  {
     d:i64
 }
 
-#[derive(Debug,RustcEncodable)]
+#[derive(Debug,RustcEncodable,Clone)]
 pub enum Orientation {
     Horizontal,
     Vertical
@@ -291,7 +300,7 @@ impl fmt::Display for Orientation {
 }
 
 
-#[derive(Debug,RustcEncodable)]
+#[derive(Debug,RustcEncodable,Clone)]
 pub enum Justify {
     Left,
     Right,
@@ -327,7 +336,7 @@ impl fmt::Display for Justify {
 
 
 
-#[derive(Debug,RustcEncodable)]
+#[derive(Debug,RustcEncodable,Clone)]
 pub struct ComponentField {
     i:i64,
     value:String,
