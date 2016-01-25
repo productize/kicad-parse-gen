@@ -866,10 +866,7 @@ pub fn parse_str(s:&str) -> ERes<Schematic> {
 
 pub fn parse_file(filename:PathBuf) -> ERes<Schematic> {
     let name = filename.to_str().unwrap();
-    let s = try!(match read_file(name) {
-        Ok(s) => Ok(s),
-        Err(x) => Err(format!("io error: {}", x))
-    });
+    let s = try!(read_file(name));
     parse(Some(filename.clone()), &s[..])
 }
 

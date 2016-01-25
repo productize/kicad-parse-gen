@@ -15,11 +15,16 @@ macro_rules! fail {
     )
 }
 
-fn read_file(name: &str) -> Result<String,std::io::Error> {
-    let mut f = try!(File::open(name));
+fn read_file(name: &str) -> ERes<String> {
+    let mut f = try!(match File::open(name) {
+        Ok(f) => Ok(f),
+        Err(err) => Err(format!("open error in file {}: {}", name, err))
+    });
     let mut s = String::new();
-    try!(f.read_to_string(&mut s));
-    Ok(s)
+    match f.read_to_string(&mut s) {
+        Ok(_) => Ok(s),
+        Err(err) => Err(format!("read error in file {}: {}", name, err))
+    }
 }
 
 pub mod footprint;
