@@ -18,12 +18,12 @@ macro_rules! fail {
 fn read_file(name: &str) -> ERes<String> {
     let mut f = try!(match File::open(name) {
         Ok(f) => Ok(f),
-        Err(err) => Err(format!("open error in file {}: {}", name, err))
+        Err(err) => Err(format!("open error in file '{}': {}", name, err))
     });
     let mut s = String::new();
     match f.read_to_string(&mut s) {
         Ok(_) => Ok(s),
-        Err(err) => Err(format!("read error in file {}: {}", name, err))
+        Err(err) => Err(format!("read error in file '{}': {}", name, err))
     }
 }
 
