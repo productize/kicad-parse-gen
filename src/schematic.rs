@@ -215,7 +215,7 @@ impl fmt::Display for Element {
     }
 }
 
-#[derive(Debug, RustcEncodable, Clone)]
+#[derive(Debug, RustcEncodable, RustcDecodable, Clone)]
 pub struct Component {
     pub name:String,
     pub reference:String,
@@ -265,7 +265,7 @@ impl fmt::Display for Component {
     }
 }
 
-#[derive(Debug,RustcEncodable,Clone)]
+#[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub struct ComponentRotation  {
     a:i64,
     b:i64,
@@ -273,7 +273,7 @@ pub struct ComponentRotation  {
     d:i64
 }
 
-#[derive(Debug,RustcEncodable,Clone)]
+#[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub enum Orientation {
     Horizontal,
     Vertical
@@ -300,7 +300,7 @@ impl fmt::Display for Orientation {
 }
 
 
-#[derive(Debug,RustcEncodable,Clone)]
+#[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub enum Justify {
     Left,
     Right,
@@ -336,7 +336,7 @@ impl fmt::Display for Justify {
 
 
 
-#[derive(Debug,RustcEncodable,Clone)]
+#[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub struct ComponentField {
     i:i64,
     value:String,
