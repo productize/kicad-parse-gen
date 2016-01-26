@@ -3,6 +3,7 @@
 use std::fmt;
 use std::str::FromStr;
 use std::path::PathBuf;
+use std::collections::HashMap;
 
 //extern crate serialize;
 //use serialize::json;
@@ -261,6 +262,19 @@ impl Component {
             }
         }
         None
+    }
+    
+    pub fn fields_hash(&self) -> HashMap<String,String> {
+        let mut h = HashMap::new();
+        for field in &self.fields[..] {
+            match field.name {
+                Some(ref n2) => {
+                    h.insert(n2.clone(), field.value.clone());
+                },
+                None => (),
+            }
+        }
+        h
     }
 }
 
