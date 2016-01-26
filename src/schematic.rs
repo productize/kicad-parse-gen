@@ -265,14 +265,21 @@ impl Component {
     }
     
     pub fn fields_hash(&self) -> HashMap<String,String> {
+        let mut i = 0;
         let mut h = HashMap::new();
         for field in &self.fields[..] {
             match field.name {
                 Some(ref n2) => {
                     h.insert(n2.clone(), field.value.clone());
                 },
-                None => (),
+                None => {
+                    if i == 1 {
+                        h.insert(String::from("name"), field.value.clone());
+                    }
+                }
+                
             }
+            i += 1;
         }
         h
     }
