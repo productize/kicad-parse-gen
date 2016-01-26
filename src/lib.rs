@@ -17,6 +17,15 @@ macro_rules! fail {
     )
 }
 
+macro_rules! println_err(
+    ($($arg:tt)*) => (
+        match writeln!(&mut ::std::io::stderr(), $($arg)* ) {
+            Ok(_) => {},
+            Err(x) => panic!("Unable to write to stderr: {}", x),
+        }
+    )
+);
+
 pub fn read_file(name: &str) -> ERes<String> {
     let mut f = try!(match File::open(name) {
         Ok(f) => Ok(f),

@@ -248,6 +248,20 @@ impl Component {
     fn add_field(&mut self, f:ComponentField) {
         self.fields.push(f)
     }
+
+    pub fn get_field_value(&self, name:String) -> Option<String> {
+        for field in &self.fields[..] {
+            match field.name {
+                Some(ref n2) => {
+                    if name == *n2 {
+                        return Some(field.value.clone())
+                    }
+                },
+                None => (),
+            }
+        }
+        None
+    }
 }
 
 impl fmt::Display for Component {
