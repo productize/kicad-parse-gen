@@ -274,7 +274,7 @@ impl Component {
                 },
                 None => {
                     if i == 1 {
-                        h.insert(String::from("name"), field.value.clone());
+                        h.insert(String::from("Value"), field.value.clone());
                     }
                 }
                 
