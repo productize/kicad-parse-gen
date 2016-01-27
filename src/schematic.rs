@@ -73,7 +73,7 @@ impl Schematic {
         }
     }
 
-    pub fn component_by_reference(&mut self, reference:&String) -> ERes<&Component> {
+    pub fn component_by_reference(&self, reference:&String) -> ERes<&Component> {
         for ref x in self.elements.iter() {
             match **x {
                 Element::Component(ref c) => {
