@@ -72,6 +72,20 @@ impl Schematic {
             }
         }
     }
+
+    pub fn component_by_reference(&mut self, reference:&String) -> ERes<&Component> {
+        for ref x in self.elements.iter() {
+            match **x {
+                Element::Component(ref c) => {
+                    if c.reference == *reference {
+                        return Ok(&c)
+                    }
+                }
+                Element::Other(_) => (),
+            }
+        }
+        Err(format!("could not find component {} in schematic", reference))
+    }
 }
 
 impl fmt::Display for Schematic {
