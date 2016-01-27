@@ -5,6 +5,6 @@ use std::path::PathBuf;
 
 fn main() {
     let f = PathBuf::from("../examples/hgminiUSBC.sch");
-    let s = rustykicad::schematic::parse_file(f).unwrap();
+    let s = rustykicad::schematic::parse_file(&f).unwrap();
     println!("{}", s);
 }

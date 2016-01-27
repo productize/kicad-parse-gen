@@ -911,7 +911,7 @@ pub fn parse_str(s:&str) -> ERes<Schematic> {
     parse(None, s)
 }
 
-pub fn parse_file(filename:PathBuf) -> ERes<Schematic> {
+pub fn parse_file(filename:&PathBuf) -> ERes<Schematic> {
     let name = filename.to_str().unwrap();
     let s = try!(read_file(name));
     parse(Some(filename.clone()), &s[..])
@@ -928,5 +928,5 @@ pub fn parse_file_for_sheet(schematic:&Schematic, sheet:&Sheet) -> ERes<Schemati
     });
     
     let f = dir.join(&sheet.filename);
-    parse_file(f)
+    parse_file(&f)
 }
