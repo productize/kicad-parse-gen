@@ -237,6 +237,8 @@ impl fmt::Display for Element {
     }
 }
 
+// component fields: 
+// reference = 0. Value = 1. FootPrint = 2. UserDocLink = 3.
 #[derive(Debug, RustcEncodable, RustcDecodable, Clone)]
 pub struct Component {
     pub name:String,
@@ -271,36 +273,36 @@ impl Component {
         self.fields.push(f)
     }
 
-    pub fn get_field_value(&self, name:String) -> Option<String> {
+    pub fn get_field_value(&self, name:&String) -> Option<String> {
         for field in &self.fields[..] {
-            match field.name {
-                Some(ref n2) => {
-                    if name == *n2 {
-                        return Some(field.value.clone())
-                    }
-                },
-                None => (),
+            if field.name == *name {
+                return Some(field.value.clone())
             }
         }
         None
     }
+    pub fn get_field(&self, name:&String) -> Option<ComponentField> {
+        for field in &self.fields[..] {
+            if field.name == *name {
+                return Some(field.clone())
+            }
+        }
+        None
+    }
+    pub fn get_available_field_num(&self) -> i64 {
+        let mut i:i64 = 0;
+        for field in &self.fields[..] {
+            if field.i > i {
+                i = field.i
+            }
+        }
+        i
+    }
     
     pub fn fields_hash(&self) -> HashMap<String,String> {
-        let mut i = 0;
         let mut h = HashMap::new();
         for field in &self.fields[..] {
-            match field.name {
-                Some(ref n2) => {
-                    h.insert(n2.clone(), field.value.clone());
-                },
-                None => {
-                    if i == 1 {
-                        h.insert(String::from("Value"), field.value.clone());
-                    }
-                }
-                
-            }
-            i += 1;
+            h.insert(field.name.clone(), field.value.clone());
         }
         h
     }
@@ -405,7 +407,7 @@ pub struct ComponentField {
     vjustify:Justify,
     italic:bool,
     bold:bool,
-    name:Option<String>,
+    name:String,
 }
 
 impl ComponentField {
@@ -413,13 +415,20 @@ impl ComponentField {
         if v.len() != 10 && v.len() != 11 {
             return Err(format!("expecting 10 or 11 parts got {} in {}", v.len(), p.here()))
         }
+        let i = try!(i64_from_string(p, &v[1]));
         let name = if v.len() == 11 {
-            Some(v[10].clone())
+            v[10].clone()
         } else {
-            None
+            match i {
+                0 => String::from("Reference"),
+                1 => String::from("Value"),
+                2 => String::from("Footprint"),
+                3 => String::from("UserDocLink"),
+                _ => return Err(format!("expecting name for componentfield > 3")),
+            }
         };
         let c = ComponentField {
-            i:try!(i64_from_string(p, &v[1])),
+            i:i,
             value:v[2].clone(),
             orientation:try!(Orientation::new(char_at(&v[3],0))),
             x:try!(f64_from_string(p, &v[4])),
@@ -434,6 +443,23 @@ impl ComponentField {
         };
         Ok(c)
     }
+
+    pub fn new_from(i:i64, name:String, value:String, x:f64, y:f64) -> ComponentField {
+        ComponentField {
+            i:i,
+            name:name,
+            value:value,
+            orientation:Orientation::Horizontal,
+            hjustify:Justify::Center,
+            vjustify:Justify::Center,
+            italic:false,
+            bold:false,
+            visible:false,
+            size:60,
+            x:x,
+            y:y,
+        }
+    }
 }
 
 impl fmt::Display for ComponentField {
@@ -444,10 +470,10 @@ impl fmt::Display for ComponentField {
         try!(write!(f, "{} {}", self.hjustify, self.vjustify));
         try!(write!(f, "{}", if self.italic { 'I' } else { 'N' }));
         try!(write!(f, "{}", if self.bold { 'B' } else { 'N' }));
-        match self.name {
-            Some(ref name) => write!(f, " \"{}\"", name),
-            None => Ok(()),
-        }
+        if self.i > 3 {
+            try!(write!(f, " \"{}\"", self.name))
+        };
+        Ok(())
     }
 }
 
