@@ -396,18 +396,18 @@ impl fmt::Display for Justify {
 
 #[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub struct ComponentField {
-    i:i64,
-    value:String,
-    orientation:Orientation,
-    x:f64,
-    y:f64,
-    size:i64,
-    visible:bool,
-    hjustify:Justify,
-    vjustify:Justify,
-    italic:bool,
-    bold:bool,
-    name:String,
+    pub i:i64,
+    pub value:String,
+    pub orientation:Orientation,
+    pub x:f64,
+    pub y:f64,
+    pub size:i64,
+    pub visible:bool,
+    pub hjustify:Justify,
+    pub vjustify:Justify,
+    pub italic:bool,
+    pub bold:bool,
+    pub name:String,
 }
 
 impl ComponentField {
