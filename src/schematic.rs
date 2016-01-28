@@ -73,15 +73,22 @@ impl Schematic {
         }
     }
 
-    pub fn component_by_reference(&self, reference:&String) -> ERes<&Component> {
+    pub fn component_by_reference(&self, reference:&String) -> ERes<Component> {
         for ref x in self.elements.iter() {
             match **x {
                 Element::Component(ref c) => {
                     if c.reference == *reference {
-                        return Ok(&c)
+                        return Ok(c.clone())
                     }
                 }
                 Element::Other(_) => (),
+            }
+        }
+        for ref sheet in self.sheets.iter() {
+            let schematic = try!(parse_file_for_sheet(&self, sheet));
+            match schematic.component_by_reference(reference) {
+                Ok(c) => return Ok(c),
+                _ => ()
             }
         }
         Err(format!("could not find component {} in schematic", reference))
