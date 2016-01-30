@@ -40,7 +40,7 @@ pub fn read_file(name: &str) -> ERes<String> {
 }
 
 pub fn write_file(name:&str, data:&String) -> ERes<()> {
-    let mut f = try!(match File::create("foo.txt") {
+    let mut f = try!(match File::create(name) {
         Ok(f) => Ok(f),
         Err(err) => Err(format!("create error in file '{}': {}", name, err))
     });
