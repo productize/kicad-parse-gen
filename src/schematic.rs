@@ -44,7 +44,7 @@ impl Schematic {
     fn append_component(&mut self, c:Component) {
         self.elements.push(Element::Component(c))
     }
-    
+
     fn append_sheet(&mut self, c:Sheet) {
         self.sheets.push(c)
     }
@@ -62,6 +62,21 @@ impl Schematic {
             }
         }
         v
+    }
+
+    pub fn modify_component<F>(&mut self, reference:&String, fun:F)
+        where F:Fn(&mut Component) -> ()
+    {
+        for ref mut x in &mut self.elements[..] {
+            match **x {
+                Element::Component(ref mut c) => {
+                    if c.reference == *reference {
+                        return fun(c)
+                    }
+                }
+                Element::Other(_) => (),
+            }
+        }
     }
 
     pub fn collect_components(&self, v:&mut Vec<Component>) {
