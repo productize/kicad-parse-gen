@@ -306,6 +306,15 @@ impl Component {
         }
         h
     }
+
+    pub fn update_reference(&mut self, r:String) {
+        self.reference = r;
+        for field in &mut self.fields[..] {
+            if field.i == 0 {
+                field.value = self.reference.clone()
+            }
+        }
+    }
 }
 
 impl fmt::Display for Component {
