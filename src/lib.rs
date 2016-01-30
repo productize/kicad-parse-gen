@@ -2,6 +2,7 @@
 
 use std::fs::File;
 use std::io::Read;
+use std::io::Write;
 
 extern crate rustc_serialize;
 
@@ -37,6 +38,21 @@ pub fn read_file(name: &str) -> ERes<String> {
         Err(err) => Err(format!("read error in file '{}': {}", name, err))
     }
 }
+
+pub fn write_file(name:&str, data:&String) -> ERes<()> {
+    let mut f = try!(match File::create("foo.txt") {
+        Ok(f) => Ok(f),
+        Err(err) => Err(format!("create error in file '{}': {}", name, err))
+    });
+    try!(match write!(&mut f, "{}", data) {
+        Ok(f) => Ok(f),
+        Err(err) => Err(format!("write error in file '{}': {}", name, err))
+    });
+         
+    Ok(())
+    
+}
+
 
 pub mod footprint;
 pub mod schematic;
