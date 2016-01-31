@@ -312,7 +312,7 @@ impl Component {
                 i = field.i
             }
         }
-        i
+        i+1
     }
     
     pub fn fields_hash(&self) -> HashMap<String,String> {
