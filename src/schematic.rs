@@ -125,6 +125,7 @@ impl fmt::Display for Schematic {
         for v in &self.sheets[..] {
             try!(write!(f, "{}", v))
         }
+        try!(writeln!(f,"$EndSCHEMATC"));
         Ok(())
     }
 }
@@ -982,6 +983,7 @@ fn parse(filename:Option<PathBuf>, s: &str) -> ERes<Schematic> {
                     let d = try!(parse_sheet(p));
                     sch.append_sheet(d)
                 },
+                Some("$EndSCHEMATC") => (),
                 Some(_) => {
                     sch.append_other(p.here())
                 },
