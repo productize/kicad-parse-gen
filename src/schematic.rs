@@ -337,6 +337,9 @@ impl Component {
             if field.name == *name {
                 field.value.clone_from(value)
             }
+            if field.i > 1 {
+                field.visible = false
+            }
         }
     }
 
