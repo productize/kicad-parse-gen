@@ -645,7 +645,7 @@ fn parse_split_quote_aware(s:&String) -> Vec<String> {
             q_seen = true;
             continue
         }
-        if c == ' ' {
+        if !in_q && c == ' ' {
             if s2.len() > 0 || q_seen {
                 v.push(s2.clone());
                 s2.clear();
@@ -683,7 +683,7 @@ fn parse_split_quote_aware_n(n:usize, s:&String) -> ERes<Vec<String>> {
             q_seen = true;
             continue
         }
-        if c == ' ' {
+        if !in_q && c == ' ' {
             if s2.len() > 0 || q_seen {
                 i += 1;
                 v.push(s2.clone());
