@@ -330,6 +330,22 @@ impl Component {
             }
         }
     }
+
+    pub fn update_field(&mut self, name:&String, value:&String) {
+        for field in self.fields.iter_mut() {
+            if field.name == *name {
+                field.value.clone_from(value)
+            }
+        }
+    }
+
+    pub fn add_new_field(&mut self, template:&ComponentField, name:&String, value:&String) {
+        let i = self.get_available_field_num();
+        let mut c = ComponentField::new_from(i, name.clone(), value.clone(), template.x, template.y);
+        c.visible = false;
+        self.fields.push(c)
+    }
+    
 }
 
 impl fmt::Display for Component {
