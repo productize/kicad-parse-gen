@@ -51,6 +51,8 @@ pub enum Element {
     FpPoly(FpPoly),
     FpLine(FpLine),
     FpCircle(FpCircle),
+    TEdit(String),
+    TStamp(String),
 }
 
 impl fmt::Display for Element {
@@ -63,6 +65,8 @@ impl fmt::Display for Element {
             Element::FpPoly(ref p) => write!(f, "{}", p),
             Element::FpLine(ref p) => write!(f, "{}", p),
             Element::FpCircle(ref p) => write!(f, "{}", p),
+            Element::TEdit(ref p) => write!(f, "(tedit {})", p),
+            Element::TStamp(ref p) => write!(f, "(tstamp {})", p),
         }
     }
 }
@@ -628,13 +632,15 @@ fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
     }
     Ok(res)
 }
-    
-fn parse_layer(v: &Vec<Sexp>) -> ERes<Element> {
+
+fn parse_string_element<F>(v: &Vec<Sexp>, name:&'static str, make:F) -> ERes<Element>
+    where F:Fn(String) -> Element
+{
     match v[1] {
         Sexp::Atom(Atom::S(ref s)) => {
-            Ok(Element::Layer(s.clone()))
+            Ok(make(s.clone()))
         }
-        ref x => Err(format!("unexpected element in layer: {}", x))
+        ref x => Err(format!("unexpected element in {}: {}", name, x))
     }
 }
 
@@ -748,13 +754,15 @@ fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
     match v[0] {
         Sexp::Atom(Atom::S(ref s)) => {
             match &s[..] {
-                "layer" => parse_layer(v),
+                "layer" => parse_string_element(v, "layer", Element::Layer),
                 "descr" => parse_descr(v),
                 "fp_text" => parse_fp_text(v),
                 "pad" => parse_pad(v),
                 "fp_poly" => parse_fp_poly(v),
                 "fp_line" => parse_fp_line(v),
                 "fp_circle" => parse_fp_circle(v),
+                "tedit" => parse_string_element(v, "tedit", Element::TEdit),
+                "tstamp" => parse_string_element(v, "tstamp", Element::TEdit),
                 x => Err(format!("unknown element in module: {}", x))
             }
         }
