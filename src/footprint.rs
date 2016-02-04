@@ -34,7 +34,6 @@ impl Module {
         for element in &self.elements[..] {
             match *element {
                 Element::FpText(ref fp_text) => {
-                    //println!("debug: fp_text: {} {}", fp_text.name, fp_text.value);
                     if fp_text.name == "reference" && fp_text.value == *reference {
                         return true
                     }
@@ -49,10 +48,8 @@ impl Module {
         for ref mut element in &mut self.elements[..] {
             match **element {
                 Element::FpText(ref mut fp_text) => {
-                    //println!("debug: fp_text: {} {}", fp_text.name, fp_text.value);
                     if fp_text.name == "reference" && fp_text.value == *reference {
                         fp_text.value.clone_from(reference2);
-                        //println!("new value: {}", fp_text.value)
                     }
                 }
                 _ => ()
