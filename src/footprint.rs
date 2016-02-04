@@ -755,7 +755,7 @@ fn parse_drill(v: &Vec<Sexp>) -> ERes<Drill> {
         let drill = try!(try!(v[1].atom()).f());
         Ok(Drill { shape:None, drill:drill, drill2:None })
         
-    } else if v.len() == 5 {
+    } else if v.len() == 4 {
         let shape = try!(try!(v[1].atom()).string());
         let drill = try!(try!(v[2].atom()).f());
         let drill2 = try!(try!(v[3].atom()).f());
