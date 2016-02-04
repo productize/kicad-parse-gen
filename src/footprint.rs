@@ -269,6 +269,7 @@ impl fmt::Display for Part {
 enum PadType {
     Smd,
     Pth,
+    NpPth,
 }
 
 impl PadType {
@@ -276,6 +277,7 @@ impl PadType {
         match &s[..] {
             "smd" => Ok(PadType::Smd),
             "thru_hole" => Ok(PadType::Pth),
+            "np_thru_hole" => Ok(PadType::NpPth),
             x => Err(format!("unknown PadType {}", x))
         }
     }
@@ -286,6 +288,7 @@ impl fmt::Display for PadType {
         match *self {
             PadType::Smd => write!(f, "smd"),
             PadType::Pth => write!(f, "thru_hole"),
+            PadType::NpPth => write!(f, "np_thru_hole"),
         }
     }
 }
@@ -322,6 +325,7 @@ enum LayerSide {
     Front,
     Back,
     Dwgs,
+    Both,
 }
 
 #[derive(Clone)]
@@ -352,6 +356,7 @@ impl Layer {
             "F" => LayerSide::Front,
             "B" => LayerSide::Back,
             "Dwgs" => LayerSide::Dwgs,
+            "*" => LayerSide::Both,
             x => return Err(format!("unknown layer side {}", x)),
         };
         let t = match sp[1] {
@@ -375,6 +380,7 @@ impl fmt::Display for Layer {
             LayerSide::Front => write!(f, "F."),
             LayerSide::Back  => write!(f, "B."),
             LayerSide::Dwgs  => write!(f, "Dwgs."),
+            LayerSide::Both  => write!(f, "*."),
         };
         match self.t {
             LayerType::Cu    => write!(f,"Cu"),
@@ -719,12 +725,8 @@ fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
 fn parse_string_element<F>(v: &Vec<Sexp>, name:&'static str, make:F) -> ERes<Element>
     where F:Fn(String) -> Element
 {
-    match v[1] {
-        Sexp::Atom(Atom::S(ref s)) => {
-            Ok(make(s.clone()))
-        }
-        ref x => Err(format!("unexpected element in {}: {}", name, x))
-    }
+    let s = try!(try!(v[1].atom()).as_string());
+    Ok(make(s.clone()))
 }
 
 fn parse_descr(v: &Vec<Sexp>) -> ERes<Element> {
@@ -740,15 +742,8 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
     // TODO: introduce try with error msg argument/fn
     //let name = try!(try!(v[1].atom()).string());
     //let value = try!(try!(v[1].atom()).string());
-    let name = try!(match v[1] {
-        Sexp::Atom(Atom::S(ref s)) => Ok(s),
-        _ => err("expecting name for fp_text")
-    });
-    let value = try!(match v[2] {
-        Sexp::Atom(Atom::Q(ref s)) => Ok(s),
-        Sexp::Atom(Atom::S(ref s)) => Ok(s),
-        _ => err("expecting value for fp_text")
-    });
+    let name = try!(try!(v[1].atom()).as_string());
+    let value = try!(try!(v[2].atom()).as_string());
     let parts = try!(parse_parts(&v[3..]));
     let mut fp = FpText::new(name.clone(), value.clone());
     for part in &parts[..] {
@@ -786,6 +781,7 @@ fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
             Part::At(ref at) => pad.at.clone_from(at),
             Part::Xy(ref xy) if xy.t == XyType::Size => pad.size.clone_from(xy),
             Part::Layers(ref l) => pad.layers.clone_from(l),
+            // TODO: net, drill
             ref x => println!("pad: ignoring {}", x),
         }
     }
@@ -879,6 +875,7 @@ fn parse_module_list(v: &Vec<Sexp>) -> ERes<Module> {
         Sexp::Atom(Atom::S(ref s)) if s == "module" => {
             match v[1] {
                 Sexp::Atom(Atom::S(ref s)) => {
+                    //println!("parsing module {}", s);
                     Ok(Module::new(s.clone()))
                 }
                 ref x => return Err(format!("expecting module name got {}", x))
