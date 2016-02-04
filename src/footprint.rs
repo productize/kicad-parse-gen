@@ -788,7 +788,7 @@ fn parse_module_list(v: &Vec<Sexp>) -> ERes<Module> {
     Ok(module)
 }
 
-fn parse_module(s: Sexp) -> ERes<Module> {
+pub fn parse_module(s: Sexp) -> ERes<Module> {
     match s {
         Sexp::List(v) => parse_module_list(&v),
         _ => err("expecting top level list")

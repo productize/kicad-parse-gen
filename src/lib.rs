@@ -56,3 +56,4 @@ pub fn write_file(name:&str, data:&String) -> ERes<()> {
 
 pub mod footprint;
 pub mod schematic;
+pub mod layout;
