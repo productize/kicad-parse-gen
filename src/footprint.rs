@@ -245,6 +245,29 @@ impl fmt::Display for Xy {
     }
 }
 
+#[derive(Clone,Debug)]
+struct Drill {
+    shape:Option<String>,
+    drill:f64,
+    drill2:Option<f64>,
+}
+
+impl fmt::Display for Drill {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(write!(f,"(drill "));
+        match self.shape {
+            Some(ref s) => try!(write!(f, "{} ", s)),
+            None => (),
+        }
+        try!(write!(f,"{}", self.drill));
+        match self.drill2 {
+            Some(ref d2) => try!(write!(f, " {}", d2)),
+            None => (),
+        }
+        write!(f,")")
+    }
+}
+
 #[derive(Debug)]
 enum Part {
     At(At),
@@ -257,7 +280,7 @@ enum Part {
     Pts(Vec<Xy>),
     Thickness(f64),
     Net(Net),
-    Drill(f64),
+    Drill(Drill),
 }
 
 impl Part {
@@ -460,7 +483,7 @@ pub struct Pad {
     at: At,
     layers: Layers,
     net: Option<Net>,
-    drill: Option<f64>,
+    drill: Option<Drill>,
 }
 
 impl Pad {
@@ -480,8 +503,8 @@ impl Pad {
     fn set_net(&mut self, net:&Net) {
         self.net = Some(net.clone())
     }
-    fn set_drill(&mut self, drill:f64) {
-        self.drill = Some(drill)
+    fn set_drill(&mut self, drill:&Drill) {
+        self.drill = Some(drill.clone())
     }
     
     
@@ -727,6 +750,21 @@ fn parse_part_net(v: &Vec<Sexp>) -> ERes<Part> {
     Ok(Part::Net(Net { pad:pad, net:net, }))
 }
 
+fn parse_drill(v: &Vec<Sexp>) -> ERes<Drill> {
+    if v.len() == 2 {
+        let drill = try!(try!(v[1].atom()).f());
+        Ok(Drill { shape:None, drill:drill, drill2:None })
+        
+    } else if v.len() == 5 {
+        let shape = try!(try!(v[1].atom()).string());
+        let drill = try!(try!(v[2].atom()).f());
+        let drill2 = try!(try!(v[3].atom()).f());
+        Ok(Drill { shape:Some(shape), drill:drill, drill2:Some(drill2) })
+    } else {
+        Err(format!("unknown drill format"))
+    }
+}
+
 fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
     let name = &try!(try!(v[0].atom()).string())[..];
     //println!("name: {}", name);
@@ -743,7 +781,7 @@ fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
         "pts" => parse_part_pts(v),
         "thickness" => parse_part_float(v, Part::Thickness),
         "net" => parse_part_net(v),
-        "drill" => parse_part_float(v, Part::Drill),
+        "drill" => Ok(Part::Drill(try!(parse_drill(v)))),
         x => Err(format!("unknown part {}", x))
     }
 }
@@ -831,7 +869,7 @@ fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
             Part::Xy(ref xy) if xy.t == XyType::Size => pad.size.clone_from(xy),
             Part::Layers(ref l) => pad.layers.clone_from(l),
             Part::Net(ref n) => pad.set_net(n),
-            Part::Drill(ref n) => pad.set_drill(*n),
+            Part::Drill(ref n) => pad.set_drill(n),
             ref x => println!("pad: ignoring {}", x),
         }
     }
