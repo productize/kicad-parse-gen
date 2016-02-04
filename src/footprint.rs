@@ -45,6 +45,7 @@ impl Module {
         return false
     }
     pub fn set_reference(&mut self, reference:&String) {
+        println!("debug: searching '{}'", reference);
         for ref mut element in &mut self.elements[..] {
             match **element {
                 Element::FpText(ref mut fp_text) => {
