@@ -37,13 +37,23 @@ impl Module {
                     if fp_text.name == "reference" && fp_text.value == *reference {
                         return true
                     }
-                    
                 }
                 _ => ()
             }
         }
         return false
-        
+    }
+    pub fn set_reference(&mut self, reference:&String) {
+        for ref mut element in &mut self.elements[..] {
+            match **element {
+                Element::FpText(ref mut fp_text) => {
+                    if fp_text.name == "reference" && fp_text.value == *reference {
+                        fp_text.value.clone_from(reference)
+                    }
+                }
+                _ => ()
+            }
+        }
     }
 }
 
