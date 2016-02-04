@@ -32,6 +32,7 @@ impl Layout {
             match **x {
                 Element::Module(ref mut m) => {
                     if m.is_reference(reference) {
+                        println!("found reference: {}", reference);
                         return fun(m)
                     }
                 },
