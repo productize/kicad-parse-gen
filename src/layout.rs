@@ -36,6 +36,7 @@ impl fmt::Display for Layout {
         try!(writeln!(f, "(kicad_pcb (version {})", self.version));
         for element in &self.elements[..] {
             try!(writeln!(f, "  {}", element));
+            try!(writeln!(f, ""));
         }
         writeln!(f, ")")
     }

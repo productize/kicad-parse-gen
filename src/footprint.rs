@@ -461,7 +461,15 @@ impl Pad {
 
 impl fmt::Display for Pad {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(pad {} {} {} {} {} {})", self.name, self.t, self.shape, self.size, self.at, self.layers)
+        let net = match self.net {
+            None => String::from(""),
+            Some(ref net) => format!(" {}", net),
+        };
+        let drill = match self.drill {
+            None => String::from(""),
+            Some(ref drill) => format!(" {}", drill),
+        };
+        write!(f, "(pad {} {} {} {} {} {}{}{})", self.name, self.t, self.shape, self.size, self.at, self.layers, net, drill)
     }
 }
 
