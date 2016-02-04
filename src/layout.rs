@@ -1,6 +1,7 @@
 // (c) 2016 Joost Yervante Damad <joost@productize.be>
 
 use std::fmt;
+use std::path::PathBuf;
 
 // from parent
 use ERes;
@@ -90,7 +91,8 @@ pub fn parse_str(s: &str) -> ERes<Layout> {
     parse(s)
 }
 
-pub fn parse_file(name: &str) -> ERes<Layout> {
+pub fn parse_file(filename: &PathBuf) -> ERes<Layout> {
+    let name = filename.to_str().unwrap();
     let s = try!(match read_file(name) {
         Ok(s) => Ok(s),
         Err(x) => Err(format!("io error: {}", x))
