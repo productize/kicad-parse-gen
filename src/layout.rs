@@ -24,7 +24,21 @@ impl Layout {
             elements:vec![],
         }
     }
-    
+
+    pub fn modify_module<F>(&mut self, reference:&String, fun:F)
+        where F:Fn(&mut footprint::Module) -> ()
+    {
+        for ref mut x in &mut self.elements[..] {
+            match **x {
+                Element::Module(ref mut m) => {
+                    if m.is_reference(reference) {
+                        return fun(m)
+                    }
+                },
+                Element::Other(_) => (),
+            }
+        }
+    }
 }
 
 enum Element {

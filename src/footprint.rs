@@ -30,6 +30,21 @@ impl Module {
     fn append(&mut self, e: Element) {
         self.elements.push(e)
     }
+    pub fn is_reference(&self, reference:&String) -> bool {
+        for element in &self.elements[..] {
+            match *element {
+                Element::FpText(ref fp_text) => {
+                    if fp_text.name == "reference" && fp_text.value == *reference {
+                        return true
+                    }
+                    
+                }
+                _ => ()
+            }
+        }
+        return false
+        
+    }
 }
 
 impl fmt::Display for Module {
