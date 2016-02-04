@@ -53,6 +53,9 @@ pub enum Element {
     FpCircle(FpCircle),
     TEdit(String),
     TStamp(String),
+    Path(String),
+    At(At),
+    Model(Model),
 }
 
 impl fmt::Display for Element {
@@ -67,6 +70,9 @@ impl fmt::Display for Element {
             Element::FpCircle(ref p) => write!(f, "{}", p),
             Element::TEdit(ref p) => write!(f, "(tedit {})", p),
             Element::TStamp(ref p) => write!(f, "(tstamp {})", p),
+            Element::Path(ref p) => write!(f, "(path {})", p),
+            Element::At(ref p) => write!(f, "{}", p),
+            Element::Model(ref p) => write!(f, "{}", p),
         }
     }
 }
@@ -225,6 +231,8 @@ enum Part {
     Xy(Xy),
     Pts(Vec<Xy>),
     Thickness(f64),
+    Net(Net),
+    Drill(f64),
 }
 
 impl Part {
@@ -249,6 +257,8 @@ impl fmt::Display for Part {
             Part::Xy(ref xy)           => write!(f, "{}", xy),
             Part::Pts(_)               => write!(f, "(pts TODO)"),
             Part::Thickness(ref x)     => write!(f, "(thickness {})", x),
+            Part::Net(ref x)           => write!(f, "{}", x),
+            Part::Drill(ref x)         => write!(f, "(drill {})", x),
             
         }
     }
@@ -265,7 +275,7 @@ impl PadType {
     fn from_string(s: String) -> ERes<PadType> {
         match &s[..] {
             "smd" => Ok(PadType::Smd),
-            "pth" => Ok(PadType::Pth),
+            "thru_hole" => Ok(PadType::Pth),
             x => Err(format!("unknown PadType {}", x))
         }
     }
@@ -275,7 +285,7 @@ impl fmt::Display for PadType {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
             PadType::Smd => write!(f, "smd"),
-            PadType::Pth => write!(f, "pth"), // TODO
+            PadType::Pth => write!(f, "thru_hole"),
         }
     }
 }
@@ -283,6 +293,7 @@ impl fmt::Display for PadType {
 #[derive(Debug)]
 enum PadShape {
     Rect,
+    Circle,
     // TODO
 }
 
@@ -290,6 +301,7 @@ impl PadShape {
     fn from_string(s: String) -> ERes<PadShape> {
         match &s[..] {
             "rect" => Ok(PadShape::Rect),
+            "circle" => Ok(PadShape::Circle),
             x => Err(format!("unknown PadShape: {}", x))
         }
     }
@@ -299,6 +311,7 @@ impl fmt::Display for PadShape {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
             PadShape::Rect => write!(f, "rect"),
+            PadShape::Circle => write!(f, "circle"),
         }
     }
 }
@@ -501,24 +514,80 @@ impl fmt::Display for FpCircle {
     }
 }
 
+#[derive(Debug)]
+pub struct Net {
+    pad: String,
+    net: String,
+}
+
+impl fmt::Display for Net {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(net {} {})", self.pad, self.net)
+    }
+}
+
+#[derive(Debug)]
+pub struct Model {
+    name: String,
+    at: Xyz,
+    scale: Xyz,
+    rotate: Xyz,
+}
+
+impl fmt::Display for Model {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(model {} (at {}) (scale {}) (rotate {}))", self.name, self.at, self.scale, self.rotate)
+    }
+}
+
+#[derive(Debug)]
+pub struct Xyz {
+    x:f64,
+    y:f64,
+    z:f64,
+}
+
+impl Xyz {
+    fn new(x:f64, y:f64, z:f64) -> Xyz {
+        Xyz { x:x, y:y, z:z, }
+    }
+}
+
+
+impl fmt::Display for Xyz {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(xyz {} {} {})", self.x, self.y, self.z)
+    }
+}
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
-fn parse_part_at(v: &Vec<Sexp>) -> ERes<Part> {
+fn parse_at(v: &Vec<Sexp>) -> ERes<At> {
     match v.len() {
         3 => {
             let x = try!(try!(v[1].atom()).f());
             let y = try!(try!(v[2].atom()).f());
-            Ok(Part::At(At::new(x, y, 0.0)))
+            Ok(At::new(x, y, 0.0))
         }
         4 => {
             let x = try!(try!(v[1].atom()).f());
             let y = try!(try!(v[2].atom()).f());
             let rot = try!(try!(v[3].atom()).f());
-            Ok(Part::At(At::new(x, y, rot)))
+            Ok(At::new(x, y, rot))
         }
         _ => err("at with wrong length")
     }
 }
+
+fn parse_part_at(v: &Vec<Sexp>) -> ERes<Part> {
+    let at = try!(parse_at(v));
+    Ok(Part::At(at))
+}
+
+fn parse_element_at(v: &Vec<Sexp>) -> ERes<Element> {
+    let at = try!(parse_at(v));
+    Ok(Element::At(at))
+}
+
 
 fn parse_part_layer(v: &Vec<Sexp>) -> ERes<Part> {
     let layer = try!(try!(v[1].atom()).string());
@@ -565,14 +634,11 @@ fn parse_part_layers(v: &Vec<Sexp>) -> ERes<Part> {
     Ok(Part::Layers(l))
 }
 
-fn parse_part_width(v: &Vec<Sexp>) -> ERes<Part> {
+fn parse_part_float<F>(v: &Vec<Sexp>, make:F) -> ERes<Part>
+    where F:Fn(f64) -> Part
+{
     let f = try!(try!(v[1].atom()).f());
-    Ok(Part::Width(f))
-}
-
-fn parse_part_thickness(v: &Vec<Sexp>) -> ERes<Part> {
-    let f = try!(try!(v[1].atom()).f());
-    Ok(Part::Thickness(f))
+    Ok(make(f))
 }
 
 fn parse_part_pts(v: &Vec<Sexp>) -> ERes<Part> {
@@ -591,6 +657,21 @@ fn parse_part_xy(t: XyType, v: &Vec<Sexp>) -> ERes<Part> {
     Ok(Part::Xy(Xy::new(x,y,t)))
 }
 
+fn parse_xyz(s: &Sexp) -> ERes<Xyz> {
+    let l = try!(s.list());
+    let v = try!(l[1].slice_atom("xyz"));
+    let x = try!(try!(v[0].atom()).f());
+    let y = try!(try!(v[1].atom()).f());
+    let z = try!(try!(v[2].atom()).f());
+    Ok(Xyz::new(x,y,z))
+}
+
+fn parse_part_net(v: &Vec<Sexp>) -> ERes<Part> {
+    let pad = try!(try!(v[1].atom()).as_string());
+    let net = try!(try!(v[2].atom()).as_string());
+    Ok(Part::Net(Net { pad:pad, net:net, }))
+}
+
 fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
     let name = &try!(try!(v[0].atom()).string())[..];
     //println!("name: {}", name);
@@ -599,13 +680,15 @@ fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
         "layer" => parse_part_layer(v),
         "effects" => parse_part_effects(v),
         "layers" => parse_part_layers(v),
-        "width" => parse_part_width(v),
+        "width" => parse_part_float(v, Part::Width),
         "start" => parse_part_xy(XyType::Start, v),
         "end" => parse_part_xy(XyType::End, v),
         "size" => parse_part_xy(XyType::Size, v),
         "center" => parse_part_xy(XyType::Center, v),
         "pts" => parse_part_pts(v),
-        "thickness" => parse_part_thickness(v),
+        "thickness" => parse_part_float(v, Part::Thickness),
+        "net" => parse_part_net(v),
+        "drill" => parse_part_float(v, Part::Drill),
         x => Err(format!("unknown part {}", x))
     }
 }
@@ -663,6 +746,7 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
     });
     let value = try!(match v[2] {
         Sexp::Atom(Atom::Q(ref s)) => Ok(s),
+        Sexp::Atom(Atom::S(ref s)) => Ok(s),
         _ => err("expecting value for fp_text")
     });
     let parts = try!(parse_parts(&v[3..]));
@@ -750,6 +834,16 @@ fn parse_fp_circle(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::FpCircle(fp_circle))
 }
 
+fn parse_model_element(v:&Vec<Sexp>) -> ERes<Element> {
+    let name = try!(try!(v[1].atom()).string());
+    let at = try!(parse_xyz(&v[2]));
+    let scale = try!(parse_xyz(&v[3]));
+    let rotate = try!(parse_xyz(&v[4]));
+    let m = Model {name:name, at:at, scale:scale, rotate:rotate};
+    Ok(Element::Model(m))
+}
+
+
 fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
     match v[0] {
         Sexp::Atom(Atom::S(ref s)) => {
@@ -762,7 +856,10 @@ fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
                 "fp_line" => parse_fp_line(v),
                 "fp_circle" => parse_fp_circle(v),
                 "tedit" => parse_string_element(v, "tedit", Element::TEdit),
-                "tstamp" => parse_string_element(v, "tstamp", Element::TEdit),
+                "tstamp" => parse_string_element(v, "tstamp", Element::TStamp),
+                "path" => parse_string_element(v, "path", Element::Path),
+                "at" => parse_element_at(v),
+                "model" => parse_model_element(v),
                 x => Err(format!("unknown element in module: {}", x))
             }
         }
