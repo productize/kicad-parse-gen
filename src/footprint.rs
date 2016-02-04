@@ -34,6 +34,7 @@ impl Module {
         for element in &self.elements[..] {
             match *element {
                 Element::FpText(ref fp_text) => {
+                    println!("debug: fp_text: {}", fp_text);
                     if fp_text.name == "reference" && fp_text.value == *reference {
                         return true
                     }
