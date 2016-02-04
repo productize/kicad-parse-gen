@@ -25,19 +25,20 @@ impl Layout {
         }
     }
 
-    pub fn modify_module<F>(&mut self, reference:&String, fun:F)
+    pub fn modify_module<F>(&mut self, reference:&String, fun:F) -> ERes<()> 
         where F:Fn(&mut footprint::Module) -> ()
     {
         for ref mut x in &mut self.elements[..] {
             match **x {
                 Element::Module(ref mut m) => {
                     if m.is_reference(reference) {
-                        return fun(m)
+                        return Ok(fun(m))
                     }
                 },
                 Element::Other(_) => (),
             }
         }
+        Err(format!("did not find module with reference {}", reference))
     }
 }
 
