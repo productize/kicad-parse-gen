@@ -322,6 +322,7 @@ impl fmt::Display for PadType {
 enum PadShape {
     Rect,
     Circle,
+    Oval,
     // TODO
 }
 
@@ -330,6 +331,7 @@ impl PadShape {
         match &s[..] {
             "rect" => Ok(PadShape::Rect),
             "circle" => Ok(PadShape::Circle),
+            "oval" => Ok(PadShape::Oval),
             x => Err(format!("unknown PadShape: {}", x))
         }
     }
@@ -340,6 +342,7 @@ impl fmt::Display for PadShape {
         match *self {
             PadShape::Rect => write!(f, "rect"),
             PadShape::Circle => write!(f, "circle"),
+            PadShape::Oval => write!(f, "oval"),
         }
     }
 }
