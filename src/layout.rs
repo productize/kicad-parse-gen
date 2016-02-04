@@ -1,7 +1,6 @@
 // (c) 2016 Joost Yervante Damad <joost@productize.be>
 
 use std::fmt;
-use std::collections::HashMap;
 
 // from parent
 use ERes;
@@ -11,7 +10,6 @@ use footprint;
 
 extern crate rustysexp;
 use self::rustysexp::Sexp;
-use self::rustysexp::Atom;
 
 pub struct Layout {
     version:i64,
@@ -33,18 +31,25 @@ enum Element {
     Module(footprint::Module),
 }
 
-fn to_fmt_error<T>(e:Result<T,String>) -> Result<(), fmt::Error> {
-    match e {
-        Ok(_) => Ok(()),
-        Err(s) => Err(fmt::Error)
+impl fmt::Display for Layout {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(writeln!(f, "(kicad_pcb (version {})", self.version));
+        for element in &self.elements[..] {
+            try!(writeln!(f, "  {}", element));
+        }
+        writeln!(f, ")")
     }
 }
 
-impl fmt::Display for Layout {
+impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        writeln!(f, "{}", "TODO")
+        match *self {
+            Element::Other(ref s) => write!(f, "{}", s),
+            Element::Module(ref s) => write!(f, "{}", s),
+        }
     }
 }
+
 
 fn parse_version(e:&Sexp) -> ERes<i64> {
     let l = try!(e.slice_atom("version"));

@@ -36,7 +36,7 @@ impl fmt::Display for Module {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(write!(f, "(module {}\n", self.name));
         for e in &self.elements {
-            try!(write!(f, "{}\n", e))
+            try!(write!(f, "    {}\n", e))
         };
         write!(f, ")")
     }
@@ -431,6 +431,8 @@ pub struct Pad {
     size: Xy,
     at: At,
     layers: Layers,
+    net: Option<Net>,
+    drill: Option<f64>,
 }
 
 impl Pad {
@@ -442,8 +444,19 @@ impl Pad {
             size: Xy::new_empty(XyType::Size),
             at: At::new_empty(),
             layers: Layers::new(),
+            net:None,
+            drill:None,
         }
     }
+
+    fn set_net(&mut self, net:&Net) {
+        self.net = Some(net.clone())
+    }
+    fn set_drill(&mut self, drill:f64) {
+        self.drill = Some(drill)
+    }
+    
+    
 }
 
 impl fmt::Display for Pad {
@@ -520,7 +533,7 @@ impl fmt::Display for FpCircle {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Net {
     pad: String,
     net: String,
@@ -722,7 +735,7 @@ fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
     Ok(res)
 }
 
-fn parse_string_element<F>(v: &Vec<Sexp>, name:&'static str, make:F) -> ERes<Element>
+fn parse_string_element<F>(v: &Vec<Sexp>, make:F) -> ERes<Element>
     where F:Fn(String) -> Element
 {
     let s = try!(try!(v[1].atom()).as_string());
@@ -781,7 +794,8 @@ fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
             Part::At(ref at) => pad.at.clone_from(at),
             Part::Xy(ref xy) if xy.t == XyType::Size => pad.size.clone_from(xy),
             Part::Layers(ref l) => pad.layers.clone_from(l),
-            // TODO: net, drill
+            Part::Net(ref n) => pad.set_net(n),
+            Part::Drill(ref n) => pad.set_drill(*n),
             ref x => println!("pad: ignoring {}", x),
         }
     }
@@ -844,16 +858,16 @@ fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
     match v[0] {
         Sexp::Atom(Atom::S(ref s)) => {
             match &s[..] {
-                "layer" => parse_string_element(v, "layer", Element::Layer),
+                "layer" => parse_string_element(v, Element::Layer),
                 "descr" => parse_descr(v),
                 "fp_text" => parse_fp_text(v),
                 "pad" => parse_pad(v),
                 "fp_poly" => parse_fp_poly(v),
                 "fp_line" => parse_fp_line(v),
                 "fp_circle" => parse_fp_circle(v),
-                "tedit" => parse_string_element(v, "tedit", Element::TEdit),
-                "tstamp" => parse_string_element(v, "tstamp", Element::TStamp),
-                "path" => parse_string_element(v, "path", Element::Path),
+                "tedit" => parse_string_element(v, Element::TEdit),
+                "tstamp" => parse_string_element(v, Element::TStamp),
+                "path" => parse_string_element(v, Element::Path),
                 "at" => parse_element_at(v),
                 "model" => parse_model_element(v),
                 x => Err(format!("unknown element in module: {}", x))
