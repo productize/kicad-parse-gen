@@ -335,7 +335,7 @@ impl Component {
     pub fn update_name(&mut self, n:String) {
         self.name = n;
         for field in &mut self.fields[..] {
-            if field.i == 0 {
+            if field.i == 1 {
                 field.value = self.name.clone()
             }
         }
