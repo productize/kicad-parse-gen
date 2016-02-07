@@ -331,6 +331,15 @@ impl Component {
             }
         }
     }
+    
+    pub fn update_name(&mut self, n:String) {
+        self.name = n;
+        for field in &mut self.fields[..] {
+            if field.i == 0 {
+                field.value = self.name.clone()
+            }
+        }
+    }
 
     pub fn update_field(&mut self, name:&String, value:&String) {
         for field in self.fields.iter_mut() {
