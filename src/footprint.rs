@@ -601,7 +601,7 @@ pub struct Net {
 
 impl fmt::Display for Net {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(net {} {})", self.pad, self.net)
+        write!(f, "(net {} \"{}\")", self.pad, self.net)
     }
 }
 
