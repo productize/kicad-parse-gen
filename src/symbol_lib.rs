@@ -17,7 +17,7 @@ pub struct SymbolLib {
 }
 
 // DEF name reference unused text_offset draw_pinnumber draw_pinname unit_count units_locked option_flag
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Symbol {
     pub name:String,
     pub reference:String,
@@ -33,7 +33,7 @@ pub struct Symbol {
 // F n “text” posx posy dimension orientation visibility hjustify vjustify/italic/bold “name”
 // F0 "#PWR" 0 0 30 H I C CNN
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Field {
     pub i:i64,
     pub value:String,
