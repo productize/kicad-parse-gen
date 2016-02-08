@@ -388,7 +388,7 @@ pub enum Orientation {
 }
 
 impl Orientation {
-    fn new(c:char) -> ERes<Orientation> {
+    pub fn new(c:char) -> ERes<Orientation> {
         match c {
             'H' => Ok(Orientation::Horizontal),
             'V' => Ok(Orientation::Vertical),
@@ -418,7 +418,7 @@ pub enum Justify {
 }
 
 impl Justify {
-    fn new(c: char) -> ERes<Justify> {
+    pub fn new(c: char) -> ERes<Justify> {
         match c {
             'C' => Ok(Justify::Center),
             'R' => Ok(Justify::Right),

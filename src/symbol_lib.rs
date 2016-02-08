@@ -3,7 +3,6 @@
 use std::fmt;
 use std::str::FromStr;
 use std::path::PathBuf;
-use std::collections::HashMap;
 
 // get from parent
 use ERes;
@@ -187,12 +186,6 @@ impl ParseState {
     }
 }
 
-fn char_at(s:&String, p:usize) -> char {
-    let v:Vec<char> = s.chars().collect();
-    v[..][p]
-}
-
-
 fn assume_string(e:&'static str, s:&String) -> ERes<()> {
     if String::from(e) != *s {
         return Err(format!("expecting: {}, actually: {}", e, s))
@@ -224,14 +217,9 @@ fn bool_from_string(s:&String, t:&'static str, f:&'static str) -> ERes<bool> {
     Err(format!("unknown boolean {}, expected {} or {}", s, t, f))
 }
 
-fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> ERes<bool> {
-    if i == t {
-        return Ok(true)
-    }
-    if i == f {
-        return Ok(false)
-    }
-    Err(format!("unknown boolean {}, expected {} or {}", i, t, f))
+fn char_at(s:&String, p:usize) -> char {
+    let v:Vec<char> = s.chars().collect();
+    v[..][p]
 }
 
 fn parse_symbol(p:&mut ParseState) -> ERes<Symbol> {
@@ -243,7 +231,7 @@ fn parse_symbol(p:&mut ParseState) -> ERes<Symbol> {
     if v.len() != 10 {
         return Err(format!("unexpected elements in {}", s))
     }
-    assume_string("DEF", &v[0]);
+    try!(assume_string("DEF", &v[0]));
     let mut s = Symbol::new(v[1].clone(), v[2].clone());
     s.text_offset = try!(f64_from_string(p, &v[4]));
     s.draw_pinnumber = try!(bool_from_string(&v[5], "Y", "N"));
@@ -252,10 +240,69 @@ fn parse_symbol(p:&mut ParseState) -> ERes<Symbol> {
     s.unit_locked = try!(bool_from_string(&v[8], "L", "F"));
     s.is_power = try!(bool_from_string(&v[9], "P", "N"));
     // TODO fields
+    // TODO draw
+    loop {
+        let s2 = p.here();
+        if char_at(&s2, 0) == 'F' {
+            let f = try!(parse_field(p, &s2));
+            s.fields.push(f);
+            p.next();
+        } else {
+            break;
+        }
+    }
+    while !p.eof() {
+        let s2 = p.here();
+        s.draw.push(s2.clone());
+        p.next()
+    }
     Ok(s)
 }
+
+fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> ERes<bool> {
+    if i == t {
+        return Ok(true)
+    }
+    if i == f {
+        return Ok(false)
+    }
+    Err(format!("unknown boolean {}, expected {} or {}", i, t, f))
+}
+
+// F0 "L" 0 50 40 H V C CNN
+fn parse_field(p:&mut ParseState, line:&String) -> ERes<Field> {
+    let mut f = Field::new();
+    let v = &parse_split_quote_aware(&line);
+    if v.len() != 9 && v.len() != 10 {
+        return Err(format!("unexpected elements in {}", line))
+    }
+    f.i = try!(i64_from_string(p, &String::from(&v[0][1..])));
+    let name = if v.len() == 10 {
+        v[9].clone()
+    } else {
+        match f.i {
+            0 => String::from("Reference"),
+            1 => String::from("Value"),
+            2 => String::from("Footprint"),
+            3 => String::from("UserDocLink"),
+            _ => return Err(format!("expecting name for componentfield > 3")),
+        }
+    };
+    f.value = v[1].clone();
+    f.x = try!(f64_from_string(p, &v[2]));
+    f.y = try!(f64_from_string(p, &v[3]));
+    f.dimension = try!(i64_from_string(p, &v[4]));
+    f.orientation = try!(schematic::Orientation::new(char_at(&v[5], 0)));
+    f.visible = try!(bool_from_string(&v[6], "V", "I"));
+    f.hjustify = try!(schematic::Justify::new(char_at(&v[7], 0)));
+    f.vjustify = try!(schematic::Justify::new(char_at(&v[8], 0)));
+    f.italic = try!(bool_from(char_at(&v[8], 1), 'I', 'N'));
+    f.bold = try!(bool_from(char_at(&v[8], 2), 'B', 'N'));
+    f.name = name;
+    Ok(f)
+}
     
-fn parse(filename:Option<PathBuf>, s: &str) -> ERes<SymbolLib> {
+fn parse(s: &str) -> ERes<SymbolLib> {
     let mut lib = SymbolLib::new();
     let v:Vec<&str> = s.lines().collect();
     let p = &mut ParseState::new(v);
@@ -270,11 +317,11 @@ fn parse(filename:Option<PathBuf>, s: &str) -> ERes<SymbolLib> {
 
 
 pub fn parse_str(s:&str) -> ERes<SymbolLib> {
-    parse(None, s)
+    parse(s)
 }
 
 pub fn parse_file(filename:&PathBuf) -> ERes<SymbolLib> {
     let name = filename.to_str().unwrap();
     let s = try!(read_file(name));
-    parse(Some(filename.clone()), &s[..])
+    parse(&s[..])
 }
