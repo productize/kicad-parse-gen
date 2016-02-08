@@ -40,9 +40,9 @@ pub struct Field {
     pub value:String,
     pub x:f64,
     pub y:f64,
-    pub dimention:i64,
+    pub dimension:i64,
     pub orientation:schematic::Orientation,
-    pub visibility:bool,
+    pub visible:bool,
     pub hjustify:schematic::Justify,
     pub vjustify:schematic::Justify,
     pub italic:bool,
@@ -55,6 +55,18 @@ impl SymbolLib {
         SymbolLib {
             symbols:vec![]
         }
+    }
+}
+
+impl fmt::Display for SymbolLib {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(writeln!(f, "EESchema-LIBRARY Version 2.3"));
+        try!(writeln!(f, "#encoding utf-8"));
+        try!(writeln!(f, "#"));
+        for i in &self.symbols {
+            try!(write!(f, "{}", i))
+        };
+        writeln!(f, "#End Library")
     }
 }
 
@@ -72,6 +84,65 @@ impl Symbol {
             fields:vec![],
             draw:vec![],
         }
+    }
+}
+
+impl fmt::Display for Symbol {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(writeln!(f, "#"));
+        try!(writeln!(f, "# {}", self.name));
+        try!(writeln!(f, "#"));
+        try!(writeln!(f, "DEF {} {} 0 {} {} {} {} {} {}",
+                     self.name, self.reference, self.text_offset,
+                     if self.draw_pinnumber { "Y" } else { "N" },
+                     if self.draw_pinname { "Y" } else { "N" },
+                     self.unit_count,
+                     if self.unit_locked { "L" } else { "F" },
+                     if self.is_power { "P" } else { "N" },
+                     ));
+        for field in &self.fields {
+            try!(writeln!(f, "{}", field))
+        };
+        for draw in &self.draw {
+            try!(writeln!(f, "{}", draw))
+        }
+        writeln!(f, "ENDDEF")
+    }
+}
+
+impl Field {
+    fn new() -> Field {
+        Field {
+            i:0,
+            value:String::from(""),
+            x:0.0,
+            y:0.0,
+            dimension:0,
+            orientation:schematic::Orientation::Horizontal,
+            visible:false,
+            hjustify:schematic::Justify::Center,
+            vjustify:schematic::Justify::Center,
+            italic:false,
+            bold:false,
+            name:String::from(""),
+        }
+    }
+}
+
+impl fmt::Display for Field {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(write!(f, "F{} {} {} {} {} {} {} {} {}{}{}",
+               self.i, self.value, self.x, self.y, self.dimension,
+               self.orientation,
+               if self.visible { "V" } else { "I" },
+               self.hjustify, self.vjustify,
+               if self.italic { "I" } else { "N" },
+               if self.bold { "I" } else { "N" },
+                    ));
+        if self.i > 3 {
+            try!(write!(f, " \"{}\"", self.name))
+        };
+        Ok(())
     }
 }
 
