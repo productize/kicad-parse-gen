@@ -55,6 +55,17 @@ impl SymbolLib {
             symbols:vec![]
         }
     }
+
+    pub fn find<F>(&self, filter:F) -> Option<&Symbol>
+        where F:Fn(&Symbol) -> bool
+    {
+        for symbol in &self.symbols {
+            if filter(symbol) {
+                return Some(symbol)
+            }
+        }
+        None
+    }
 }
 
 impl fmt::Display for SymbolLib {
