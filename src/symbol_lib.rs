@@ -95,6 +95,15 @@ impl Symbol {
             draw:vec![],
         }
     }
+    pub fn set_name(&mut self, name:String) {
+        if char_at(&self.name, 0) == '~' {
+            self.name = format!("~{}", name)
+        } else {
+            self.name = name.clone()
+        }
+        let mut field = &mut self.fields[1];
+        field.value = name
+    }
 }
 
 impl fmt::Display for Symbol {
