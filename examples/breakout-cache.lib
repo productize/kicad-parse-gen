@@ -30,7 +30,7 @@ X 1 1 -50 0 0 R 25 25 1 1 P
 X 2 2 50 0 0 R 25 25 1 1 P
 ENDDRAW
 ENDDEF
-#
+#2
 # R
 #
 DEF R R 0 40 N N 1 F N
