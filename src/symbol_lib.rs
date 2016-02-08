@@ -273,6 +273,17 @@ fn parse_symbol(p:&mut ParseState) -> ERes<Symbol> {
             break;
         }
     }
+    if &p.here() == "$FPLIST" {
+        p.next();
+        // skip FPLIST for now
+        while !p.eof() {
+            if &p.here() == "$ENDFPLIST" {
+                p.next();
+                break;
+            }
+            p.next()
+        }
+    }
     assume_line!(p, "DRAW");
     while !p.eof() {
         let s2 = p.here();
