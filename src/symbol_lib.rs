@@ -88,8 +88,7 @@ impl Symbol {
 
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        try!(writeln!(f, "#"));
-        try!(writeln!(f, "# {}", self.name));
+        try!(writeln!(f, "# {}", &&self.fields[1].value));
         try!(writeln!(f, "#"));
         try!(writeln!(f, "DEF {} {} 0 {} {} {} {} {} {}",
                      self.name, self.reference, self.text_offset,
@@ -102,10 +101,13 @@ impl fmt::Display for Symbol {
         for field in &self.fields {
             try!(writeln!(f, "{}", field))
         };
+        try!(writeln!(f, "DRAW"));
         for draw in &self.draw {
             try!(writeln!(f, "{}", draw))
-        }
-        writeln!(f, "ENDDEF")
+        };
+        try!(writeln!(f, "ENDDRAW"));
+        try!(writeln!(f, "ENDDEF"));
+        writeln!(f, "#")
     }
 }
 
@@ -130,7 +132,7 @@ impl Field {
 
 impl fmt::Display for Field {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        try!(write!(f, "F{} {} {} {} {} {} {} {} {}{}{}",
+        try!(write!(f, "F{} \"{}\" {} {} {} {} {} {} {}{}{}",
                self.i, self.value, self.x, self.y, self.dimension,
                self.orientation,
                if self.visible { "V" } else { "I" },
@@ -223,7 +225,6 @@ fn char_at(s:&String, p:usize) -> char {
 }
 
 fn parse_symbol(p:&mut ParseState) -> ERes<Symbol> {
-    assume_line!(p,"#");
     p.next(); // skip line like # name
     assume_line!(p,"#");
     let s = p.here();
@@ -241,6 +242,7 @@ fn parse_symbol(p:&mut ParseState) -> ERes<Symbol> {
     s.is_power = try!(bool_from_string(&v[9], "P", "N"));
     // TODO fields
     // TODO draw
+    p.next();
     loop {
         let s2 = p.here();
         if char_at(&s2, 0) == 'F' {
@@ -251,11 +253,18 @@ fn parse_symbol(p:&mut ParseState) -> ERes<Symbol> {
             break;
         }
     }
+    assume_line!(p, "DRAW");
     while !p.eof() {
         let s2 = p.here();
+        if &s2 == "ENDDRAW" {
+            p.next();
+            break;
+        }
         s.draw.push(s2.clone());
         p.next()
     }
+    assume_line!(p,"ENDDEF");
+    assume_line!(p,"#");
     Ok(s)
 }
 
@@ -308,8 +317,14 @@ fn parse(s: &str) -> ERes<SymbolLib> {
     let p = &mut ParseState::new(v);
     assume_line!(p, "EESchema-LIBRARY Version 2.3");
     assume_line!(p, "#encoding utf-8");
+    assume_line!(p,"#");
     while !p.eof() {
+        //println!("here: {}", &p.here());
+        if &p.here() == "#End Library" {
+            break;
+        }
         let s = try!(parse_symbol(p));
+        //println!("new symbol: {}", &s);
         lib.symbols.push(s)
     }
     Ok(lib)
