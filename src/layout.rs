@@ -42,7 +42,7 @@ impl Layout {
     }
 }
 
-enum Element {
+pub enum Element {
     Other(Sexp),
     Module(footprint::Module),
 }
