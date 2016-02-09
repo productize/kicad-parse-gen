@@ -42,6 +42,7 @@ impl Layout {
     }
 }
 
+#[derive(Clone)]
 pub enum Element {
     Other(Sexp),
     Module(footprint::Module),

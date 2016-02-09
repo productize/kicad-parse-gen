@@ -17,7 +17,7 @@ macro_rules! fail {
     )
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Module {
     name: String,
     elements: Vec<Element>
@@ -79,7 +79,7 @@ impl fmt::Display for Module {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum Element {
     Layer(String),
     Descr(String),
@@ -114,7 +114,7 @@ impl fmt::Display for Element {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct FpText {
     name: String,
     value: String,
@@ -149,8 +149,7 @@ impl fmt::Display for FpText {
     }
 }
 
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct At {
     x: f64,
     y: f64,
@@ -176,8 +175,7 @@ impl fmt::Display for At {
     }
 }
 
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Font {
     size: Xy,
     thickness: f64,
@@ -325,7 +323,7 @@ impl fmt::Display for Part {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 enum PadType {
     Smd,
     Pth,
@@ -353,7 +351,7 @@ impl fmt::Display for PadType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 enum PadShape {
     Rect,
     Circle,
@@ -486,7 +484,7 @@ impl fmt::Display for Layers {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Pad {
     name: String,
     t: PadType,
@@ -536,7 +534,7 @@ impl fmt::Display for Pad {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct FpPoly {
     pts:Vec<Xy>,
     width:f64,
@@ -563,7 +561,7 @@ impl fmt::Display for FpPoly {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct FpLine {
     start:Xy,
     end:Xy,
@@ -590,7 +588,7 @@ impl FpCircle {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct FpCircle {
     center:Xy,
     end:Xy,
@@ -616,7 +614,7 @@ impl fmt::Display for Net {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Model {
     name: String,
     at: Xyz,
@@ -630,7 +628,7 @@ impl fmt::Display for Model {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Xyz {
     x:f64,
     y:f64,
