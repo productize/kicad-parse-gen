@@ -13,8 +13,8 @@ extern crate rustysexp;
 use self::rustysexp::Sexp;
 
 pub struct Layout {
-    version:i64,
-    elements:Vec<Element>,
+    pub version:i64,
+    pub elements:Vec<Element>,
 }
 
 impl Layout {
