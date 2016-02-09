@@ -106,7 +106,7 @@ impl Schematic {
         Err(format!("could not find component {} in schematic", reference))
     }
 
-    pub fn increment_sheetcount(&mut self) {
+    pub fn increment_sheet_count(&mut self) {
         self.description.sheet_count += 1
     }
     
