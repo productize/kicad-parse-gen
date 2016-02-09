@@ -139,6 +139,42 @@ fn parse_module(e:&Sexp) -> ERes<Element> {
     Ok(Element::Module(m))
 }
 
+fn parse_net(e:&Sexp) -> ERes<Element> {
+    let l = try!(e.slice_atom("net"));
+    let num = try!(l[0].i());
+    let name = try!(l[1].string());
+    Ok(Element::Net(Net { name:name, num:num }))
+}
+
+/* busy
+fn parse_net_class(e:&Sexp) -> ERes<Element> {
+    fn parse(e:&Sexp, name:&'static str) -> ERes<f64> {
+        let l = try!(e.slice_atom(name));
+        l[0].f()
+    }
+    let l = try!(e.slice_atom("net_class"));
+    let name = try!(l[0].string());
+    let desc = try!(l[1].string());
+    let mut clearance = 0.1524;
+    let mut trace_width = 0.2032;
+    let mut via_dia = 0.675;
+    let mut via_drill = 0.25;
+    let mut uvia_dia = 0.508;
+    let mut uvia_drill = 0.127;
+    for x in &l[2..] {
+        let xn = &try!(x.list_name())[..];
+        match xn {
+            "add_net" =>
+            "clearance" => clearance = try!(parse(x, xn)),
+            "trace_width" => trace_width = try!(parse(x, xn)),
+            "via_dia" => via_dia = try!(parse(x, xn)),
+            "via_drill" => via_drill = try!(parse(x, xn)),
+            "uvia_dia" => uvia_dia = try!(parse(x, xn)),
+            "uvia_drill" => uvia_drill = try!(parse(x, xn)),
+        }
+    }
+}*/
+
 fn parse(s: &str) -> ERes<Layout> {
     let exp = match rustysexp::parse_str(s) {
         Ok(s) => s,
@@ -151,6 +187,8 @@ fn parse(s: &str) -> ERes<Layout> {
         match &try!(e.list_name())[..] {
             "version" => layout.version = try!(parse_version(e)),
             "module" => layout.elements.push(try!(parse_module(e))),
+            "net" => layout.elements.push(try!(parse_net(e))),
+            "net_class" => layout.elements.push(parse_other(e)), // TODO
             _ => layout.elements.push(parse_other(e)),
         }
     }
