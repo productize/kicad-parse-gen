@@ -257,8 +257,8 @@ pub struct Component {
     pub name:String,
     pub reference:String,
     pub u:String, // TODO
-    pub x:f64,
-    pub y:f64,
+    pub x:i64,
+    pub y:i64,
     pub fields:Vec<ComponentField>,
     pub rotation:ComponentRotation,
 }
@@ -269,8 +269,8 @@ impl Component {
             name:String::from("DUMMY"),
             reference:String::from("U1"),
             u:String::from(""),
-            x:0.0,
-            y:0.0,
+            x:0,
+            y:0,
             fields:vec![],
             rotation:ComponentRotation {a:0,b:0,c:0,d:0},
         }
@@ -804,8 +804,8 @@ fn parse_component_u(p:&mut ParseState, d:&mut Component) -> ERes<()> {
 
 fn parse_component_p(p:&mut ParseState, d:&mut Component) -> ERes<()> {
     let v = try!(parse_split_quote_aware_n(3, &p.here()));
-    d.x = try!(f64_from_string(p, &v[1]));
-    d.y = try!(f64_from_string(p, &v[2]));
+    d.x = try!(i64_from_string(p, &v[1]));
+    d.y = try!(i64_from_string(p, &v[2]));
     Ok(())
 }
 
