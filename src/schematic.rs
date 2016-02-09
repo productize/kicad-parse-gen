@@ -1020,7 +1020,7 @@ pub fn parse_file(filename:&PathBuf) -> ERes<Schematic> {
     parse(Some(filename.clone()), &s[..])
 }
 
-pub fn parse_file_for_sheet(schematic:&Schematic, sheet:&Sheet) -> ERes<Schematic> {
+pub fn filename_for_sheet(schematic:&Schematic, sheet:&Sheet) -> ERes<PathBuf> {
     let path = try!(match schematic.filename {
         Some(ref path) => Ok(path),
         None => Err(format!("can't load sheet when there is no filename for the schematic")),
@@ -1029,7 +1029,11 @@ pub fn parse_file_for_sheet(schematic:&Schematic, sheet:&Sheet) -> ERes<Schemati
         Some(dir) => Ok(dir),
         None => Err(format!("can't load sheet when I don't know the dir of the schematic")),
     });
-    
-    let f = dir.join(&sheet.filename);
+    Ok(dir.join(&sheet.filename))
+}
+
+
+pub fn parse_file_for_sheet(schematic:&Schematic, sheet:&Sheet) -> ERes<Schematic> {
+    let f = try!(filename_for_sheet(schematic,sheet));
     parse_file(&f)
 }
