@@ -17,6 +17,33 @@ pub struct Layout {
     pub elements:Vec<Element>,
 }
 
+#[derive(Clone)]
+pub enum Element {
+    Module(footprint::Module),
+    Net(Net),
+    NetClass(NetClass),
+    Other(Sexp),
+}
+
+#[derive(Clone)]
+pub struct Net {
+    pub num:i64,
+    pub name:String,
+}
+
+#[derive(Clone)]
+pub struct NetClass {
+    pub name:String,
+    pub desc:String,
+    pub clearance:f64,
+    pub trace_width:f64,
+    pub via_dia:f64,
+    pub via_drill:f64,
+    pub uvia_dia:f64,
+    pub uvia_drill:f64,
+    pub nets:Vec<String>,
+}
+
 impl Layout {
     fn new() -> Layout {
         Layout {
@@ -35,17 +62,13 @@ impl Layout {
                         return Ok(fun(m))
                     }
                 },
+                Element::Net(_) => (),
+                Element::NetClass(_) => (),
                 Element::Other(_) => (),
             }
         }
         Err(format!("did not find module with reference {}", reference))
     }
-}
-
-#[derive(Clone)]
-pub enum Element {
-    Other(Sexp),
-    Module(footprint::Module),
 }
 
 impl fmt::Display for Layout {
@@ -64,10 +87,41 @@ impl fmt::Display for Element {
         match *self {
             Element::Other(ref s) => write!(f, "{}", s),
             Element::Module(ref s) => write!(f, "{}", s),
+            Element::Net(ref s) => write!(f, "{}", s),
+            Element::NetClass(ref s) => write!(f, "{}", s),
         }
     }
 }
 
+impl fmt::Display for Net {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        if self.name.contains("(") || self.name.contains(")") {
+            write!(f, "(net {} \"{}\")", self.num, self.name)
+        } else {
+            write!(f, "(net {} {})", self.num, self.name)
+        }
+    }
+}
+impl fmt::Display for NetClass {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(write!(f, "(net_class {} \"{}\" ", self.name, self.desc));
+        try!(write!(f, "(clearance {}) ", self.clearance));
+        try!(write!(f, "(trace_width {}) ", self.trace_width));
+        try!(write!(f, "(via_dia {}) ", self.via_dia));
+        try!(write!(f, "(via_drill {}) ", self.via_drill));
+        try!(write!(f, "(uvia_dia {}) ", self.uvia_dia));
+        try!(write!(f, "(uvia_drill {}) ", self.uvia_drill));
+        for net in &self.nets {
+            if net.contains("(") || net.contains(")") {
+                try!(write!(f, "(add_net \"{}\")", net))
+            } else {
+                try!(write!(f, "(add_net {})", net))
+            }
+        }
+        write!(f, ")")
+        
+    }
+}
 
 fn parse_version(e:&Sexp) -> ERes<i64> {
     let l = try!(e.slice_atom("version"));
