@@ -532,7 +532,7 @@ impl fmt::Display for ComponentField {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Sheet {
     pub x:i64,
     pub y:i64,
@@ -575,7 +575,7 @@ impl fmt::Display for Sheet {
 // F3 "P0.02/AIN0" I L 5250 2450 60
 // form = I (input) O (output) B (BiDi) T (tri state) U (unspecified)
 // side = R (right) , L (left)., T (tpo) , B (bottom)
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct SheetLabel {
     pub name:String,
     pub form:LabelForm,
@@ -599,7 +599,7 @@ impl fmt::Display for SheetLabel {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum LabelForm { Input, Output, BiDi, TriState, Unspecified }
 
 impl fmt::Display for LabelForm {
@@ -615,7 +615,7 @@ impl fmt::Display for LabelForm {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum LabelSide { Left, Right, Top, Bottom }
 
 impl fmt::Display for LabelSide {
