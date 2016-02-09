@@ -105,6 +105,11 @@ impl Schematic {
         }
         Err(format!("could not find component {} in schematic", reference))
     }
+
+    pub fn increment_sheetcount(&mut self) {
+        self.description.sheet_count += 1
+    }
+    
 }
 
 impl fmt::Display for Schematic {
