@@ -56,6 +56,17 @@ impl Module {
             }
         }
     }
+    pub fn at(&self) -> (f64, f64) {
+        for element in &self.elements[..] {
+            match *element {
+                Element::At(ref at) => {
+                    return (at.x, at.y)
+                }
+                _ => ()
+            }
+        }
+        return (0.0, 0.0)
+    }
 }
 
 impl fmt::Display for Module {
