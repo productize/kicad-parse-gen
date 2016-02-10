@@ -95,7 +95,7 @@ impl fmt::Display for Element {
 
 impl fmt::Display for Net {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        if self.name.contains("(") || self.name.contains(")") {
+        if self.name.contains("(") || self.name.contains(")") || self.name.len()==0 {
             write!(f, "(net {} \"{}\")", self.num, self.name)
         } else {
             write!(f, "(net {} {})", self.num, self.name)
