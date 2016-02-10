@@ -495,6 +495,7 @@ pub struct Pad {
     pub layers: Layers,
     pub net: Option<Net>,
     pub drill: Option<Drill>,
+    pub solder_paste_margin: Option<f64>,
 }
 
 impl Pad {
@@ -508,6 +509,7 @@ impl Pad {
             layers: Layers::new(),
             net:None,
             drill:None,
+            solder_paste_margin:None,
         }
     }
 
@@ -516,6 +518,9 @@ impl Pad {
     }
     fn set_drill(&mut self, drill:&Drill) {
         self.drill = Some(drill.clone())
+    }
+    fn set_solder_paste_margin(&mut self, spm:f64) {
+        self.solder_paste_margin = Some(spm)
     }
     
     
@@ -531,7 +536,11 @@ impl fmt::Display for Pad {
             None => String::from(""),
             Some(ref drill) => format!(" {}", drill),
         };
-        write!(f, "(pad {} {} {} {} {} {}{}{})", self.name, self.t, self.shape, self.size, self.at, self.layers, net, drill)
+        let spm = match self.solder_paste_margin {
+            None => String::from(""),
+            Some(ref f) => format!(" {}", f),
+        };
+        write!(f, "(pad {} {} {} {} {} {}{}{}{})", self.name, self.t, self.shape, self.size, self.at, self.layers, net, drill, spm)
     }
 }
 
@@ -882,6 +891,7 @@ fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
             Part::Layers(ref l) => pad.layers.clone_from(l),
             Part::Net(ref n) => pad.set_net(n),
             Part::Drill(ref n) => pad.set_drill(n),
+            Part::SolderPasteMargin(n) => pad.set_solder_paste_margin(n),
             ref x => println!("pad: ignoring {}", x),
         }
     }
