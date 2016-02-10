@@ -25,13 +25,13 @@ pub enum Element {
     Other(Sexp),
 }
 
-#[derive(Clone)]
+#[derive(Clone,PartialEq)]
 pub struct Net {
     pub num:i64,
     pub name:String,
 }
 
-#[derive(Clone)]
+#[derive(Clone,PartialEq)]
 pub struct NetClass {
     pub name:String,
     pub desc:String,
