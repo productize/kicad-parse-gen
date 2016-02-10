@@ -604,13 +604,13 @@ impl fmt::Display for FpCircle {
 
 #[derive(Debug,Clone)]
 pub struct Net {
-    pad: String,
-    net: String,
+    num: i64,
+    name: String,
 }
 
 impl fmt::Display for Net {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(net {} \"{}\")", self.pad, self.net)
+        write!(f, "(net {} \"{}\")", self.num, self.name)
     }
 }
 
@@ -755,9 +755,9 @@ fn parse_xyz(s: &Sexp) -> ERes<Xyz> {
 }
 
 fn parse_part_net(v: &Vec<Sexp>) -> ERes<Part> {
-    let pad = try!(try!(v[1].atom()).as_string());
-    let net = try!(try!(v[2].atom()).as_string());
-    Ok(Part::Net(Net { pad:pad, net:net, }))
+    let num = try!(v[1].i());
+    let name = try!(v[2].as_string());
+    Ok(Part::Net(Net { num:num, name:name, }))
 }
 
 fn parse_drill(v: &Vec<Sexp>) -> ERes<Drill> {
