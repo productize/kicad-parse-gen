@@ -194,8 +194,7 @@ impl fmt::Display for Font {
     }
 }
 
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Effects {
     font: Font
 }
@@ -215,9 +214,7 @@ impl fmt::Display for Effects {
     }
 }
 
-#[derive(PartialEq)]
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Debug,Clone,PartialEq)]
 pub enum XyType {
     Xy,
     Start,
@@ -226,8 +223,7 @@ pub enum XyType {
     Center,
 }
 
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Xy {
     x: f64,
     y: f64,
@@ -382,8 +378,7 @@ impl fmt::Display for PadShape {
     }
 }
 
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 enum LayerSide {
     Front,
     Back,
@@ -391,8 +386,7 @@ enum LayerSide {
     Both,
 }
 
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 enum LayerType {
     Cu,
     Paste,
@@ -402,8 +396,7 @@ enum LayerType {
     // TODO
 }
 
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 struct Layer {
     side: LayerSide,
     t: LayerType,
@@ -519,11 +512,6 @@ impl Pad {
     fn set_drill(&mut self, drill:&Drill) {
         self.drill = Some(drill.clone())
     }
-    fn set_solder_paste_margin(&mut self, spm:f64) {
-        self.solder_paste_margin = Some(spm)
-    }
-    
-    
 }
 
 impl fmt::Display for Pad {
@@ -538,7 +526,7 @@ impl fmt::Display for Pad {
         };
         let spm = match self.solder_paste_margin {
             None => String::from(""),
-            Some(ref f) => format!(" {}", f),
+            Some(ref spm_f) => format!(" {}", spm_f),
         };
         write!(f, "(pad {} {} {} {} {} {}{}{}{})", self.name, self.t, self.shape, self.size, self.at, self.layers, net, drill, spm)
     }
@@ -891,7 +879,10 @@ fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
             Part::Layers(ref l) => pad.layers.clone_from(l),
             Part::Net(ref n) => pad.set_net(n),
             Part::Drill(ref n) => pad.set_drill(n),
-            Part::SolderPasteMargin(n) => pad.set_solder_paste_margin(n),
+            Part::SolderPasteMargin(n) => {
+                pad.solder_paste_margin = Some(n);
+                println!("Solder paste margin: {}", n);
+            },
             ref x => println!("pad: ignoring {}", x),
         }
     }
