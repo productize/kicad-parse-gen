@@ -291,6 +291,7 @@ enum Part {
     Thickness(f64),
     Net(Net),
     Drill(Drill),
+    SolderPasteMargin(f64),
 }
 
 impl Part {
@@ -317,6 +318,7 @@ impl fmt::Display for Part {
             Part::Thickness(ref x)     => write!(f, "(thickness {})", x),
             Part::Net(ref x)           => write!(f, "{}", x),
             Part::Drill(ref x)         => write!(f, "(drill {})", x),
+            Part::SolderPasteMargin(ref x) => write!(f, "(solder_paste_margin {})", x),
             
         }
     }
@@ -791,6 +793,7 @@ fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
         "thickness" => parse_part_float(v, Part::Thickness),
         "net" => parse_part_net(v),
         "drill" => Ok(Part::Drill(try!(parse_drill(v)))),
+        "solder_paste_margin" => parse_part_float(v, Part::SolderPasteMargin),
         x => Err(format!("unknown part {}", x))
     }
 }
