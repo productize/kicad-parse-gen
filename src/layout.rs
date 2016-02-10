@@ -146,9 +146,8 @@ fn parse_net(e:&Sexp) -> ERes<Element> {
     Ok(Element::Net(Net { name:name, num:num }))
 }
 
-/* busy
 fn parse_net_class(e:&Sexp) -> ERes<Element> {
-    fn parse(e:&Sexp, name:&'static str) -> ERes<f64> {
+    fn parse(e:&Sexp, name:&str) -> ERes<f64> {
         let l = try!(e.slice_atom(name));
         l[0].f()
     }
@@ -161,19 +160,31 @@ fn parse_net_class(e:&Sexp) -> ERes<Element> {
     let mut via_drill = 0.25;
     let mut uvia_dia = 0.508;
     let mut uvia_drill = 0.127;
+    let mut nets = vec![];
     for x in &l[2..] {
-        let xn = &try!(x.list_name())[..];
+        let list_name = try!(x.list_name());
+        let xn = &list_name[..];
         match xn {
-            "add_net" =>
+            "add_net" => {
+                let l1 = try!(x.slice_atom("add_net"));
+                nets.push(try!(l1[0].string()))
+            },
             "clearance" => clearance = try!(parse(x, xn)),
             "trace_width" => trace_width = try!(parse(x, xn)),
             "via_dia" => via_dia = try!(parse(x, xn)),
             "via_drill" => via_drill = try!(parse(x, xn)),
             "uvia_dia" => uvia_dia = try!(parse(x, xn)),
             "uvia_drill" => uvia_drill = try!(parse(x, xn)),
+            _ => return Err(format!("unknown net_class field {}", list_name))
         }
     }
-}*/
+    let net_class = NetClass {
+        name:name, desc:desc, clearance:clearance, via_dia:via_dia,
+        via_drill:via_drill, uvia_dia:uvia_dia, uvia_drill:uvia_drill,
+        nets:nets, trace_width:trace_width,
+    };
+    Ok(Element::NetClass(net_class))
+}
 
 fn parse(s: &str) -> ERes<Layout> {
     let exp = match rustysexp::parse_str(s) {
@@ -188,7 +199,7 @@ fn parse(s: &str) -> ERes<Layout> {
             "version" => layout.version = try!(parse_version(e)),
             "module" => layout.elements.push(try!(parse_module(e))),
             "net" => layout.elements.push(try!(parse_net(e))),
-            "net_class" => layout.elements.push(parse_other(e)), // TODO
+            "net_class" => layout.elements.push(try!(parse_net_class(e))),
             _ => layout.elements.push(parse_other(e)),
         }
     }
