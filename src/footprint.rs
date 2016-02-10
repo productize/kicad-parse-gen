@@ -486,14 +486,14 @@ impl fmt::Display for Layers {
 
 #[derive(Debug,Clone)]
 pub struct Pad {
-    name: String,
-    t: PadType,
-    shape: PadShape,
-    size: Xy,
-    at: At,
-    layers: Layers,
-    net: Option<Net>,
-    drill: Option<Drill>,
+    pub name: String,
+    pub t: PadType,
+    pub shape: PadShape,
+    pub size: Xy,
+    pub at: At,
+    pub layers: Layers,
+    pub net: Option<Net>,
+    pub drill: Option<Drill>,
 }
 
 impl Pad {
