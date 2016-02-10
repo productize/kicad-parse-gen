@@ -526,7 +526,7 @@ impl fmt::Display for Pad {
         };
         let spm = match self.solder_paste_margin {
             None => String::from(""),
-            Some(ref spm_f) => format!(" {}", spm_f),
+            Some(spm_f) => format!(" {}", spm_f),
         };
         write!(f, "(pad {} {} {} {} {} {}{}{}{})", self.name, self.t, self.shape, self.size, self.at, self.layers, net, drill, spm)
     }
@@ -881,7 +881,7 @@ fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
             Part::Drill(ref n) => pad.set_drill(n),
             Part::SolderPasteMargin(n) => {
                 pad.solder_paste_margin = Some(n);
-                println!("Solder paste margin: {}", n);
+                //println!("Solder paste margin: {}", n);
             },
             ref x => println!("pad: ignoring {}", x),
         }
