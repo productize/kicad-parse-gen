@@ -604,8 +604,8 @@ impl fmt::Display for FpCircle {
 
 #[derive(Debug,Clone)]
 pub struct Net {
-    num: i64,
-    name: String,
+    pub num: i64,
+    pub name: String,
 }
 
 impl fmt::Display for Net {
