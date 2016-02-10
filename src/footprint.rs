@@ -19,8 +19,8 @@ macro_rules! fail {
 
 #[derive(Debug,Clone)]
 pub struct Module {
-    name: String,
-    elements: Vec<Element>
+    pub name: String,
+    pub elements: Vec<Element>
 }
 
 impl Module {
