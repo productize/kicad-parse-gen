@@ -256,7 +256,7 @@ impl fmt::Display for Xy {
 }
 
 #[derive(Clone,Debug)]
-struct Drill {
+pub struct Drill {
     shape:Option<String>,
     drill:f64,
     drill2:Option<f64>,
@@ -324,7 +324,7 @@ impl fmt::Display for Part {
 
 
 #[derive(Debug,Clone)]
-enum PadType {
+pub enum PadType {
     Smd,
     Pth,
     NpPth,
@@ -352,7 +352,7 @@ impl fmt::Display for PadType {
 }
 
 #[derive(Debug,Clone)]
-enum PadShape {
+pub enum PadShape {
     Rect,
     Circle,
     Oval,
@@ -453,9 +453,8 @@ impl fmt::Display for Layer {
     }
 }
 
-#[derive(Clone)]
-#[derive(Debug)]
-struct Layers {
+#[derive(Debug,Clone)]
+pub struct Layers {
     layers: Vec<Layer>,
 }
 
