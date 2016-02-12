@@ -3,8 +3,6 @@ name = "rustykicad"
 version = "0.1.0"
 authors = ["Joost Damad <joost@productize.be>"]
 
-[dependencies.rustysexp]
-git = "git://github.com/productize/rustys-exp.git"
-
 [dependencies]
 rustc-serialize = "0.3"
+rustysexp = { git = "git://github.com/productize/rustys-exp.git", rev = "v0.1.0" }
