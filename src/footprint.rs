@@ -9,7 +9,6 @@ use read_file;
 
 extern crate rustysexp;
 use self::rustysexp::Sexp;
-use self::rustysexp::Atom;
 
 macro_rules! fail {
     ($expr:expr) => (
@@ -650,14 +649,14 @@ impl fmt::Display for Xyz {
 fn parse_at(v: &Vec<Sexp>) -> ERes<At> {
     match v.len() {
         3 => {
-            let x = try!(try!(v[1].atom()).f());
-            let y = try!(try!(v[2].atom()).f());
+            let x = try!(v[1].f());
+            let y = try!(v[2].f());
             Ok(At::new(x, y, 0.0))
         }
         4 => {
-            let x = try!(try!(v[1].atom()).f());
-            let y = try!(try!(v[2].atom()).f());
-            let rot = try!(try!(v[3].atom()).f());
+            let x = try!(v[1].f());
+            let y = try!(v[2].f());
+            let rot = try!(v[3].f());
             Ok(At::new(x, y, rot))
         }
         _ => err("at with wrong length")
@@ -676,8 +675,8 @@ fn parse_element_at(v: &Vec<Sexp>) -> ERes<Element> {
 
 
 fn parse_part_layer(v: &Vec<Sexp>) -> ERes<Part> {
-    let layer = try!(try!(v[1].atom()).string());
-    let layer = try!(Layer::from_string(layer));
+    let layer = try!(v[1].string());
+    let layer = try!(Layer::from_string(layer.clone()));
     Ok(Part::Layer(layer))
 }
 
@@ -686,7 +685,7 @@ fn parse_part_effects(v: &Vec<Sexp>) -> ERes<Part> {
     //for x in &l[..] {
     //    println!("effects el: {}", x)
     //}
-    let f = try!(try!(l[0].atom()).string());
+    let f = try!(l[0].string());
     if &f[..] != "font" {
         return err("expecting font")
     }
@@ -713,8 +712,8 @@ fn parse_part_effects(v: &Vec<Sexp>) -> ERes<Part> {
 fn parse_part_layers(v: &Vec<Sexp>) -> ERes<Part> {
     let mut l = Layers::new();
     for v1 in &v[1..] {
-        let x = try!(try!(v1.atom()).string());
-        let layer = try!(Layer::from_string(x));
+        let x = try!(v1.string());
+        let layer = try!(Layer::from_string(x.clone()));
         l.append(&layer)
     }
     Ok(Part::Layers(l))
@@ -723,7 +722,7 @@ fn parse_part_layers(v: &Vec<Sexp>) -> ERes<Part> {
 fn parse_part_float<F>(v: &Vec<Sexp>, make:F) -> ERes<Part>
     where F:Fn(f64) -> Part
 {
-    let f = try!(try!(v[1].atom()).f());
+    let f = try!(v[1].f());
     Ok(make(f))
 }
 
@@ -738,43 +737,43 @@ fn parse_part_pts(v: &Vec<Sexp>) -> ERes<Part> {
 }
 
 fn parse_part_xy(t: XyType, v: &Vec<Sexp>) -> ERes<Part> {
-    let x = try!(try!(v[1].atom()).f());
-    let y = try!(try!(v[2].atom()).f());
+    let x = try!(v[1].f());
+    let y = try!(v[2].f());
     Ok(Part::Xy(Xy::new(x,y,t)))
 }
 
 fn parse_xyz(s: &Sexp) -> ERes<Xyz> {
     let l = try!(s.list());
     let v = try!(l[1].slice_atom("xyz"));
-    let x = try!(try!(v[0].atom()).f());
-    let y = try!(try!(v[1].atom()).f());
-    let z = try!(try!(v[2].atom()).f());
+    let x = try!(v[0].f());
+    let y = try!(v[1].f());
+    let z = try!(v[2].f());
     Ok(Xyz::new(x,y,z))
 }
 
 fn parse_part_net(v: &Vec<Sexp>) -> ERes<Part> {
     let num = try!(v[1].i());
-    let name = try!(v[2].as_string());
-    Ok(Part::Net(Net { num:num, name:name, }))
+    let name = try!(v[2].string());
+    Ok(Part::Net(Net { num:num, name:name.clone(), }))
 }
 
 fn parse_drill(v: &Vec<Sexp>) -> ERes<Drill> {
     if v.len() == 2 {
-        let drill = try!(try!(v[1].atom()).f());
+        let drill = try!(v[1].f());
         Ok(Drill { shape:None, drill:drill, drill2:None })
         
     } else if v.len() == 4 {
-        let shape = try!(try!(v[1].atom()).string());
-        let drill = try!(try!(v[2].atom()).f());
-        let drill2 = try!(try!(v[3].atom()).f());
-        Ok(Drill { shape:Some(shape), drill:drill, drill2:Some(drill2) })
+        let shape = try!(v[1].string());
+        let drill = try!(v[2].f());
+        let drill2 = try!(v[3].f());
+        Ok(Drill { shape:Some(shape.clone()), drill:drill, drill2:Some(drill2) })
     } else {
         Err(format!("unknown drill format"))
     }
 }
 
 fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
-    let name = &try!(try!(v[0].atom()).string())[..];
+    let name = &try!(v[0].string())[..];
     //println!("name: {}", name);
     match name {
         "at" => parse_part_at(v),
@@ -797,7 +796,7 @@ fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
 
 fn parse_part(part: &Sexp) -> ERes<Part> {
     match *part {
-        Sexp::Atom(Atom::S(ref s)) => {
+        Sexp::String(ref s) => {
             match &s[..] {
                 "hide" => Ok(Part::Hide),
                 x => Err(format!("unknown part in element: {}", x))
@@ -821,13 +820,13 @@ fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
 fn parse_string_element<F>(v: &Vec<Sexp>, make:F) -> ERes<Element>
     where F:Fn(String) -> Element
 {
-    let s = try!(try!(v[1].atom()).as_string());
+    let s = try!(v[1].string());
     Ok(make(s.clone()))
 }
 
 fn parse_descr(v: &Vec<Sexp>) -> ERes<Element> {
     match v[1] {
-        Sexp::Atom(Atom::Q(ref s)) => {
+        Sexp::String(ref s) => {
             Ok(Element::Descr(s.clone()))
         }
         ref x => Err(format!("unexpected element in descr: {}", x))
@@ -838,8 +837,8 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
     // TODO: introduce try with error msg argument/fn
     //let name = try!(try!(v[1].atom()).string());
     //let value = try!(try!(v[1].atom()).string());
-    let name = try!(try!(v[1].atom()).as_string());
-    let value = try!(try!(v[2].atom()).as_string());
+    let name = try!(v[1].string());
+    let value = try!(v[2].string());
     let parts = try!(parse_parts(&v[3..]));
     let mut fp = FpText::new(name.clone(), value.clone());
     for part in &parts[..] {
@@ -864,11 +863,11 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::FpText(fp))
 }
 fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> { 
-    let name = try!(try!(v[1].atom()).as_string());
-    let t = try!(try!(v[2].atom()).string());
-    let t = try!(PadType::from_string(t));
-    let shape = try!(try!(v[3].atom()).string());
-    let shape = try!(PadShape::from_string(shape));
+    let name = try!(v[1].string()).clone();
+    let t = try!(v[2].string());
+    let t = try!(PadType::from_string(t.clone()));
+    let shape = try!(v[3].string());
+    let shape = try!(PadShape::from_string(shape.clone()));
     let mut pad = Pad::new(name, t, shape);
     //println!("{}", pad);
     let parts = try!(parse_parts(&v[4..]));
@@ -929,7 +928,7 @@ fn parse_fp_circle(v: &Vec<Sexp>) -> ERes<Element> {
 }
 
 fn parse_model_element(v:&Vec<Sexp>) -> ERes<Element> {
-    let name = try!(try!(v[1].atom()).string());
+    let name = try!(v[1].string()).clone();
     let at = try!(parse_xyz(&v[2]));
     let scale = try!(parse_xyz(&v[3]));
     let rotate = try!(parse_xyz(&v[4]));
@@ -940,7 +939,7 @@ fn parse_model_element(v:&Vec<Sexp>) -> ERes<Element> {
 
 fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
     match v[0] {
-        Sexp::Atom(Atom::S(ref s)) => {
+        Sexp::String(ref s) => {
             match &s[..] {
                 "layer" => parse_string_element(v, Element::Layer),
                 "descr" => parse_descr(v),
@@ -970,9 +969,9 @@ fn parse_element(s: &Sexp) -> ERes<Element> {
 
 fn parse_module_list(v: &Vec<Sexp>) -> ERes<Module> {
     let mut module = (match v[0] {
-        Sexp::Atom(Atom::S(ref s)) if s == "module" => {
+        Sexp::String(ref s) if s == "module" => {
             match v[1] {
-                Sexp::Atom(Atom::S(ref s)) => {
+                Sexp::String(ref s) => {
                     //println!("parsing module {}", s);
                     Ok(Module::new(s.clone()))
                 }

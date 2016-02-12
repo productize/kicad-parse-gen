@@ -125,7 +125,7 @@ impl fmt::Display for NetClass {
 
 fn parse_version(e:&Sexp) -> ERes<i64> {
     let l = try!(e.slice_atom("version"));
-    try!(l[0].atom()).i()
+    l[0].i()
 }
 
 fn parse_other(e:&Sexp) -> Element {
@@ -142,7 +142,7 @@ fn parse_module(e:&Sexp) -> ERes<Element> {
 fn parse_net(e:&Sexp) -> ERes<Element> {
     let l = try!(e.slice_atom("net"));
     let num = try!(l[0].i());
-    let name = try!(l[1].string());
+    let name = try!(l[1].string()).clone();
     Ok(Element::Net(Net { name:name, num:num }))
 }
 
@@ -152,8 +152,8 @@ fn parse_net_class(e:&Sexp) -> ERes<Element> {
         l[0].f()
     }
     let l = try!(e.slice_atom("net_class"));
-    let name = try!(l[0].string());
-    let desc = try!(l[1].string());
+    let name = try!(l[0].string()).clone();
+    let desc = try!(l[1].string()).clone();
     let mut clearance = 0.1524;
     let mut trace_width = 0.2032;
     let mut via_dia = 0.675;
@@ -167,7 +167,7 @@ fn parse_net_class(e:&Sexp) -> ERes<Element> {
         match xn {
             "add_net" => {
                 let l1 = try!(x.slice_atom("add_net"));
-                nets.push(try!(l1[0].string()))
+                nets.push(try!(l1[0].string()).clone())
             },
             "clearance" => clearance = try!(parse(x, xn)),
             "trace_width" => trace_width = try!(parse(x, xn)),
