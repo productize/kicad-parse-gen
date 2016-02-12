@@ -6,6 +6,9 @@ use std::io::Write;
 
 extern crate rustc_serialize;
 
+#[macro_use]
+extern crate nom;
+
 pub type ERes<T> = Result<T, String>;
 
 pub fn err<T>(msg: &str) -> ERes<T> {
@@ -132,3 +135,5 @@ pub mod footprint;
 pub mod schematic;
 pub mod layout;
 pub mod symbol_lib;
+
+pub mod schematic2;
