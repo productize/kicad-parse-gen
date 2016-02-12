@@ -114,6 +114,14 @@ pub enum LabelForm { Input, Output, BiDi, TriState, Unspecified }
 #[derive(Debug,Clone)]
 pub enum LabelSide { Left, Right, Top, Bottom }
 
+named!(parse_library<String>,
+       delimited!(tag!("LIBS:"), nom::not_line_ending, nom::line_ending)
+       );
+
+named!(parse_libraries<Vec<String> >,
+       many0!(parse_library)
+       );
+
 fn parse_schematic(filename:Option<PathBuf>, input: &[u8]) -> nom::IResult<&[u8], &str> {
     let (i,v) = try_parse!(input,
         chain!(
