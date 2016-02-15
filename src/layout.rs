@@ -99,6 +99,20 @@ impl Layout {
     pub fn add_net(&mut self, num:i64, name:&'static str) {
         self.elements.push(Element::Net(Net { num:num, name:String::from(name) }));
     }
+    pub fn add_netclass(&mut self, name:&'static str, desc:&'static str, clearance:f64, trace_width:f64, via_dia:f64, via_drill:f64, uvia_dia:f64, uvia_drill:f64, nets:Vec<String>) {
+        self.elements.push(Element::NetClass(NetClass {
+            name:String::from(name),
+            desc:String::from(desc),
+            clearance:clearance,
+            trace_width:trace_width,
+            via_dia:via_dia,
+            via_drill:via_drill,
+            uvia_dia:uvia_dia,
+            uvia_drill:uvia_drill,
+            nets:nets
+            }));
+    }
+    
     
 }
 
