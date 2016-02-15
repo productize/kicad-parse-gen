@@ -45,7 +45,7 @@ pub struct NetClass {
 }
 
 impl Layout {
-    fn new() -> Layout {
+    pub fn new() -> Layout {
         Layout {
             version:0,
             elements:vec![],
