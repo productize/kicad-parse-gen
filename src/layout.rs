@@ -52,6 +52,10 @@ impl Layout {
         }
     }
 
+    pub fn insert_dummy_setup(&mut self) {
+        self.elements.push(Element::Other(Sexp::List(vec![Sexp::String(String::from("setup"))])))
+    }
+
     pub fn modify_module<F>(&mut self, reference:&String, fun:F) -> ERes<()> 
         where F:Fn(&mut footprint::Module) -> ()
     {
