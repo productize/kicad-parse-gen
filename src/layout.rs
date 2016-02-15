@@ -112,9 +112,18 @@ impl Layout {
             nets:nets
             }));
     }
-    
-    
 }
+
+impl NetClass {
+    pub fn equal_no_net(&self, other:&NetClass) -> bool {
+        let mut s1 = self.clone();
+        s1.nets = vec![];
+        let mut s2 = other.clone();
+        s2.nets = vec![];
+        return s1 == s2;
+    }
+}
+
 
 impl fmt::Display for Layout {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
