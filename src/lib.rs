@@ -136,4 +136,4 @@ pub mod schematic;
 pub mod layout;
 pub mod symbol_lib;
 
-pub mod schematic2;
+//pub mod schematic2;

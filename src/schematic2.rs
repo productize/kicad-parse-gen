@@ -114,22 +114,67 @@ pub enum LabelForm { Input, Output, BiDi, TriState, Unspecified }
 #[derive(Debug,Clone)]
 pub enum LabelSide { Left, Right, Top, Bottom }
 
+enum Part {
+    Element(Element),
+    Sheet(Sheet),
+    Description(Description),
+}
+
+named!(i64_digit<i64>, map_res!(map_res!(digit, str::from_utf8), FromStr::from_str));
+
+named!(some_space, tag!(" ") ~ opt!(nom::multispace));
+
 named!(parse_library<String>,
        delimited!(tag!("LIBS:"), nom::not_line_ending, nom::line_ending)
        );
 
-named!(parse_libraries<Vec<String> >,
-       many0!(parse_library)
+named!(parse_libraries<Vec<String> >, many0!(parse_library));
+
+named!(parse_description<Part>,
        );
+
+named!(parse_elements<Vec<Element> >, many0!(parse_element));
+named!(parse_sheets<Vec<Element> >, many0!(parse_sheet));
+
+named!(parse_element<Element>, alt!(parse_component | parse_other));
+
+/*
+$Sheet
+S 5250 2300 950  3100
+U 5655A9F3
+F0 "NRF52" 60
+F1 "nrf52.sch" 60
+F2 "ANT" I R 6200 2450 60 
+F3 "P0.02/AIN0" I L 5250 2450 60 
+F4 "P0.03/AIN1" I L 5250 2550 60 
+$EndSheet
+ */
+
+named!(parse_sheet<Sheet>,
+       chain!(
+           tag!("$Sheet") ~ nom::line_ending ~
+               tag!("S") ~ some_space ~ x:i64_digit ~ some_space ~ y:i64_digit ~
+               some_space ~ dimx:i64_digit ~ some_space ~ dimy:i64_digit ~ nom::line_ending ~
+               tag!("$EndSheet") ~ nom::line_ending ~   
+               ,|| Sheet {
+                   x:x, y:y, dimx:dimx, dimy:dimy,
+               }
+           )
+       );
+
+named!(parse_p_description<Part>, map!(parse_description, Part::Description));
+named!(parse_p_sheet<Part>, map!(parse_sheet, Part::Sheet));
+named!(parse_p_element<Part>, map!(parse_sheet, Part::Element));
+named!(parse_parts<Vec<Part> >, many0!(alt!(parse_p_description | parse_p_sheet | parse_p_element)));
 
 fn parse_schematic(filename:Option<PathBuf>, input: &[u8]) -> nom::IResult<&[u8], &str> {
     let (i,v) = try_parse!(input,
         chain!(
-            tag!("EESchema Schematic File Version 2") ~
+            tag!("EESchema Schematic File Version 2") ~ nom::line_ending ~
                 libraries: parse_libraries ~
-                description: parse_description ~
-                elements: parse_elements ~
-                sheets: parse_sheets ~
+                tag!("EELAYER 25 0") ~ nom::line_ending ~
+                tag!("EELAYER END") ~ nom::line_ending ~
+                parts: parse_parts ~
                 tag!("EndSCHEMATC") ~
                 opt!(nom::multispace)
             ,||  Schematic {
