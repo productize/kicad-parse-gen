@@ -56,6 +56,28 @@ impl Layout {
         self.elements.push(Element::Other(Sexp::List(vec![Sexp::String(String::from("setup"))])))
     }
 
+    pub fn nets(&self) -> Vec<&Net> {
+        let mut v = vec![];
+        for element in &self.elements {
+            match *element {
+                Element::Net(ref net) => v.push(net),
+                _ => (),
+            }
+        }
+        v
+    }
+
+    pub fn netclasses(&self) -> Vec<&NetClass> {
+        let mut v = vec![];
+        for element in &self.elements {
+            match *element {
+                Element::NetClass(ref net_class) => v.push(net_class),
+                _ => (),
+            }
+        }
+        v
+    }
+
     pub fn modify_module<F>(&mut self, reference:&String, fun:F) -> ERes<()> 
         where F:Fn(&mut footprint::Module) -> ()
     {
