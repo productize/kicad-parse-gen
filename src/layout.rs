@@ -122,6 +122,14 @@ impl NetClass {
         s2.nets = vec![];
         return s1 == s2;
     }
+    pub fn has_net(&self, name:&'static str) -> bool {
+        for net in &self.nets {
+            if &net[..] == name {
+                return true
+            }
+        }
+        return false
+    }
 }
 
 
