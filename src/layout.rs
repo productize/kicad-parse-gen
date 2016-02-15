@@ -95,6 +95,11 @@ impl Layout {
         }
         Err(format!("did not find module with reference {}", reference))
     }
+
+    pub fn add_net(&mut self, num:i64, name:&'static str) {
+        self.elements.push(Element::Net(Net { num:num, name:String::from(name) }));
+    }
+    
 }
 
 impl fmt::Display for Layout {
