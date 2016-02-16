@@ -149,6 +149,17 @@ impl Setup {
         }
         return None
     }
+
+    pub fn update_element(&mut self, name:&String, value:String) {
+        for element in &mut self.elements {
+            if element.0[..] == name[..] {
+                element.1 = value;
+                return;
+                    
+            }
+        }
+        self.elements.push((name.clone(), value));
+    }
 }
 
 impl fmt::Display for Layout {
