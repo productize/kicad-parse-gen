@@ -143,22 +143,22 @@ impl Setup {
     }
     pub fn get(&self, s:&String) -> Option<&String> {
         for element in &self.elements {
-            if element.0[..] == s[..] {
+            if &element.0[..] == &s[..] {
                 return Some(&element.1)
             }
         }
         return None
     }
 
-    pub fn update_element(&mut self, name:&String, value:String) {
+    pub fn update_element(&mut self, name:&'static str, value:String) {
         for element in &mut self.elements {
-            if element.0[..] == name[..] {
+            if &element.0[..] == name {
                 element.1 = value;
                 return;
                     
             }
         }
-        self.elements.push((name.clone(), value));
+        self.elements.push((String::from(name), value));
     }
 }
 
