@@ -14,6 +14,7 @@ use self::rustysexp::Sexp;
 
 pub struct Layout {
     pub version:i64,
+    pub setup:Setup,
     pub elements:Vec<Element>,
 }
 
@@ -23,7 +24,6 @@ pub enum Element {
     Net(Net),
     NetClass(NetClass),
     Other(Sexp),
-    Setup(Setup),
 }
 
 #[derive(Clone)]
@@ -56,11 +56,8 @@ impl Layout {
         Layout {
             version:0,
             elements:vec![],
+            setup:Setup{elements:vec![]},
         }
-    }
-
-    pub fn insert_dummy_setup(&mut self) {
-        self.elements.push(Element::Setup(Setup { elements:vec![] }))
     }
 
     pub fn nets(&self) -> Vec<&Net> {
@@ -98,7 +95,6 @@ impl Layout {
                 Element::Net(_) => (),
                 Element::NetClass(_) => (),
                 Element::Other(_) => (),
-                Element::Setup(_) => (),
             }
         }
         Err(format!("did not find module with reference {}", reference))
@@ -144,6 +140,7 @@ impl NetClass {
 impl fmt::Display for Layout {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(writeln!(f, "(kicad_pcb (version {})", self.version));
+        try!(writeln!(f, "  {}", self.setup));
         for element in &self.elements[..] {
             try!(writeln!(f, "  {}", element));
             try!(writeln!(f, ""));
@@ -159,7 +156,6 @@ impl fmt::Display for Element {
             Element::Module(ref s) => write!(f, "{}", s),
             Element::Net(ref s) => write!(f, "{}", s),
             Element::NetClass(ref s) => write!(f, "{}", s),
-            Element::Setup(ref s) => write!(f, "{}", s),
         }
     }
 }
@@ -196,9 +192,9 @@ impl fmt::Display for NetClass {
 
 impl fmt::Display for Setup {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        try!(write!(f, "(setup "));
+        try!(write!(f, "(setup"));
         for e in &self.elements {
-            try!(write!(f, "{}", e));
+            try!(write!(f, " {}", e));
         }
         write!(f, ")")
     }
@@ -267,12 +263,12 @@ fn parse_net_class(e:&Sexp) -> ERes<Element> {
     Ok(Element::NetClass(net_class))
 }
 
-fn parse_setup(e:&Sexp) -> ERes<Element> {
+fn parse_setup(e:&Sexp) -> ERes<Setup> {
     let l = try!(e.slice_atom("setup"));
     let mut v = vec![];
     v.extend_from_slice(l);
     let s = Setup { elements:v };
-    Ok(Element::Setup(s))
+    Ok(s)
 }
 
 fn parse(s: &str) -> ERes<Layout> {
@@ -289,7 +285,7 @@ fn parse(s: &str) -> ERes<Layout> {
             "module" => layout.elements.push(try!(parse_module(e))),
             "net" => layout.elements.push(try!(parse_net(e))),
             "net_class" => layout.elements.push(try!(parse_net_class(e))),
-            "setup" => layout.elements.push(try!(parse_setup(e))),
+            "setup" => layout.setup = try!(parse_setup(e)),
             _ => layout.elements.push(parse_other(e)),
         }
     }
