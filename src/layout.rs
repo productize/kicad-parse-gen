@@ -23,7 +23,14 @@ pub enum Element {
     Net(Net),
     NetClass(NetClass),
     Other(Sexp),
+    Setup(Setup),
 }
+
+#[derive(Clone)]
+pub struct Setup {
+    pub elements:Vec<Sexp>,
+}
+
 
 #[derive(Clone,PartialEq)]
 pub struct Net {
@@ -53,7 +60,7 @@ impl Layout {
     }
 
     pub fn insert_dummy_setup(&mut self) {
-        self.elements.push(Element::Other(Sexp::List(vec![Sexp::String(String::from("setup"))])))
+        self.elements.push(Element::Setup(Setup { elements:vec![] }))
     }
 
     pub fn nets(&self) -> Vec<&Net> {
@@ -91,6 +98,7 @@ impl Layout {
                 Element::Net(_) => (),
                 Element::NetClass(_) => (),
                 Element::Other(_) => (),
+                Element::Setup(_) => (),
             }
         }
         Err(format!("did not find module with reference {}", reference))
@@ -151,6 +159,7 @@ impl fmt::Display for Element {
             Element::Module(ref s) => write!(f, "{}", s),
             Element::Net(ref s) => write!(f, "{}", s),
             Element::NetClass(ref s) => write!(f, "{}", s),
+            Element::Setup(ref s) => write!(f, "{}", s),
         }
     }
 }
@@ -182,6 +191,16 @@ impl fmt::Display for NetClass {
         }
         write!(f, ")")
         
+    }
+}
+
+impl fmt::Display for Setup {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(write!(f, "(setup "));
+        for e in &self.elements {
+            try!(write!(f, "{}", e));
+        }
+        write!(f, ")")
     }
 }
 
@@ -248,6 +267,14 @@ fn parse_net_class(e:&Sexp) -> ERes<Element> {
     Ok(Element::NetClass(net_class))
 }
 
+fn parse_setup(e:&Sexp) -> ERes<Element> {
+    let l = try!(e.slice_atom("setup"));
+    let mut v = vec![];
+    v.extend_from_slice(l);
+    let s = Setup { elements:v };
+    Ok(Element::Setup(s))
+}
+
 fn parse(s: &str) -> ERes<Layout> {
     let exp = match rustysexp::parse_str(s) {
         Ok(s) => s,
@@ -262,6 +289,7 @@ fn parse(s: &str) -> ERes<Layout> {
             "module" => layout.elements.push(try!(parse_module(e))),
             "net" => layout.elements.push(try!(parse_net(e))),
             "net_class" => layout.elements.push(try!(parse_net_class(e))),
+            "setup" => layout.elements.push(try!(parse_setup(e))),
             _ => layout.elements.push(parse_other(e)),
         }
     }
