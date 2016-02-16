@@ -2,6 +2,7 @@
 
 use std::fmt;
 use std::path::PathBuf;
+use std::collections::HashMap;
 
 // from parent
 use ERes;
@@ -28,7 +29,7 @@ pub enum Element {
 
 #[derive(Clone)]
 pub struct Setup {
-    pub elements:Vec<Sexp>,
+    pub elements:HashMap<String, Sexp>,
 }
 
 
@@ -56,7 +57,7 @@ impl Layout {
         Layout {
             version:0,
             elements:vec![],
-            setup:Setup{elements:vec![]},
+            setup:Setup{elements:HashMap::new()},
         }
     }
 
@@ -193,7 +194,7 @@ impl fmt::Display for NetClass {
 impl fmt::Display for Setup {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(write!(f, "(setup"));
-        for e in &self.elements {
+        for (_,e) in &self.elements {
             try!(write!(f, " {}", e));
         }
         write!(f, ")")
@@ -264,10 +265,11 @@ fn parse_net_class(e:&Sexp) -> ERes<Element> {
 }
 
 fn parse_setup(e:&Sexp) -> ERes<Setup> {
-    let l = try!(e.slice_atom("setup"));
-    let mut v = vec![];
-    v.extend_from_slice(l);
-    let s = Setup { elements:v };
+    let mut h = HashMap::new();
+    for v in try!(e.slice_atom("setup")) {
+        h.insert(try!(v.list_name()).clone(), v.clone());
+    }
+    let s = Setup { elements:h };
     Ok(s)
 }
 
