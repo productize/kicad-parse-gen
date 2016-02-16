@@ -2,7 +2,6 @@
 
 use std::fmt;
 use std::path::PathBuf;
-use std::collections::HashMap;
 
 // from parent
 use ERes;
@@ -29,7 +28,8 @@ pub enum Element {
 
 #[derive(Clone)]
 pub struct Setup {
-    pub elements:HashMap<String, Sexp>,
+    pub elements:Vec<(String, String)>,
+    pub pcbplotparams:Option<Sexp>,
 }
 
 
@@ -57,7 +57,7 @@ impl Layout {
         Layout {
             version:0,
             elements:vec![],
-            setup:Setup{elements:HashMap::new()},
+            setup:Setup::new(),
         }
     }
 
@@ -137,14 +137,24 @@ impl NetClass {
     }
 }
 
+impl Setup {
+    pub fn new() -> Setup {
+        Setup { elements:vec![],pcbplotparams:Some(Sexp::List(vec![Sexp::String(String::from("pcbplotparams"))]))}
+    }
+}
 
 impl fmt::Display for Layout {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(writeln!(f, "(kicad_pcb (version {})", self.version));
-        try!(writeln!(f, "  {}", self.setup));
+        let mut i = 0;
         for element in &self.elements[..] {
             try!(writeln!(f, "  {}", element));
             try!(writeln!(f, ""));
+            // kludge to put setup at the right order in the file
+            if i == 3 {
+                try!(writeln!(f, "  {}", self.setup));
+            }
+            i+=1;
         }
         writeln!(f, ")")
     }
@@ -172,7 +182,7 @@ impl fmt::Display for Net {
 }
 impl fmt::Display for NetClass {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        try!(write!(f, "(net_class {} \"{}\" ", self.name, self.desc));
+        try!(write!(f, "(net_class {} {} ", self.name, rustysexp::display_string(&self.desc)));
         try!(write!(f, "(clearance {}) ", self.clearance));
         try!(write!(f, "(trace_width {}) ", self.trace_width));
         try!(write!(f, "(via_dia {}) ", self.via_dia));
@@ -193,11 +203,14 @@ impl fmt::Display for NetClass {
 
 impl fmt::Display for Setup {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        try!(write!(f, "(setup"));
-        for (_,e) in &self.elements {
-            try!(write!(f, " {}", e));
+        try!(writeln!(f, "(setup"));
+        for ref k in &self.elements {
+            try!(writeln!(f, "   ({} {})", k.0, k.1));
         }
-        write!(f, ")")
+        match self.pcbplotparams {
+            None => writeln!(f, ")"),
+            Some(ref s) => writeln!(f, " {})", s),
+        }
     }
 }
 
@@ -265,11 +278,27 @@ fn parse_net_class(e:&Sexp) -> ERes<Element> {
 }
 
 fn parse_setup(e:&Sexp) -> ERes<Setup> {
-    let mut h = HashMap::new();
+    let mut h = vec![];
+    let mut pcbplotparams = None;
     for v in try!(e.slice_atom("setup")) {
-        h.insert(try!(v.list_name()).clone(), v.clone());
+        let n = v.list_name().unwrap().clone();
+        match &n[..] {
+            "pcbplotparams" => { pcbplotparams = Some(v.clone()); },
+            x => {
+                // TODO: this is a kludge, implement proper data type for Setup
+                let v2 = v.slice_atom(x).unwrap();
+                let mut s = String::new();
+                let mut first = true;
+                for z in v2 {
+                    if !first { s.push_str(" ") };
+                    first = false;
+                    s.push_str(z.string().unwrap());
+                }
+                h.push((n.clone(), s));
+            },
+        }
     }
-    let s = Setup { elements:h };
+    let s = Setup { elements:h , pcbplotparams:pcbplotparams };
     Ok(s)
 }
 

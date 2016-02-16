@@ -98,8 +98,8 @@ impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
             Element::Layer(ref s) => write!(f, "(layer {})", s),
-            Element::Descr(ref s) => write!(f, "(descr \"{}\")", s),
-            Element::FpText(ref p) => write!(f, "{}", p),
+            Element::Descr(ref s) => write!(f, "(descr {})", rustysexp::display_string(s)),
+            Element::FpText(ref p) => write!(f, "{}",p),
             Element::Pad(ref pad) => write!(f, "{}", pad),
             Element::FpPoly(ref p) => write!(f, "{}", p),
             Element::FpLine(ref p) => write!(f, "{}", p),
@@ -144,7 +144,7 @@ impl FpText {
 
 impl fmt::Display for FpText {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(fp_text {} \"{}\" {} (layer {}){} {})", self.name, self.value, self.at, self.layer, if self.hide { " hide" } else { "" }, self.effects)
+        write!(f, "(fp_text {} {} {} (layer {}){} {})", self.name, rustysexp::display_string(&self.value), self.at, self.layer, if self.hide { " hide" } else { "" }, self.effects)
     }
 }
 
