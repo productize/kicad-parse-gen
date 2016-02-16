@@ -141,6 +141,14 @@ impl Setup {
     pub fn new() -> Setup {
         Setup { elements:vec![],pcbplotparams:Some(Sexp::List(vec![Sexp::String(String::from("pcbplotparams"))]))}
     }
+    pub fn get(&self, s:&String) -> Option<&String> {
+        for element in &self.elements {
+            if element.0[..] == s[..] {
+                return Some(&element.1)
+            }
+        }
+        return None
+    }
 }
 
 impl fmt::Display for Layout {
