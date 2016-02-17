@@ -82,6 +82,7 @@ impl fmt::Display for Module {
 pub enum Element {
     Layer(String),
     Descr(String),
+    Tags(String),
     FpText(FpText),
     Pad(Pad),
     FpPoly(FpPoly),
@@ -99,6 +100,7 @@ impl fmt::Display for Element {
         match *self {
             Element::Layer(ref s) => write!(f, "(layer {})", s),
             Element::Descr(ref s) => write!(f, "(descr {})", rustysexp::display_string(s)),
+            Element::Tags(ref s) => write!(f, "(tags {})", rustysexp::display_string(s)),
             Element::FpText(ref p) => write!(f, "{}",p),
             Element::Pad(ref pad) => write!(f, "{}", pad),
             Element::FpPoly(ref p) => write!(f, "{}", p),
@@ -833,6 +835,15 @@ fn parse_descr(v: &Vec<Sexp>) -> ERes<Element> {
     }
 }
 
+fn parse_tags(v: &Vec<Sexp>) -> ERes<Element> {
+    match v[1] {
+        Sexp::String(ref s) => {
+            Ok(Element::Tags(s.clone()))
+        }
+        ref x => Err(format!("unexpected element in tags: {}", x))
+    }
+}
+
 fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
     // TODO: introduce try with error msg argument/fn
     //let name = try!(try!(v[1].atom()).string());
@@ -943,6 +954,7 @@ fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
             match &s[..] {
                 "layer" => parse_string_element(v, Element::Layer),
                 "descr" => parse_descr(v),
+                "tags" => parse_tags(v),
                 "fp_text" => parse_fp_text(v),
                 "pad" => parse_pad(v),
                 "fp_poly" => parse_fp_poly(v),
