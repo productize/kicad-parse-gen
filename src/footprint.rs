@@ -384,7 +384,12 @@ enum LayerSide {
     Front,
     Back,
     Dwgs,
+    Cmts,
+    Eco1,
+    Eco2,
+    Edge,
     Both,
+    None,
 }
 
 #[derive(Debug,Clone)]
@@ -394,7 +399,10 @@ enum LayerType {
     Mask,
     SilkS,
     User,
-    // TODO
+    Adhes,
+    Cuts,
+    CrtYd,
+    Fab,
 }
 
 #[derive(Debug,Clone)]
@@ -406,22 +414,32 @@ struct Layer {
 impl Layer {
     fn from_string(s: String) -> ERes<Layer> {
         let sp:Vec<&str> = s.split('.').collect();
-        if sp.len() != 2 {
-            return Err(format!("unknown layer {}", s))
+        let mut side = LayerSide::None;
+        let mut s_t = sp[0];
+        if sp.len() == 2 {
+            side = match sp[0] {
+                "F" => LayerSide::Front,
+                "B" => LayerSide::Back,
+                "Dwgs" => LayerSide::Dwgs,
+                "Cmts" => LayerSide::Cmts,
+                "Eco1" => LayerSide::Eco1,
+                "Eco2" => LayerSide::Eco2,
+                "Edge" => LayerSide::Edge,
+                "*" => LayerSide::Both,
+                x => return Err(format!("unknown layer side {}", x)),
+            };
+            s_t = sp[1];
         }
-        let side = match sp[0] {
-            "F" => LayerSide::Front,
-            "B" => LayerSide::Back,
-            "Dwgs" => LayerSide::Dwgs,
-            "*" => LayerSide::Both,
-            x => return Err(format!("unknown layer side {}", x)),
-        };
-        let t = match sp[1] {
+        let t = match s_t {
             "Cu" => LayerType::Cu,
             "Paste" => LayerType::Paste,
             "Mask" => LayerType::Mask,
             "SilkS" => LayerType::SilkS,
             "User" => LayerType::User,
+            "Adhes" => LayerType::Adhes,
+            "Cuts" => LayerType::Cuts,
+            "CrtYd" => LayerType::CrtYd,
+            "Fab" => LayerType::Fab,
             x => return Err(format!("unknown layer type {}", x)),
         };
         Ok(Layer { side:side, t:t, })
@@ -433,18 +451,27 @@ impl Layer {
 
 impl fmt::Display for Layer {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        let _ = match self.side {
+        try!(match self.side {
             LayerSide::Front => write!(f, "F."),
             LayerSide::Back  => write!(f, "B."),
             LayerSide::Dwgs  => write!(f, "Dwgs."),
+            LayerSide::Cmts  => write!(f, "Cmts."),
+            LayerSide::Eco1  => write!(f, "Eco1."),
+            LayerSide::Eco2  => write!(f, "Eco2."),
+            LayerSide::Edge  => write!(f, "Edge."),
             LayerSide::Both  => write!(f, "*."),
-        };
+            LayerSide::None  => Ok(()),
+        });
         match self.t {
             LayerType::Cu    => write!(f,"Cu"),
             LayerType::Paste => write!(f,"Paste"),
             LayerType::Mask  => write!(f,"Mask"),
             LayerType::SilkS => write!(f,"SilkS"),
             LayerType::User  => write!(f,"User"),
+            LayerType::Adhes => write!(f,"Adhes"),
+            LayerType::Cuts  => write!(f,"Cuts"),
+            LayerType::CrtYd => write!(f,"CrtYd"),
+            LayerType::Fab   => write!(f,"Fab"),
         }
     }
 }
