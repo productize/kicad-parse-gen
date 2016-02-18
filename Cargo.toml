@@ -1,10 +1,10 @@
 [package]
 name = "rustykicad"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Joost Damad <joost@productize.be>"]
 
 [dependencies]
 rustc-serialize = "0.3"
 nom = "~1.2.0"
-rustysexp = { git = "git://github.com/productize/rustys-exp.git" }
-#rustysexp = { git = "git://github.com/productize/rustys-exp.git", rev = "v0.1.0" }
+#rustysexp = { git = "git://github.com/productize/rustys-exp.git" }
+rustysexp = { git = "git://github.com/productize/rustys-exp.git", rev = "v0.3.3" }

@@ -139,7 +139,13 @@ impl NetClass {
 
 impl Setup {
     pub fn new() -> Setup {
-        Setup { elements:vec![],pcbplotparams:Some(Sexp::List(vec![Sexp::String(String::from("pcbplotparams"))]))}
+        let mut s2 = rustysexp::Sexp::new_empty();
+        let e = rustysexp::Element::String(String::from("pcbplotparams"));
+        s2.element = e;
+        let v = vec![s2];
+        let mut s1 = rustysexp::Sexp::new_empty();
+        s1.element = rustysexp::Element::List(v);
+        Setup { elements:vec![], pcbplotparams:Some(s1) }
     }
     pub fn get(&self, s:&String) -> Option<&String> {
         for element in &self.elements {

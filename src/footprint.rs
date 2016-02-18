@@ -824,15 +824,15 @@ fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
 }
 
 fn parse_part(part: &Sexp) -> ERes<Part> {
-    match *part {
-        Sexp::String(ref s) => {
+    match part.element {
+        rustysexp::Element::String(ref s) => {
             match &s[..] {
                 "hide" => Ok(Part::Hide),
                 x => Err(format!("unknown part in element: {}", x))
             }
         },
-        Sexp::List(ref v) => parse_part_list(&v),
-        ref x => Err(format!("unknown part in element: {}", x))
+        rustysexp::Element::List(ref v) => parse_part_list(&v),
+        _ => Err(format!("unknown part in element: {}", part))
     }
 }
 
@@ -854,20 +854,20 @@ fn parse_string_element<F>(v: &Vec<Sexp>, make:F) -> ERes<Element>
 }
 
 fn parse_descr(v: &Vec<Sexp>) -> ERes<Element> {
-    match v[1] {
-        Sexp::String(ref s) => {
+    match v[1].element {
+        rustysexp::Element::String(ref s) => {
             Ok(Element::Descr(s.clone()))
         }
-        ref x => Err(format!("unexpected element in descr: {}", x))
+        _ => Err(format!("unexpected element in descr: {}", v[1]))
     }
 }
 
 fn parse_tags(v: &Vec<Sexp>) -> ERes<Element> {
-    match v[1] {
-        Sexp::String(ref s) => {
+    match v[1].element {
+        rustysexp::Element::String(ref s) => {
             Ok(Element::Tags(s.clone()))
         }
-        ref x => Err(format!("unexpected element in tags: {}", x))
+        _ => Err(format!("unexpected element in tags: {}", v[1]))
     }
 }
 
@@ -976,8 +976,8 @@ fn parse_model_element(v:&Vec<Sexp>) -> ERes<Element> {
 
 
 fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
-    match v[0] {
-        Sexp::String(ref s) => {
+    match v[0].element {
+        rustysexp::Element::String(ref s) => {
             match &s[..] {
                 "layer" => parse_string_element(v, Element::Layer),
                 "descr" => parse_descr(v),
@@ -992,7 +992,7 @@ fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
                 "path" => parse_string_element(v, Element::Path),
                 "at" => parse_element_at(v),
                 "model" => parse_model_element(v),
-                x => Err(format!("unknown element in module: {}", x))
+                _ => Err(format!("unknown element in module: {}", v[0]))
             }
         }
         _ => err("expecting atom")
@@ -1000,21 +1000,21 @@ fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
 }
 
 fn parse_element(s: &Sexp) -> ERes<Element> {
-    match *s {
-        Sexp::List(ref v) => parse_element_list(&v),
+    match s.element {
+        rustysexp::Element::List(ref v) => parse_element_list(&v),
         _ => err("expecting element list in module")
     }
 }
 
 fn parse_module_list(v: &Vec<Sexp>) -> ERes<Module> {
-    let mut module = (match v[0] {
-        Sexp::String(ref s) if s == "module" => {
-            match v[1] {
-                Sexp::String(ref s) => {
+    let mut module = (match v[0].element {
+        rustysexp::Element::String(ref s) if s == "module" => {
+            match v[1].element {
+                rustysexp::Element::String(ref s) => {
                     //println!("parsing module {}", s);
                     Ok(Module::new(s.clone()))
                 }
-                ref x => return Err(format!("expecting module name got {}", x))
+                _ => return Err(format!("expecting module name got {}", v[1]))
             }
         }
         _ => err("expecting module")
@@ -1027,8 +1027,8 @@ fn parse_module_list(v: &Vec<Sexp>) -> ERes<Module> {
 }
 
 pub fn parse_module(s: Sexp) -> ERes<Module> {
-    match s {
-        Sexp::List(v) => parse_module_list(&v),
+    match s.element {
+        rustysexp::Element::List(v) => parse_module_list(&v),
         _ => err("expecting top level list")
     }
 }
