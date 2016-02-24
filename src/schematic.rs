@@ -50,17 +50,6 @@ impl Schematic {
         self.elements.push(Element::Other(c))
     }
 
-    pub fn components(&self) -> Vec<&Component> {
-        let mut v = vec![];
-        for ref x in self.elements.iter() {
-            match **x {
-                Element::Component(ref c) => v.push(c),
-                Element::Other(_) => (),
-            }
-        }
-        v
-    }
-
     pub fn modify_component<F>(&mut self, reference:&String, fun:F)
         where F:Fn(&mut Component) -> ()
     {
@@ -75,7 +64,20 @@ impl Schematic {
             }
         }
     }
-
+    
+    pub fn modify_components<F>(&mut self, fun:F)
+        where F:Fn(&mut Component) -> ()
+    {
+        for ref mut x in &mut self.elements[..] {
+            match **x {
+                Element::Component(ref mut c) => {
+                    fun(c)
+                }
+                Element::Other(_) => (),
+            }
+        }
+    }
+    
     pub fn collect_components(&self, v:&mut Vec<Component>) {
         for ref x in self.elements.iter() {
             match **x {
@@ -83,6 +85,17 @@ impl Schematic {
                 Element::Other(_) => (),
             }
         }
+    }
+    
+    pub fn components(&self) -> Vec<Component> {
+        let mut v = vec![];
+        for ref x in self.elements.iter() {
+            match **x {
+                Element::Component(ref c) => v.push(c.clone()),
+                Element::Other(_) => (),
+            }
+        }
+        v
     }
 
     pub fn component_by_reference(&self, reference:&String) -> ERes<Component> {
