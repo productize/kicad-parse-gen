@@ -772,13 +772,14 @@ fn parse_part_xy(t: XyType, v: &Vec<Sexp>) -> ERes<Part> {
     Ok(Part::Xy(Xy::new(x,y,t)))
 }
 
-fn parse_xyz(s: &Sexp) -> ERes<Xyz> {
-    let l = try!(s.list());
-    let v = try!(l[1].slice_atom("xyz"));
-    let x = try!(v[0].f());
-    let y = try!(v[1].f());
-    let z = try!(v[2].f());
-    Ok(Xyz::new(x,y,z))
+impl FromSexp for ERes<Xyz> {
+    fn from_sexp(s: &Sexp) -> ERes<Xyz> {
+        let v = try!(s.slice_atom_num("xyz", 3));
+        let x = try!(v[0].f());
+        let y = try!(v[1].f());
+        let z = try!(v[2].f());
+        Ok(Xyz::new(x,y,z))
+    }
 }
 
 fn parse_part_net(v: &Vec<Sexp>) -> ERes<Part> {
@@ -854,31 +855,11 @@ fn parse_string_element(s:&Sexp) -> ERes<String> {
     Ok(s.clone())
 }
 
-fn parse_descr(v: &Vec<Sexp>) -> ERes<Element> {
-    match v[1].element {
-        rustysexp::Element::String(ref s) => {
-            Ok(Element::Descr(s.clone()))
-        }
-        _ => Err(format!("unexpected element in descr: {}", v[1]))
-    }
-}
-
-fn parse_tags(v: &Vec<Sexp>) -> ERes<Element> {
-    match v[1].element {
-        rustysexp::Element::String(ref s) => {
-            Ok(Element::Tags(s.clone()))
-        }
-        _ => Err(format!("unexpected element in tags: {}", v[1]))
-    }
-}
-
-fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
-    // TODO: introduce try with error msg argument/fn
-    //let name = try!(try!(v[1].atom()).string());
-    //let value = try!(try!(v[1].atom()).string());
-    let name = try!(v[1].string());
-    let value = try!(v[2].string());
-    let parts = try!(parse_parts(&v[3..]));
+fn parse_fp_text(s: &Sexp) -> ERes<Element> {
+    let v = try!(s.slice_atom("fp_text"));
+    let name = try!(v[0].string());
+    let value = try!(v[1].string());
+    let parts = try!(parse_parts(&v[2..]));
     let mut fp = FpText::new(name.clone(), value.clone());
     for part in &parts[..] {
         match *part {
@@ -895,7 +876,7 @@ fn parse_fp_text(v: &Vec<Sexp>) -> ERes<Element> {
                 fp.set_effects(effects)
             }
             ref x => {
-                println!("fp_text: ignoring {}", x)
+                return Err(format!("fp_text: unknown {}", x))
             }
         }
     }
@@ -966,12 +947,20 @@ fn parse_fp_circle(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::FpCircle(fp_circle))
 }
 
+fn parse_sublist<X>(v:&[Sexp], name:&'static str) -> ERes<X>
+    where ERes<X>:FromSexp
+{
+    let x = &try!(v[1].slice_atom_num(name, 1))[0];
+    ERes::from_sexp(x)
+}
+
+
 fn parse_model_element(s:&Sexp) -> ERes<Element> {
     let v = try!(s.slice_atom_num("model", 4));
     let name = try!(v[0].string()).clone();
-    let at = try!(parse_xyz(&v[1]));
-    let scale = try!(parse_xyz(&v[2]));
-    let rotate = try!(parse_xyz(&v[3]));
+    let at = try!(parse_sublist(v, "at"));
+    let scale = try!(parse_sublist(v, "scale"));
+    let rotate = try!(parse_sublist(v, "rotate"));
     let m = Model {name:name, at:at, scale:scale, rotate:rotate};
     Ok(Element::Model(m))
 }
@@ -981,9 +970,9 @@ impl FromSexp for ERes<Element> {
         let name = try!(s.list_name());
         match &name[..] {
             "layer" => wrap(s, parse_string_element, Element::Layer),
-            //"descr" => parse_descr(v),
-            //"tags" => parse_tags(v),
-            //"fp_text" => parse_fp_text(v),
+            "descr" => wrap(s, parse_string_element, Element::Descr),
+            "tags" => wrap(s, parse_string_element, Element::Tags),
+            "fp_text" => parse_fp_text(s),
             //"pad" => parse_pad(v),
             //"fp_poly" => parse_fp_poly(v),
             //"fp_line" => parse_fp_line(v),
