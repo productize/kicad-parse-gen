@@ -8,6 +8,7 @@ use ERes;
 use err;
 use read_file;
 use footprint;
+use footprint::FromSexp;
 
 extern crate rustysexp;
 use self::rustysexp::Sexp;
@@ -250,8 +251,7 @@ fn parse_other(e:&Sexp) -> Element {
 }
 
 fn parse_module(e:&Sexp) -> ERes<Element> {
-    let e2 = e.clone();
-    let m = try!(footprint::parse_module(e2));
+    let m = try!(ERes::from_sexp(e));
     Ok(Element::Module(m))
 }
 

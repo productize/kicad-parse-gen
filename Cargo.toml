@@ -6,5 +6,5 @@ authors = ["Joost Damad <joost@productize.be>"]
 [dependencies]
 rustc-serialize = "0.3"
 nom = "~1.2.0"
-#rustysexp = { git = "git://github.com/productize/rustys-exp.git" }
-rustysexp = { git = "git://github.com/productize/rustys-exp.git", rev = "v0.3.3" }
+rustysexp = { git = "git://github.com/productize/rustys-exp.git" }
+#rustysexp = { git = "git://github.com/productize/rustys-exp.git", rev = "v0.3.3" }

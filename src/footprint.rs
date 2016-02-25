@@ -13,7 +13,11 @@ use self::rustysexp::Sexp;
 macro_rules! fail {
     ($expr:expr) => (
         return Err(::std::error::FromError::from_error($expr));
-    )
+        )
+}
+
+pub trait FromSexp {
+    fn from_sexp(&Sexp) -> Self;
 }
 
 #[derive(Debug,Clone)]
@@ -675,31 +679,28 @@ impl fmt::Display for Xyz {
 }
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
-fn parse_at(v: &Vec<Sexp>) -> ERes<At> {
+fn parse_at(s: &Sexp) -> ERes<At> {
+    let v = try!(s.slice_atom("at"));
     match v.len() {
-        3 => {
-            let x = try!(v[1].f());
-            let y = try!(v[2].f());
+        2 => {
+            let x = try!(v[0].f());
+            let y = try!(v[1].f());
             Ok(At::new(x, y, 0.0))
         }
-        4 => {
-            let x = try!(v[1].f());
-            let y = try!(v[2].f());
-            let rot = try!(v[3].f());
+        3 => {
+            let x = try!(v[0].f());
+            let y = try!(v[1].f());
+            let rot = try!(v[2].f());
             Ok(At::new(x, y, rot))
         }
         _ => err("at with wrong length")
     }
 }
 
-fn parse_part_at(v: &Vec<Sexp>) -> ERes<Part> {
-    let at = try!(parse_at(v));
-    Ok(Part::At(at))
-}
-
-fn parse_element_at(v: &Vec<Sexp>) -> ERes<Element> {
-    let at = try!(parse_at(v));
-    Ok(Element::At(at))
+fn wrap<X,Y,F,G>(s:&Sexp, make:F, wrapper:G) -> ERes<Y>
+    where F:Fn(&Sexp) -> ERes<X>, G:Fn(X) -> Y
+{
+    Ok(wrapper(try!(make(s))))
 }
 
 
@@ -801,11 +802,11 @@ fn parse_drill(v: &Vec<Sexp>) -> ERes<Drill> {
     }
 }
 
-fn parse_part_list(v: &Vec<Sexp>) -> ERes<Part> {
+fn parse_part_list(s:&Sexp, v: &Vec<Sexp>) -> ERes<Part> {
     let name = &try!(v[0].string())[..];
     //println!("name: {}", name);
     match name {
-        "at" => parse_part_at(v),
+        "at" => wrap(s, parse_at, Part::At),
         "layer" => parse_part_layer(v),
         "effects" => parse_part_effects(v),
         "layers" => parse_part_layers(v),
@@ -831,7 +832,7 @@ fn parse_part(part: &Sexp) -> ERes<Part> {
                 x => Err(format!("unknown part in element: {}", x))
             }
         },
-        rustysexp::Element::List(ref v) => parse_part_list(&v),
+        rustysexp::Element::List(ref v) => parse_part_list(part, &v),
         _ => Err(format!("unknown part in element: {}", part))
     }
 }
@@ -846,11 +847,11 @@ fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
     Ok(res)
 }
 
-fn parse_string_element<F>(v: &Vec<Sexp>, make:F) -> ERes<Element>
-    where F:Fn(String) -> Element
-{
-    let s = try!(v[1].string());
-    Ok(make(s.clone()))
+fn parse_string_element(s:&Sexp) -> ERes<String> {
+    let name = try!(s.list_name());
+    let v = try!(s.slice_atom_num(&name, 1));
+    let s = try!(v[0].string());
+    Ok(s.clone())
 }
 
 fn parse_descr(v: &Vec<Sexp>) -> ERes<Element> {
@@ -965,77 +966,57 @@ fn parse_fp_circle(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::FpCircle(fp_circle))
 }
 
-fn parse_model_element(v:&Vec<Sexp>) -> ERes<Element> {
-    let name = try!(v[1].string()).clone();
-    let at = try!(parse_xyz(&v[2]));
-    let scale = try!(parse_xyz(&v[3]));
-    let rotate = try!(parse_xyz(&v[4]));
+fn parse_model_element(s:&Sexp) -> ERes<Element> {
+    let v = try!(s.slice_atom_num("model", 4));
+    let name = try!(v[0].string()).clone();
+    let at = try!(parse_xyz(&v[1]));
+    let scale = try!(parse_xyz(&v[2]));
+    let rotate = try!(parse_xyz(&v[3]));
     let m = Model {name:name, at:at, scale:scale, rotate:rotate};
     Ok(Element::Model(m))
 }
 
-
-fn parse_element_list(v: &Vec<Sexp>) -> ERes<Element> {
-    match v[0].element {
-        rustysexp::Element::String(ref s) => {
-            match &s[..] {
-                "layer" => parse_string_element(v, Element::Layer),
-                "descr" => parse_descr(v),
-                "tags" => parse_tags(v),
-                "fp_text" => parse_fp_text(v),
-                "pad" => parse_pad(v),
-                "fp_poly" => parse_fp_poly(v),
-                "fp_line" => parse_fp_line(v),
-                "fp_circle" => parse_fp_circle(v),
-                "tedit" => parse_string_element(v, Element::TEdit),
-                "tstamp" => parse_string_element(v, Element::TStamp),
-                "path" => parse_string_element(v, Element::Path),
-                "at" => parse_element_at(v),
-                "model" => parse_model_element(v),
-                _ => Err(format!("unknown element in module: {}", v[0]))
-            }
+impl FromSexp for ERes<Element> {
+    fn from_sexp(s:&Sexp) -> ERes<Element> {
+        let name = try!(s.list_name());
+        match &name[..] {
+            "layer" => wrap(s, parse_string_element, Element::Layer),
+            //"descr" => parse_descr(v),
+            //"tags" => parse_tags(v),
+            //"fp_text" => parse_fp_text(v),
+            //"pad" => parse_pad(v),
+            //"fp_poly" => parse_fp_poly(v),
+            //"fp_line" => parse_fp_line(v),
+            //"fp_circle" => parse_fp_circle(v),
+            "tedit" => wrap(s, parse_string_element, Element::TEdit),
+            "tstamp" => wrap(s, parse_string_element, Element::TStamp),
+            "path" => wrap(s, parse_string_element, Element::Path),
+            "at" => wrap(s, parse_at, Element::At),
+            "model" => parse_model_element(s),
+            _ => Err(format!("unknown element in module: {}", name))
         }
-        _ => err("expecting atom")
     }
 }
 
-fn parse_element(s: &Sexp) -> ERes<Element> {
-    match s.element {
-        rustysexp::Element::List(ref v) => parse_element_list(&v),
-        _ => err("expecting element list in module")
-    }
-}
-
-fn parse_module_list(v: &Vec<Sexp>) -> ERes<Module> {
-    let mut module = (match v[0].element {
-        rustysexp::Element::String(ref s) if s == "module" => {
-            match v[1].element {
-                rustysexp::Element::String(ref s) => {
-                    //println!("parsing module {}", s);
-                    Ok(Module::new(s.clone()))
-                }
-                _ => return Err(format!("expecting module name got {}", v[1]))
-            }
+impl FromSexp for ERes<Module> {
+    fn from_sexp(s:&Sexp) -> ERes<Module> {
+        let v = try!(s.slice_atom("module"));
+        if v.len() < 1 {
+            return Err(String::from("no name in module"));
         }
-        _ => err("expecting module")
-    }).unwrap();
-    for e in &v[2..] {
-        let el = try!(parse_element(e));
-        module.append(el)
-    }
-    Ok(module)
-}
-
-pub fn parse_module(s: Sexp) -> ERes<Module> {
-    match s.element {
-        rustysexp::Element::List(v) => parse_module_list(&v),
-        _ => err("expecting top level list")
+        let name = try!(v[0].string());
+        let mut module = Module::new(name.clone());
+        for e in &v[1..] {
+            let el = try!(ERes::from_sexp(&e));
+            module.append(el)
+        }
+        Ok(module)
     }
 }
 
 fn parse(s: &str) -> ERes<Module> {
     match rustysexp::parse_str(s) {
-        Ok(s) => parse_module(s),
+        Ok(s) => ERes::from_sexp(&s),
         Err(x) => Err(format!("IOError: {}", x))
     }
 }
