@@ -759,17 +759,28 @@ fn parse_part_float<F>(v: &Vec<Sexp>, make:F) -> ERes<Part>
 fn parse_part_pts(v: &Vec<Sexp>) -> ERes<Part> {
     let mut pts = vec![];
     for e in &v[1..] {
-        let v2 = try!(e.list());
-        let p = try!(try!(parse_part_xy(XyType::Xy, v2)).xy());
+        let p = try!(ERes::from_sexp(e));
         pts.push(p)
     }
     Ok(Part::Pts(pts))
 }
 
-fn parse_part_xy(t: XyType, v: &Vec<Sexp>) -> ERes<Part> {
-    let x = try!(v[1].f());
-    let y = try!(v[2].f());
-    Ok(Part::Xy(Xy::new(x,y,t)))
+impl FromSexp for ERes<Xy> {
+    fn from_sexp(s: &Sexp) -> ERes<Xy> {
+        let name = try!(s.list_name());
+        let t = try!(match &name[..] {
+            "xy" => Ok(XyType::Xy),
+            "start" => Ok(XyType::Start),
+            "end" => Ok(XyType::End),
+            "size" => Ok(XyType::Size),
+            "center" => Ok(XyType::Center),
+            ref x => Err(format!("unknown XyType {}", x)),
+        });
+        let v = try!(s.slice_atom_num(&name, 2));
+        let x = try!(v[0].f());
+        let y = try!(v[1].f());
+        Ok(Xy::new(x,y,t))
+    }
 }
 
 impl FromSexp for ERes<Xyz> {
@@ -812,10 +823,10 @@ fn parse_part_list(s:&Sexp, v: &Vec<Sexp>) -> ERes<Part> {
         "effects" => parse_part_effects(v),
         "layers" => parse_part_layers(v),
         "width" => parse_part_float(v, Part::Width),
-        "start" => parse_part_xy(XyType::Start, v),
-        "end" => parse_part_xy(XyType::End, v),
-        "size" => parse_part_xy(XyType::Size, v),
-        "center" => parse_part_xy(XyType::Center, v),
+        "start" => wrap(s, ERes::from_sexp, Part::Xy),
+        "end" => wrap(s, ERes::from_sexp, Part::Xy),
+        "size" => wrap(s, ERes::from_sexp, Part::Xy),
+        "center" => wrap(s, ERes::from_sexp, Part::Xy),
         "pts" => parse_part_pts(v),
         "thickness" => parse_part_float(v, Part::Thickness),
         "net" => parse_part_net(v),
@@ -948,8 +959,7 @@ fn parse_fp_circle(v: &Vec<Sexp>) -> ERes<Element> {
 }
 
 fn parse_sublist<X>(v:&[Sexp], name:&'static str) -> ERes<X>
-    where ERes<X>:FromSexp
-{
+    where ERes<X>:FromSexp {
     let x = &try!(v[1].slice_atom_num(name, 1))[0];
     ERes::from_sexp(x)
 }
