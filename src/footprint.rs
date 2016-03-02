@@ -1031,4 +1031,3 @@ pub fn parse_file(name: &str) -> ERes<Module> {
     });
     parse(&s[..])
 }
-

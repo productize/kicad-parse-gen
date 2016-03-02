@@ -137,3 +137,33 @@ pub mod layout;
 pub mod symbol_lib;
 
 //pub mod schematic2;
+
+pub enum KicadFile {
+    Unknown(String),
+    Module(footprint::Module),
+    Schematic(schematic::Schematic),
+    Layout(layout::Layout),
+    SymbolLib(symbol_lib::SymbolLib),
+}
+
+pub fn read_kicad_file(name: &str) -> ERes<KicadFile> {
+    let data = try!(read_file(name));
+    match footprint::parse_str(&data) {
+        Ok(module) => return Ok(KicadFile::Module(module)),
+        _ => (),
+    }
+    match schematic::parse_str(&data) {
+        Ok(sch) => return Ok(KicadFile::Schematic(sch)),
+        _ => (),
+    }
+    match layout::parse_str(&data) {
+        Ok(layout) => return Ok(KicadFile::Layout(layout)),
+        _ => (),
+    }
+    match symbol_lib::parse_str(&data) {
+        Ok(sl) => return Ok(KicadFile::SymbolLib(sl)),
+        _ => (),
+    }
+    return Ok(KicadFile::Unknown(String::from("unknown")))
+}
+
