@@ -966,9 +966,9 @@ fn parse_fp_circle(s: &Sexp) -> ERes<Element> {
     Ok(Element::FpCircle(fp_circle))
 }
 
-fn parse_sublist<X>(v:&[Sexp], name:&'static str) -> ERes<X>
+fn parse_sublist<X>(s:&Sexp, name:&'static str) -> ERes<X>
     where ERes<X>:FromSexp {
-    let x = &try!(v[1].slice_atom_num(name, 1))[0];
+    let x = &try!(s.slice_atom_num(name, 1))[0];
     ERes::from_sexp(x)
 }
 
@@ -976,9 +976,9 @@ fn parse_sublist<X>(v:&[Sexp], name:&'static str) -> ERes<X>
 fn parse_model_element(s:&Sexp) -> ERes<Element> {
     let v = try!(s.slice_atom_num("model", 4));
     let name = try!(v[0].string()).clone();
-    let at = try!(parse_sublist(v, "at"));
-    let scale = try!(parse_sublist(v, "scale"));
-    let rotate = try!(parse_sublist(v, "rotate"));
+    let at = try!(parse_sublist(&v[1], "at"));
+    let scale = try!(parse_sublist(&v[2], "scale"));
+    let rotate = try!(parse_sublist(&v[3], "rotate"));
     let m = Model {name:name, at:at, scale:scale, rotate:rotate};
     Ok(Element::Model(m))
 }
