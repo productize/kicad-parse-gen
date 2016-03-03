@@ -1,14 +1,8 @@
 // (c) 2016 Joost Yervante Damad <joost@productize.be>
 
-use std::env;
-use std::path::PathBuf;
-
 extern crate rustykicad;
 
 fn main() {
-    // TODO: find a better way to use files in examples...
-    println!("{}", env::current_dir().unwrap().to_str().unwrap());
-    let path = PathBuf::from("../examples/usbser.kicad_pcb");
-    let s = rustykicad::layout::parse_file(&path).unwrap();
+    let s = rustykicad::read_layout("../examples/usbser.kicad_pcb").unwrap();
     println!("{}", s);
 }
