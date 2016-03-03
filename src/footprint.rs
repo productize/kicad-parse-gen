@@ -893,15 +893,20 @@ fn parse_fp_text(s: &Sexp) -> ERes<Element> {
     }
     Ok(Element::FpText(fp))
 }
-fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> { 
-    let name = try!(v[1].string()).clone();
-    let t = try!(v[2].string());
+
+fn parse_pad(s: &Sexp) -> ERes<Element> { 
+    let v = try!(s.slice_atom("pad"));
+    if v.len() < 3 {
+        return Err(format!("not enough elements in pad"))
+    }
+    let name = try!(v[0].string()).clone();
+    let t = try!(v[1].string());
     let t = try!(PadType::from_string(t.clone()));
-    let shape = try!(v[3].string());
+    let shape = try!(v[2].string());
     let shape = try!(PadShape::from_string(shape.clone()));
     let mut pad = Pad::new(name, t, shape);
     //println!("{}", pad);
-    let parts = try!(parse_parts(&v[4..]));
+    let parts = try!(parse_parts(&v[3..]));
     for part in &parts[..] {
         match *part {
             Part::At(ref at) => pad.at.clone_from(at),
@@ -916,7 +921,8 @@ fn parse_pad(v: &Vec<Sexp>) -> ERes<Element> {
     Ok(Element::Pad(pad))
 }
 
-fn parse_fp_poly(v: &Vec<Sexp>) -> ERes<Element> {
+fn parse_fp_poly(s: &Sexp) -> ERes<Element> {
+    let v = try!(s.list());
     let mut fp_poly = FpPoly::new();
     let parts = try!(parse_parts(&v[1..]));
     for part in &parts[..] {
@@ -929,7 +935,8 @@ fn parse_fp_poly(v: &Vec<Sexp>) -> ERes<Element> {
     } 
     Ok(Element::FpPoly(fp_poly))
 }
-fn parse_fp_line(v: &Vec<Sexp>) -> ERes<Element> {
+fn parse_fp_line(s: &Sexp) -> ERes<Element> {
+    let v = try!(s.list());
     let mut fp_line = FpLine::new();
     let parts = try!(parse_parts(&v[1..]));
     for part in &parts[..] {
@@ -943,7 +950,8 @@ fn parse_fp_line(v: &Vec<Sexp>) -> ERes<Element> {
     }
     Ok(Element::FpLine(fp_line))
 }
-fn parse_fp_circle(v: &Vec<Sexp>) -> ERes<Element> {
+fn parse_fp_circle(s: &Sexp) -> ERes<Element> {
+    let v = try!(s.list());
     let mut fp_circle = FpCircle::new();
     let parts = try!(parse_parts(&v[1..]));
     for part in &parts[..] {
@@ -983,10 +991,10 @@ impl FromSexp for ERes<Element> {
             "descr" => wrap(s, parse_string_element, Element::Descr),
             "tags" => wrap(s, parse_string_element, Element::Tags),
             "fp_text" => parse_fp_text(s),
-            //"pad" => parse_pad(v),
-            //"fp_poly" => parse_fp_poly(v),
-            //"fp_line" => parse_fp_line(v),
-            //"fp_circle" => parse_fp_circle(v),
+            "pad" => parse_pad(s),
+            "fp_poly" => parse_fp_poly(s),
+            "fp_line" => parse_fp_line(s),
+            "fp_circle" => parse_fp_circle(s),
             "tedit" => wrap(s, parse_string_element, Element::TEdit),
             "tstamp" => wrap(s, parse_string_element, Element::TStamp),
             "path" => wrap(s, parse_string_element, Element::Path),
