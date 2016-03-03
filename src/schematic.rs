@@ -977,7 +977,7 @@ fn parse_sheet(p:&mut ParseState) -> ERes<Sheet> {
 }
 
 
-fn parse(filename:Option<PathBuf>, s: &str) -> ERes<Schematic> {
+pub fn parse(filename:Option<PathBuf>, s: &str) -> ERes<Schematic> {
     let mut sch = Schematic::new();
     sch.filename = filename;
     let v:Vec<&str> = s.lines().collect();

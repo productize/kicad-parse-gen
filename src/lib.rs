@@ -175,13 +175,14 @@ impl fmt::Display for KicadFile {
 
 
 pub fn read_kicad_file(name: &str, expected:Expected) -> ERes<KicadFile> {
+    let pb = std::path::PathBuf::from(name);
     let data = try!(read_file(name));
     let mut msg = String::new();
     match footprint::parse_str(&data) {
         Ok(module) => return Ok(KicadFile::Module(module)),
         Err(x) => if expected == Expected::Module { msg = x },
     }
-    match schematic::parse_str(&data) {
+    match schematic::parse(Some(pb), &data) {
         Ok(sch) => return Ok(KicadFile::Schematic(sch)),
         Err(x) => if expected == Expected::Schematic { msg = x },
     }
