@@ -148,7 +148,7 @@ pub enum Expected {
 impl fmt::Display for KicadFile {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
-            KicadFile::Unknown(_)   => write!(f, "unknown"),
+            KicadFile::Unknown(ref x)   => write!(f, "unknown: {}", x),
             KicadFile::Module(_)    => write!(f, "module"),
             KicadFile::Schematic(_) => write!(f, "schematic"),
             KicadFile::Layout(_)    => write!(f, "layout"),
@@ -165,23 +165,23 @@ pub fn read_kicad_file(name: &str, expected:Expected) -> ERes<KicadFile> {
     let mut msg = String::new();
     match footprint::parse(&data) {
         Ok(module) => return Ok(KicadFile::Module(module)),
-        Err(x) => if expected == Expected::Module { msg = x },
+        Err(x) => { if expected == Expected::Module { msg = x } },
     }
     match schematic::parse(Some(pb), &data) {
         Ok(sch) => return Ok(KicadFile::Schematic(sch)),
-        Err(x) => if expected == Expected::Schematic { msg = x },
+        Err(x) => { if expected == Expected::Schematic { msg = x } },
     }
     match layout::parse_str(&data) {
         Ok(layout) => return Ok(KicadFile::Layout(layout)),
-        Err(x) => if expected == Expected::Layout { msg = x },
+        Err(x) => { if expected == Expected::Layout { msg = x } },
     }
     match symbol_lib::parse_str(&data) {
         Ok(sl) => return Ok(KicadFile::SymbolLib(sl)),
-        Err(x) => if expected == Expected::SymbolLib { msg = x },
+        Err(x) => { if expected == Expected::SymbolLib { msg = x } },
     }
     match project::parse_str(&data) {
         Ok(p) => return Ok(KicadFile::Project(p)),
-        Err(x) => if expected == Expected::Project { msg = x },
+        Err(x) => { if expected == Expected::Project { msg = x } },
     }
     return Ok(KicadFile::Unknown(format!("{}: {}", name, msg)))
 }

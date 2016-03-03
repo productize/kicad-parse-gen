@@ -701,7 +701,9 @@ impl FromSexp for ERes<Layer> {
 
 impl FromSexp for ERes<Effects> {
     fn from_sexp(s:&Sexp) -> ERes<Effects> {
-        let v = try!(s.slice_atom_num("effects", 1));
+        //let v = try!(s.slice_atom_num("effects", 1));
+        // TODO investigate why the above doesn't work !?
+        let v = try!(s.slice_atom("effects"));
         let font = try!(ERes::from_sexp(&v[0]));
         Ok(Effects::from_font(font))
     }
