@@ -5,16 +5,9 @@ use std::fmt;
 // get from parent
 use ERes;
 use err;
-use read_file;
 
 extern crate rustysexp;
 use self::rustysexp::Sexp;
-
-macro_rules! fail {
-    ($expr:expr) => (
-        return Err(::std::error::FromError::from_error($expr));
-        )
-}
 
 pub trait FromSexp {
     fn from_sexp(&Sexp) -> Self;
@@ -751,9 +744,13 @@ impl FromSexp for ERes<Layers> {
     }
 }
 
-fn parse_part_float<F>(v: &Vec<Sexp>, make:F) -> ERes<Part>
+fn parse_part_float<F>(e: &Sexp, make:F) -> ERes<Part>
     where F:Fn(f64) -> Part
 {
+    let v = try!(e.list());
+    if v.len() < 2 {
+        return Err(format!("not enough elements in {}", e))
+    }
     let f = try!(v[1].f());
     Ok(make(f))
 }
@@ -807,63 +804,59 @@ impl FromSexp for ERes<Net> {
     }
 }
 
-fn parse_drill(v: &Vec<Sexp>) -> ERes<Drill> {
-    if v.len() == 2 {
-        let drill = try!(v[1].f());
-        Ok(Drill { shape:None, drill:drill, drill2:None })
-        
-    } else if v.len() == 4 {
-        let shape = try!(v[1].string());
-        let drill = try!(v[2].f());
-        let drill2 = try!(v[3].f());
-        Ok(Drill { shape:Some(shape.clone()), drill:drill, drill2:Some(drill2) })
-    } else {
-        Err(format!("unknown drill format"))
-    }
-}
-
-fn parse_part_list(s:&Sexp, v: &Vec<Sexp>) -> ERes<Part> {
-    let name = &try!(v[0].string())[..];
-    //println!("name: {}", name);
-    match name {
-        "at" => wrap(s, ERes::from_sexp, Part::At),
-        "layer" => wrap(s, ERes::from_sexp, Part::Layer),
-        "effects" => wrap(s, ERes::from_sexp, Part::Effects),
-        "layers" => wrap(s, ERes::from_sexp, Part::Layers),
-        "width" => parse_part_float(v, Part::Width),
-        "start" => wrap(s, ERes::from_sexp, Part::Xy),
-        "end" => wrap(s, ERes::from_sexp, Part::Xy),
-        "size" => wrap(s, ERes::from_sexp, Part::Xy),
-        "center" => wrap(s, ERes::from_sexp, Part::Xy),
-        "pts" => wrap(s, ERes::from_sexp, Part::Pts),
-        "thickness" => parse_part_float(v, Part::Thickness),
-        "net" => wrap(s, ERes::from_sexp, Part::Net),
-        "drill" => Ok(Part::Drill(try!(parse_drill(v)))),
-        "solder_paste_margin" => parse_part_float(v, Part::SolderPasteMargin),
-        x => Err(format!("unknown part {}", x))
+impl FromSexp for ERes<Drill> {
+    fn from_sexp(s: &Sexp) -> ERes<Drill> {
+        let v = try!(s.slice_atom("drill"));
+        if v.len() == 1 {
+            let drill = try!(v[0].f());
+            Ok(Drill { shape:None, drill:drill, drill2:None })
+                
+        } else if v.len() == 3 {
+            let shape = try!(v[0].string());
+            let drill = try!(v[1].f());
+            let drill2 = try!(v[2].f());
+            Ok(Drill { shape:Some(shape.clone()), drill:drill, drill2:Some(drill2) })
+        } else {
+            Err(format!("unknown drill format"))
+        }
     }
 }
 
 impl FromSexp for ERes<Part> {
-    fn from_sexp(part:&Sexp) -> ERes<Part> {
-        match part.element {
-            rustysexp::Element::String(ref s) => {
-                match &s[..] {
-                    "hide" => Ok(Part::Hide),
-                    x => Err(format!("unknown part in element: {}", x))
-                }
+    fn from_sexp(s:&Sexp) -> ERes<Part> {
+        match s.string() {
+            Ok(ref sx) => match &sx[..] {
+                "hide" => Ok(Part::Hide),
+                x => Err(format!("unknown part in element: {}", x))
             },
-            rustysexp::Element::List(ref v) => parse_part_list(part, &v),
-            _ => Err(format!("unknown part in element: {}", part))
+            _ => {
+                let name = &try!(s.list_name())[..];
+                match name {
+                    "at" => wrap(s, ERes::from_sexp, Part::At),
+                    "layer" => wrap(s, ERes::from_sexp, Part::Layer),
+                    "effects" => wrap(s, ERes::from_sexp, Part::Effects),
+                    "layers" => wrap(s, ERes::from_sexp, Part::Layers),
+                    "width" => parse_part_float(s, Part::Width),
+                    "start" => wrap(s, ERes::from_sexp, Part::Xy),
+                    "end" => wrap(s, ERes::from_sexp, Part::Xy),
+                    "size" => wrap(s, ERes::from_sexp, Part::Xy),
+                    "center" => wrap(s, ERes::from_sexp, Part::Xy),
+                    "pts" => wrap(s, ERes::from_sexp, Part::Pts),
+                    "thickness" => parse_part_float(s, Part::Thickness),
+                    "net" => wrap(s, ERes::from_sexp, Part::Net),
+                    "drill" => wrap(s, ERes::from_sexp, Part::Drill),
+                    "solder_paste_margin" => parse_part_float(s, Part::SolderPasteMargin),
+                    x => Err(format!("unknown part {}", x))
+                }
+            }
         }
-    }
+    }        
 }
 
 fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
     let mut res = Vec::new();
     for e in v {
         let p = try!(ERes::from_sexp(e));
-        //println!("{}", p);
         res.push(p);
     }
     Ok(res)
@@ -1045,21 +1038,9 @@ impl FromSexp for ERes<Module> {
     }
 }
 
-fn parse(s: &str) -> ERes<Module> {
+pub fn parse(s: &str) -> ERes<Module> {
     match rustysexp::parse_str(s) {
         Ok(s) => ERes::from_sexp(&s),
         Err(x) => Err(format!("IOError: {}", x))
     }
-}
-
-pub fn parse_str(s: &str) -> ERes<Module> {
-    parse(s)
-}
-
-pub fn parse_file(name: &str) -> ERes<Module> {
-    let s = try!(match read_file(name) {
-        Ok(s) => Ok(s),
-        Err(x) => Err(format!("io error: {}", x))
-    });
-    parse(&s[..])
 }

@@ -16,21 +16,6 @@ pub fn err<T>(msg: &str) -> ERes<T> {
     Err(String::from(msg))
 }
 
-macro_rules! fail {
-    ($expr:expr) => (
-        return Err(::std::error::FromError::from_error($expr));
-    )
-}
-
-macro_rules! println_err(
-    ($($arg:tt)*) => (
-        match writeln!(&mut ::std::io::stderr(), $($arg)* ) {
-            Ok(_) => {},
-            Err(x) => panic!("Unable to write to stderr: {}", x),
-        }
-    )
-);
-
 pub fn read_file(name: &str) -> ERes<String> {
     let mut f = try!(match File::open(name) {
         Ok(f) => Ok(f),
@@ -178,7 +163,7 @@ pub fn read_kicad_file(name: &str, expected:Expected) -> ERes<KicadFile> {
     let pb = std::path::PathBuf::from(name);
     let data = try!(read_file(name));
     let mut msg = String::new();
-    match footprint::parse_str(&data) {
+    match footprint::parse(&data) {
         Ok(module) => return Ok(KicadFile::Module(module)),
         Err(x) => if expected == Expected::Module { msg = x },
     }
