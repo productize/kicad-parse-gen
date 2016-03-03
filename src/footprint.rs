@@ -295,15 +295,6 @@ enum Part {
     SolderPasteMargin(f64),
 }
 
-impl Part {
-    fn xy(&self) -> ERes<Xy> {
-        match *self {
-            Part::Xy(ref xy) => Ok(xy.clone()),
-            ref x => Err(format!("expecting xy got {}", x))
-        }
-    }
-}
-
 // as parts are intermediate only Display doesn't really matter
 impl fmt::Display for Part {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
@@ -679,21 +670,23 @@ impl fmt::Display for Xyz {
 }
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
-fn parse_at(s: &Sexp) -> ERes<At> {
-    let v = try!(s.slice_atom("at"));
-    match v.len() {
-        2 => {
-            let x = try!(v[0].f());
-            let y = try!(v[1].f());
-            Ok(At::new(x, y, 0.0))
+impl FromSexp for ERes<At> {
+    fn from_sexp(s:&Sexp) -> ERes<At> {
+        let v = try!(s.slice_atom("at"));
+        match v.len() {
+            2 => {
+                let x = try!(v[0].f());
+                let y = try!(v[1].f());
+                Ok(At::new(x, y, 0.0))
+            }
+            3 => {
+                let x = try!(v[0].f());
+                let y = try!(v[1].f());
+                let rot = try!(v[2].f());
+                Ok(At::new(x, y, rot))
+            }
+            _ => err("at with wrong length")
         }
-        3 => {
-            let x = try!(v[0].f());
-            let y = try!(v[1].f());
-            let rot = try!(v[2].f());
-            Ok(At::new(x, y, rot))
-        }
-        _ => err("at with wrong length")
     }
 }
 
@@ -704,49 +697,58 @@ fn wrap<X,Y,F,G>(s:&Sexp, make:F, wrapper:G) -> ERes<Y>
 }
 
 
-fn parse_part_layer(v: &Vec<Sexp>) -> ERes<Part> {
-    let layer = try!(v[1].string());
-    let layer = try!(Layer::from_string(layer.clone()));
-    Ok(Part::Layer(layer))
+impl FromSexp for ERes<Layer> {
+    fn from_sexp(s:&Sexp) -> ERes<Layer> {
+        let v = try!(s.slice_atom("layer"));
+        let layer = try!(v[0].string());
+        let layer = try!(Layer::from_string(layer.clone()));
+        Ok(layer)
+    }
 }
 
-fn parse_part_effects(v: &Vec<Sexp>) -> ERes<Part> {
-    let l = try!(v[1].list());
-    //for x in &l[..] {
-    //    println!("effects el: {}", x)
-    //}
-    let f = try!(l[0].string());
-    if &f[..] != "font" {
-        return err("expecting font")
+impl FromSexp for ERes<Effects> {
+    fn from_sexp(s:&Sexp) -> ERes<Effects> {
+        let v = try!(s.slice_atom_num("effects", 1));
+        let font = try!(ERes::from_sexp(&v[0]));
+        Ok(Effects::from_font(font))
     }
-    let parts = try!(parse_parts(&l[1..]));
-    let mut font = Font::new();
-    for part in &parts[..] {
-        //println!("part: {}", part);
-        try!(match *part {
-            Part::Xy(ref xy) if xy.t == XyType::Size => {
-                font.size.x = xy.x;
-                font.size.y = xy.y;
-                Ok(())
-            }
-            Part::Thickness(ref t) => {
-                font.thickness = *t;
-                Ok(())
-            }
-            ref x => Err(format!("unknown element in font: {}", x))
-        })
-    } 
-    Ok(Part::Effects(Effects::from_font(font)))
 }
 
-fn parse_part_layers(v: &Vec<Sexp>) -> ERes<Part> {
-    let mut l = Layers::new();
-    for v1 in &v[1..] {
-        let x = try!(v1.string());
-        let layer = try!(Layer::from_string(x.clone()));
-        l.append(&layer)
+impl FromSexp for ERes<Font> {
+    fn from_sexp(s:&Sexp) -> ERes<Font> {
+        let v = try!(s.slice_atom("font"));
+        let parts = try!(parse_parts(&v));
+        let mut font = Font::new();
+        for part in &parts[..] {
+            //println!("part: {}", part);
+            try!(match *part {
+                Part::Xy(ref xy) if xy.t == XyType::Size => {
+                    font.size.x = xy.x;
+                    font.size.y = xy.y;
+                    Ok(())
+                }
+                Part::Thickness(ref t) => {
+                    font.thickness = *t;
+                    Ok(())
+                }
+                ref x => Err(format!("unknown element in font: {}", x))
+            })
+        }
+        Ok(font)
     }
-    Ok(Part::Layers(l))
+}
+
+impl FromSexp for ERes<Layers> {
+    fn from_sexp(s:&Sexp) -> ERes<Layers> {
+        let mut l = Layers::new();
+        let v = try!(s.slice_atom("layers"));
+        for v1 in v {
+            let x = try!(v1.string());
+            let layer = try!(Layer::from_string(x.clone()));
+            l.append(&layer)
+        }
+        Ok(l)
+    }
 }
 
 fn parse_part_float<F>(v: &Vec<Sexp>, make:F) -> ERes<Part>
@@ -756,13 +758,16 @@ fn parse_part_float<F>(v: &Vec<Sexp>, make:F) -> ERes<Part>
     Ok(make(f))
 }
 
-fn parse_part_pts(v: &Vec<Sexp>) -> ERes<Part> {
-    let mut pts = vec![];
-    for e in &v[1..] {
-        let p = try!(ERes::from_sexp(e));
-        pts.push(p)
+impl FromSexp for ERes<Vec<Xy> > {
+    fn from_sexp(s:&Sexp) -> ERes<Vec<Xy> > {
+        let v = try!(s.slice_atom("pts"));
+        let mut pts = vec![];
+        for e in &v[1..] {
+            let p = try!(ERes::from_sexp(e));
+            pts.push(p)
+        }
+        Ok(pts)
     }
-    Ok(Part::Pts(pts))
 }
 
 impl FromSexp for ERes<Xy> {
@@ -793,10 +798,13 @@ impl FromSexp for ERes<Xyz> {
     }
 }
 
-fn parse_part_net(v: &Vec<Sexp>) -> ERes<Part> {
-    let num = try!(v[1].i());
-    let name = try!(v[2].string());
-    Ok(Part::Net(Net { num:num, name:name.clone(), }))
+impl FromSexp for ERes<Net> {
+    fn from_sexp(s: &Sexp) -> ERes<Net> {
+        let v = try!(s.slice_atom_num("net", 2));
+        let num = try!(v[0].i());
+        let name = try!(v[1].string());
+        Ok(Net { num:num, name:name.clone(), })
+    }
 }
 
 fn parse_drill(v: &Vec<Sexp>) -> ERes<Drill> {
@@ -818,41 +826,43 @@ fn parse_part_list(s:&Sexp, v: &Vec<Sexp>) -> ERes<Part> {
     let name = &try!(v[0].string())[..];
     //println!("name: {}", name);
     match name {
-        "at" => wrap(s, parse_at, Part::At),
-        "layer" => parse_part_layer(v),
-        "effects" => parse_part_effects(v),
-        "layers" => parse_part_layers(v),
+        "at" => wrap(s, ERes::from_sexp, Part::At),
+        "layer" => wrap(s, ERes::from_sexp, Part::Layer),
+        "effects" => wrap(s, ERes::from_sexp, Part::Effects),
+        "layers" => wrap(s, ERes::from_sexp, Part::Layers),
         "width" => parse_part_float(v, Part::Width),
         "start" => wrap(s, ERes::from_sexp, Part::Xy),
         "end" => wrap(s, ERes::from_sexp, Part::Xy),
         "size" => wrap(s, ERes::from_sexp, Part::Xy),
         "center" => wrap(s, ERes::from_sexp, Part::Xy),
-        "pts" => parse_part_pts(v),
+        "pts" => wrap(s, ERes::from_sexp, Part::Pts),
         "thickness" => parse_part_float(v, Part::Thickness),
-        "net" => parse_part_net(v),
+        "net" => wrap(s, ERes::from_sexp, Part::Net),
         "drill" => Ok(Part::Drill(try!(parse_drill(v)))),
         "solder_paste_margin" => parse_part_float(v, Part::SolderPasteMargin),
         x => Err(format!("unknown part {}", x))
     }
 }
 
-fn parse_part(part: &Sexp) -> ERes<Part> {
-    match part.element {
-        rustysexp::Element::String(ref s) => {
-            match &s[..] {
-                "hide" => Ok(Part::Hide),
-                x => Err(format!("unknown part in element: {}", x))
-            }
-        },
-        rustysexp::Element::List(ref v) => parse_part_list(part, &v),
-        _ => Err(format!("unknown part in element: {}", part))
+impl FromSexp for ERes<Part> {
+    fn from_sexp(part:&Sexp) -> ERes<Part> {
+        match part.element {
+            rustysexp::Element::String(ref s) => {
+                match &s[..] {
+                    "hide" => Ok(Part::Hide),
+                    x => Err(format!("unknown part in element: {}", x))
+                }
+            },
+            rustysexp::Element::List(ref v) => parse_part_list(part, &v),
+            _ => Err(format!("unknown part in element: {}", part))
+        }
     }
 }
 
 fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
     let mut res = Vec::new();
     for e in v {
-        let p = try!(parse_part(e));
+        let p = try!(ERes::from_sexp(e));
         //println!("{}", p);
         res.push(p);
     }
@@ -866,104 +876,116 @@ fn parse_string_element(s:&Sexp) -> ERes<String> {
     Ok(s.clone())
 }
 
-fn parse_fp_text(s: &Sexp) -> ERes<Element> {
-    let v = try!(s.slice_atom("fp_text"));
-    let name = try!(v[0].string());
-    let value = try!(v[1].string());
-    let parts = try!(parse_parts(&v[2..]));
-    let mut fp = FpText::new(name.clone(), value.clone());
-    for part in &parts[..] {
-        match *part {
-            Part::At(ref at) => {
-                fp.at.clone_from(at)
-            },
-            Part::Layer(ref layer) => {
-                fp.set_layer(layer)
-            }
-            Part::Hide => {
-                fp.hide = true
-            },
-            Part::Effects(ref effects) => {
-                fp.set_effects(effects)
-            }
-            ref x => {
-                return Err(format!("fp_text: unknown {}", x))
+impl FromSexp for ERes<FpText> {
+    fn from_sexp(s:&Sexp) -> ERes<FpText> {
+        let v = try!(s.slice_atom("fp_text"));
+        let name = try!(v[0].string());
+        let value = try!(v[1].string());
+        let parts = try!(parse_parts(&v[2..]));
+        let mut fp = FpText::new(name.clone(), value.clone());
+        for part in &parts[..] {
+            match *part {
+                Part::At(ref at) => {
+                    fp.at.clone_from(at)
+                },
+                Part::Layer(ref layer) => {
+                    fp.set_layer(layer)
+                }
+                Part::Hide => {
+                    fp.hide = true
+                },
+                Part::Effects(ref effects) => {
+                    fp.set_effects(effects)
+                }
+                ref x => {
+                    return Err(format!("fp_text: unknown {}", x))
+                }
             }
         }
+        Ok(fp)
     }
-    Ok(Element::FpText(fp))
 }
 
-fn parse_pad(s: &Sexp) -> ERes<Element> { 
-    let v = try!(s.slice_atom("pad"));
-    if v.len() < 3 {
-        return Err(format!("not enough elements in pad"))
-    }
-    let name = try!(v[0].string()).clone();
-    let t = try!(v[1].string());
-    let t = try!(PadType::from_string(t.clone()));
-    let shape = try!(v[2].string());
-    let shape = try!(PadShape::from_string(shape.clone()));
-    let mut pad = Pad::new(name, t, shape);
-    //println!("{}", pad);
-    let parts = try!(parse_parts(&v[3..]));
-    for part in &parts[..] {
-        match *part {
-            Part::At(ref at) => pad.at.clone_from(at),
-            Part::Xy(ref xy) if xy.t == XyType::Size => pad.size.clone_from(xy),
-            Part::Layers(ref l) => pad.layers.clone_from(l),
-            Part::Net(ref n) => pad.set_net(n),
-            Part::Drill(ref n) => pad.set_drill(n),
-            Part::SolderPasteMargin(n) => pad.solder_paste_margin = Some(n),
-            ref x => println!("pad: ignoring {}", x),
+impl FromSexp for ERes<Pad> {
+    fn from_sexp(s:&Sexp) -> ERes<Pad> {
+        let v = try!(s.slice_atom("pad"));
+        if v.len() < 3 {
+            return Err(format!("not enough elements in pad"))
         }
+        let name = try!(v[0].string()).clone();
+        let t = try!(v[1].string());
+        let t = try!(PadType::from_string(t.clone()));
+        let shape = try!(v[2].string());
+        let shape = try!(PadShape::from_string(shape.clone()));
+        let mut pad = Pad::new(name, t, shape);
+        //println!("{}", pad);
+        let parts = try!(parse_parts(&v[3..]));
+        for part in &parts[..] {
+            match *part {
+                Part::At(ref at) => pad.at.clone_from(at),
+                Part::Xy(ref xy) if xy.t == XyType::Size => pad.size.clone_from(xy),
+                Part::Layers(ref l) => pad.layers.clone_from(l),
+                Part::Net(ref n) => pad.set_net(n),
+                Part::Drill(ref n) => pad.set_drill(n),
+                Part::SolderPasteMargin(n) => pad.solder_paste_margin = Some(n),
+                ref x => return Err(format!("pad: unknown {}", x)),
+            }
+        }
+        Ok(pad)
     }
-    Ok(Element::Pad(pad))
 }
 
-fn parse_fp_poly(s: &Sexp) -> ERes<Element> {
-    let v = try!(s.list());
-    let mut fp_poly = FpPoly::new();
-    let parts = try!(parse_parts(&v[1..]));
-    for part in &parts[..] {
-        match *part {
-            Part::Pts(ref pts) => fp_poly.pts.clone_from(pts),
-            Part::Width(w) => fp_poly.width = w,
-            Part::Layer(ref layer) => fp_poly.layer.clone_from(layer),
-            ref x => println!("fp_poly: ignoring {}", x),
-        }
-    } 
-    Ok(Element::FpPoly(fp_poly))
-}
-fn parse_fp_line(s: &Sexp) -> ERes<Element> {
-    let v = try!(s.list());
-    let mut fp_line = FpLine::new();
-    let parts = try!(parse_parts(&v[1..]));
-    for part in &parts[..] {
-        match *part {
-            Part::Xy(ref xy) if xy.t == XyType::Start => fp_line.start.clone_from(xy),
-            Part::Xy(ref xy) if xy.t == XyType::End => fp_line.end.clone_from(xy),
-            Part::Layer(ref layer) => fp_line.layer.clone_from(layer),
-            Part::Width(w) => fp_line.width = w,
-            ref x => println!("fp_line: ignoring {}", x),
-        }
+impl FromSexp for ERes<FpPoly> {
+    fn from_sexp(s:&Sexp) -> ERes<FpPoly> {
+        let v = try!(s.slice_atom("fp_poly"));
+        let mut fp_poly = FpPoly::new();
+        let parts = try!(parse_parts(&v));
+        for part in &parts[..] {
+            match *part {
+                Part::Pts(ref pts) => fp_poly.pts.clone_from(pts),
+                Part::Width(w) => fp_poly.width = w,
+                Part::Layer(ref layer) => fp_poly.layer.clone_from(layer),
+                ref x => println!("fp_poly: ignoring {}", x),
+            }
+        } 
+        Ok(fp_poly)
     }
-    Ok(Element::FpLine(fp_line))
 }
-fn parse_fp_circle(s: &Sexp) -> ERes<Element> {
-    let v = try!(s.list());
-    let mut fp_circle = FpCircle::new();
-    let parts = try!(parse_parts(&v[1..]));
-    for part in &parts[..] {
-        match *part {
-            Part::Xy(ref xy) if xy.t == XyType::Center => fp_circle.center.clone_from(xy),
-            Part::Xy(ref xy) if xy.t == XyType::End => fp_circle.end.clone_from(xy),
-            Part::Layer(ref layer) => fp_circle.layer.clone_from(layer),
-            Part::Width(w) => fp_circle.width = w,
-            ref x => println!("fp_circle: ignoring {}", x),
+
+impl FromSexp for ERes<FpLine> {
+    fn from_sexp(s:&Sexp) -> ERes<FpLine> {
+        let v = try!(s.slice_atom("fp_line"));
+        let mut fp_line = FpLine::new();
+        let parts = try!(parse_parts(&v));
+        for part in &parts[..] {
+            match *part {
+                Part::Xy(ref xy) if xy.t == XyType::Start => fp_line.start.clone_from(xy),
+                Part::Xy(ref xy) if xy.t == XyType::End => fp_line.end.clone_from(xy),
+                Part::Layer(ref layer) => fp_line.layer.clone_from(layer),
+                Part::Width(w) => fp_line.width = w,
+                ref x => return Err(format!("fp_line: unknown {}", x)),
+            }
         }
+        Ok(fp_line)
     }
-    Ok(Element::FpCircle(fp_circle))
+}
+
+impl FromSexp for ERes<FpCircle> {
+    fn from_sexp(s:&Sexp) -> ERes<FpCircle> {
+        let v = try!(s.slice_atom("fp_circle"));
+        let mut fp_circle = FpCircle::new();
+        let parts = try!(parse_parts(&v));
+        for part in &parts[..] {
+            match *part {
+                Part::Xy(ref xy) if xy.t == XyType::Center => fp_circle.center.clone_from(xy),
+                Part::Xy(ref xy) if xy.t == XyType::End => fp_circle.end.clone_from(xy),
+                Part::Layer(ref layer) => fp_circle.layer.clone_from(layer),
+                Part::Width(w) => fp_circle.width = w,
+                ref x => return Err(format!("fp_circle: unexpected {}", x)),
+            }
+        }
+        Ok(fp_circle)
+    }
 }
 
 fn parse_sublist<X>(s:&Sexp, name:&'static str) -> ERes<X>
@@ -973,14 +995,16 @@ fn parse_sublist<X>(s:&Sexp, name:&'static str) -> ERes<X>
 }
 
 
-fn parse_model_element(s:&Sexp) -> ERes<Element> {
-    let v = try!(s.slice_atom_num("model", 4));
-    let name = try!(v[0].string()).clone();
-    let at = try!(parse_sublist(&v[1], "at"));
-    let scale = try!(parse_sublist(&v[2], "scale"));
-    let rotate = try!(parse_sublist(&v[3], "rotate"));
-    let m = Model {name:name, at:at, scale:scale, rotate:rotate};
-    Ok(Element::Model(m))
+impl FromSexp for ERes<Model> {
+    fn from_sexp(s:&Sexp) -> ERes<Model> {
+        let v = try!(s.slice_atom_num("model", 4));
+        let name = try!(v[0].string()).clone();
+        let at = try!(parse_sublist(&v[1], "at"));
+        let scale = try!(parse_sublist(&v[2], "scale"));
+        let rotate = try!(parse_sublist(&v[3], "rotate"));
+        let m = Model {name:name, at:at, scale:scale, rotate:rotate};
+        Ok(m)
+    }
 }
 
 impl FromSexp for ERes<Element> {
@@ -990,16 +1014,16 @@ impl FromSexp for ERes<Element> {
             "layer" => wrap(s, parse_string_element, Element::Layer),
             "descr" => wrap(s, parse_string_element, Element::Descr),
             "tags" => wrap(s, parse_string_element, Element::Tags),
-            "fp_text" => parse_fp_text(s),
-            "pad" => parse_pad(s),
-            "fp_poly" => parse_fp_poly(s),
-            "fp_line" => parse_fp_line(s),
-            "fp_circle" => parse_fp_circle(s),
+            "fp_text" => wrap(s, ERes::from_sexp, Element::FpText),
+            "pad" => wrap(s, ERes::from_sexp, Element::Pad),
+            "fp_poly" => wrap(s, ERes::from_sexp, Element::FpPoly),
+            "fp_line" => wrap(s, ERes::from_sexp, Element::FpLine),
+            "fp_circle" => wrap(s, ERes::from_sexp, Element::FpCircle),
             "tedit" => wrap(s, parse_string_element, Element::TEdit),
             "tstamp" => wrap(s, parse_string_element, Element::TStamp),
             "path" => wrap(s, parse_string_element, Element::Path),
-            "at" => wrap(s, parse_at, Element::At),
-            "model" => parse_model_element(s),
+            "at" => wrap(s, ERes::from_sexp, Element::At),
+            "model" => wrap(s, ERes::from_sexp, Element::Model),
             _ => Err(format!("unknown element in module: {}", name))
         }
     }

@@ -1,11 +1,10 @@
 // (c) 2016 Productize SPRL <joost@productize.be>
 
-use std::fmt;
-use std::str::FromStr;
+//use std::fmt;
+//use std::str::FromStr;
 
 // get from parent
 use ERes;
-use err;
 
 // first line starts with:
 // update=
