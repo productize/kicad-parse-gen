@@ -149,6 +149,17 @@ pub enum KicadFile {
     Project(project::Project),
 }
 
+#[derive(PartialEq)]
+pub enum Expected {
+    Module,
+    Schematic,
+    Layout,
+    SymbolLib,
+    Project,
+    Any,
+}
+
+
 impl fmt::Display for KicadFile {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
@@ -163,61 +174,62 @@ impl fmt::Display for KicadFile {
 }
 
 
-pub fn read_kicad_file(name: &str) -> ERes<KicadFile> {
+pub fn read_kicad_file(name: &str, expected:Expected) -> ERes<KicadFile> {
     let data = try!(read_file(name));
+    let mut msg = String::new();
     match footprint::parse_str(&data) {
         Ok(module) => return Ok(KicadFile::Module(module)),
-        _ => (),
+        Err(x) => if expected == Expected::Module { msg = x },
     }
     match schematic::parse_str(&data) {
         Ok(sch) => return Ok(KicadFile::Schematic(sch)),
-        _ => (),
+        Err(x) => if expected == Expected::Schematic { msg = x },
     }
     match layout::parse_str(&data) {
         Ok(layout) => return Ok(KicadFile::Layout(layout)),
-        _ => (),
+        Err(x) => if expected == Expected::Layout { msg = x },
     }
     match symbol_lib::parse_str(&data) {
         Ok(sl) => return Ok(KicadFile::SymbolLib(sl)),
-        _ => (),
+        Err(x) => if expected == Expected::SymbolLib { msg = x },
     }
     match project::parse_str(&data) {
         Ok(p) => return Ok(KicadFile::Project(p)),
-        _ => (),
+        Err(x) => if expected == Expected::Project { msg = x },
     }
-    return Ok(KicadFile::Unknown(String::from(name)))
+    return Ok(KicadFile::Unknown(format!("{}: {}", name, msg)))
 }
 
 pub fn read_module(name: &str) -> ERes<footprint::Module> {
-    match try!(read_kicad_file(name)) {
+    match try!(read_kicad_file(name, Expected::Module)) {
         KicadFile::Module(mo) => Ok(mo),
         x => Err(format!("unexpected in {}: {}", name, x)),
     }
 }
 
 pub fn read_schematic(name: &str) -> ERes<schematic::Schematic> {
-    match try!(read_kicad_file(name)) {
+    match try!(read_kicad_file(name, Expected::Schematic)) {
         KicadFile::Schematic(mo) => Ok(mo),
         x => Err(format!("unexpected in {}: {}", name, x)),
     }
 }
 
 pub fn read_layout(name: &str) -> ERes<layout::Layout> {
-    match try!(read_kicad_file(name)) {
+    match try!(read_kicad_file(name, Expected::Layout)) {
         KicadFile::Layout(mo) => Ok(mo),
         x => Err(format!("unexpected in {}: {}", name, x)),
     }
 }
 
 pub fn read_symbol_lib(name: &str) -> ERes<symbol_lib::SymbolLib> {
-    match try!(read_kicad_file(name)) {
+    match try!(read_kicad_file(name, Expected::SymbolLib)) {
         KicadFile::SymbolLib(mo) => Ok(mo),
         x => Err(format!("unexpected in {}: {}", name, x)),
     }
 }
 
 pub fn read_project(name: &str) -> ERes<project::Project> {
-    match try!(read_kicad_file(name)) {
+    match try!(read_kicad_file(name, Expected::Project)) {
         KicadFile::Project(mo) => Ok(mo),
         x => Err(format!("unexpected in {}: {}", name, x)),
     }
