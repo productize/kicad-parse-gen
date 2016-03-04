@@ -244,11 +244,6 @@ fn parse_version(e:&Sexp) -> ERes<i64> {
     l[0].i()
 }
 
-fn parse_other(e:&Sexp) -> Element {
-    let e2 = e.clone();
-    Element::Other(e2)
-}
-
 impl FromSexp for ERes<Net> {
     fn from_sexp(s:&Sexp) -> ERes<Net> {
         let l = try!(s.slice_atom_num("net", 2));
@@ -327,6 +322,13 @@ impl FromSexp for ERes<Setup> {
     }
 }
 
+// for some reason this needs to be in a subfunction or it doesn't work
+fn parse_other(e:&Sexp) -> Element {
+    let e2 = e.clone();
+    Element::Other(e2)
+}
+
+
 impl FromSexp for ERes<Layout> {
     fn from_sexp(s:&Sexp) -> ERes<Layout> {
         let l1 = try!(s.slice_atom("kicad_pcb"));
@@ -349,7 +351,7 @@ impl FromSexp for ERes<Layout> {
                     layout.elements.push(nc)
                 },
                 "setup" => {
-                    layout.setup = try!(ERes::from_sexp(&e));
+                    layout.setup = try!(ERes::from_sexp(&e))
                 },
                 _ => {
                     layout.elements.push(parse_other(e))
