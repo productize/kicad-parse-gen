@@ -683,7 +683,7 @@ impl FromSexp for ERes<At> {
     }
 }
 
-fn wrap<X,Y,F,G>(s:&Sexp, make:F, wrapper:G) -> ERes<Y>
+pub fn wrap<X,Y,F,G>(s:&Sexp, make:F, wrapper:G) -> ERes<Y>
     where F:Fn(&Sexp) -> ERes<X>, G:Fn(X) -> Y
 {
     Ok(wrapper(try!(make(s))))

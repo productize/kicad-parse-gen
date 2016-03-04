@@ -171,7 +171,7 @@ pub fn read_kicad_file(name: &str, expected:Expected) -> ERes<KicadFile> {
         Ok(sch) => return Ok(KicadFile::Schematic(sch)),
         Err(x) => { if expected == Expected::Schematic { msg = x } },
     }
-    match layout::parse_str(&data) {
+    match layout::parse(&data) {
         Ok(layout) => return Ok(KicadFile::Layout(layout)),
         Err(x) => { if expected == Expected::Layout { msg = x } },
     }

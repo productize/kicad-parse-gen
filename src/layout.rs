@@ -1,14 +1,13 @@
 // (c) 2016 Productize SPRL <joost@productize.be>
 
 use std::fmt;
-use std::path::PathBuf;
 
 // from parent
 use ERes;
 use err;
-use read_file;
 use footprint;
 use footprint::FromSexp;
+use footprint::wrap;
 
 extern crate rustysexp;
 use self::rustysexp::Sexp;
@@ -250,113 +249,121 @@ fn parse_other(e:&Sexp) -> Element {
     Element::Other(e2)
 }
 
-fn parse_module(e:&Sexp) -> ERes<Element> {
-    let m = try!(ERes::from_sexp(e));
-    Ok(Element::Module(m))
-}
-
-fn parse_net(e:&Sexp) -> ERes<Element> {
-    let l = try!(e.slice_atom("net"));
-    let num = try!(l[0].i());
-    let name = try!(l[1].string()).clone();
-    Ok(Element::Net(Net { name:name, num:num }))
-}
-
-fn parse_net_class(e:&Sexp) -> ERes<Element> {
-    fn parse(e:&Sexp, name:&str) -> ERes<f64> {
-        let l = try!(e.slice_atom(name));
-        l[0].f()
+impl FromSexp for ERes<Net> {
+    fn from_sexp(s:&Sexp) -> ERes<Net> {
+        let l = try!(s.slice_atom_num("net", 2));
+        let num = try!(l[0].i());
+        let name = try!(l[1].string()).clone();
+        Ok(Net { name:name, num:num })
     }
-    let l = try!(e.slice_atom("net_class"));
-    let name = try!(l[0].string()).clone();
-    let desc = try!(l[1].string()).clone();
-    let mut clearance = 0.1524;
-    let mut trace_width = 0.2032;
-    let mut via_dia = 0.675;
-    let mut via_drill = 0.25;
-    let mut uvia_dia = 0.508;
-    let mut uvia_drill = 0.127;
-    let mut nets = vec![];
-    for x in &l[2..] {
-        let list_name = try!(x.list_name());
-        let xn = &list_name[..];
-        match xn {
-            "add_net" => {
-                let l1 = try!(x.slice_atom("add_net"));
-                nets.push(try!(l1[0].string()).clone())
-            },
-            "clearance" => clearance = try!(parse(x, xn)),
-            "trace_width" => trace_width = try!(parse(x, xn)),
-            "via_dia" => via_dia = try!(parse(x, xn)),
-            "via_drill" => via_drill = try!(parse(x, xn)),
-            "uvia_dia" => uvia_dia = try!(parse(x, xn)),
-            "uvia_drill" => uvia_drill = try!(parse(x, xn)),
-            _ => return Err(format!("unknown net_class field {}", list_name))
+}
+
+impl FromSexp for ERes<NetClass> {
+    fn from_sexp(s:&Sexp) -> ERes<NetClass> {
+        fn parse(e:&Sexp, name:&str) -> ERes<f64> {
+            let l = try!(e.slice_atom(name));
+            l[0].f()
         }
-    }
-    let net_class = NetClass {
-        name:name, desc:desc, clearance:clearance, via_dia:via_dia,
-        via_drill:via_drill, uvia_dia:uvia_dia, uvia_drill:uvia_drill,
-        nets:nets, trace_width:trace_width,
-    };
-    Ok(Element::NetClass(net_class))
-}
-
-fn parse_setup(e:&Sexp) -> ERes<Setup> {
-    let mut h = vec![];
-    let mut pcbplotparams = None;
-    for v in try!(e.slice_atom("setup")) {
-        let n = v.list_name().unwrap().clone();
-        match &n[..] {
-            "pcbplotparams" => { pcbplotparams = Some(v.clone()); },
-            x => {
-                // TODO: this is a kludge, implement proper data type for Setup
-                let v2 = v.slice_atom(x).unwrap();
-                let mut s = String::new();
-                let mut first = true;
-                for z in v2 {
-                    if !first { s.push_str(" ") };
-                    first = false;
-                    s.push_str(z.string().unwrap());
-                }
-                h.push((n.clone(), s));
-            },
+        let l = try!(s.slice_atom("net_class"));
+        let name = try!(l[0].string()).clone();
+        let desc = try!(l[1].string()).clone();
+        let mut clearance = 0.1524;
+        let mut trace_width = 0.2032;
+        let mut via_dia = 0.675;
+        let mut via_drill = 0.25;
+        let mut uvia_dia = 0.508;
+        let mut uvia_drill = 0.127;
+        let mut nets = vec![];
+        for x in &l[2..] {
+            let list_name = try!(x.list_name());
+            let xn = &list_name[..];
+            match xn {
+                "add_net" => {
+                    let l1 = try!(x.slice_atom("add_net"));
+                    nets.push(try!(l1[0].string()).clone())
+                },
+                "clearance" => clearance = try!(parse(x, xn)),
+                "trace_width" => trace_width = try!(parse(x, xn)),
+                "via_dia" => via_dia = try!(parse(x, xn)),
+                "via_drill" => via_drill = try!(parse(x, xn)),
+                "uvia_dia" => uvia_dia = try!(parse(x, xn)),
+                "uvia_drill" => uvia_drill = try!(parse(x, xn)),
+                _ => return Err(format!("unknown net_class field {}", list_name))
+            }
         }
+        let net_class = NetClass {
+            name:name, desc:desc, clearance:clearance, via_dia:via_dia,
+            via_drill:via_drill, uvia_dia:uvia_dia, uvia_drill:uvia_drill,
+            nets:nets, trace_width:trace_width,
+        };
+        Ok(net_class)
     }
-    let s = Setup { elements:h , pcbplotparams:pcbplotparams };
-    Ok(s)
 }
 
-fn parse(s: &str) -> ERes<Layout> {
-    let exp = match rustysexp::parse_str(s) {
-        Ok(s) => s,
+impl FromSexp for ERes<Setup> {
+    fn from_sexp(s:&Sexp) -> ERes<Setup> {
+        let mut h = vec![];
+        let mut pcbplotparams = None;
+        for v in try!(s.slice_atom("setup")) {
+            let n = v.list_name().unwrap().clone();
+            match &n[..] {
+                "pcbplotparams" => { pcbplotparams = Some(v.clone()); },
+                x => {
+                    // TODO: this is a kludge, implement proper data type for Setup
+                    let v2 = v.slice_atom(x).unwrap();
+                    let mut s = String::new();
+                    let mut first = true;
+                    for z in v2 {
+                        if !first { s.push_str(" ") };
+                        first = false;
+                        s.push_str(z.string().unwrap());
+                    }
+                    h.push((n.clone(), s));
+                },
+            }
+        }
+        let s = Setup { elements:h , pcbplotparams:pcbplotparams };
+        Ok(s)
+    }
+}
+
+impl FromSexp for ERes<Layout> {
+    fn from_sexp(s:&Sexp) -> ERes<Layout> {
+        let l1 = try!(s.slice_atom("kicad_pcb"));
+        let mut layout = Layout::new();
+        for ref e in l1 {
+            match &try!(e.list_name())[..] {
+                "version" => {
+                    layout.version = try!(parse_version(e))
+                },
+                "module" => {
+                    let module = try!(wrap(e, ERes::from_sexp, Element::Module));
+                    layout.elements.push(module)
+                },
+                "net" => {
+                    let net = try!(wrap(e, ERes::from_sexp, Element::Net));
+                    layout.elements.push(net)
+                },
+                "net_class" => {
+                    let nc = try!(wrap(e, ERes::from_sexp, Element::NetClass));
+                    layout.elements.push(nc)
+                },
+                "setup" => {
+                    layout.setup = try!(ERes::from_sexp(&e));
+                },
+                _ => {
+                    layout.elements.push(parse_other(e))
+                },
+            }
+        }
+        Ok(layout)
+    }
+}
+
+
+pub fn parse(s: &str) -> ERes<Layout> {
+    match rustysexp::parse_str(s) {
+        Ok(s) => ERes::from_sexp(&s),
         Err(x) => return Err(format!("ParseError: {}", x)),
-    };
-    let l1 = try!(exp.slice_atom("kicad_pcb"));
-    let mut layout = Layout::new();
-    
-    for ref e in l1 {
-        match &try!(e.list_name())[..] {
-            "version" => layout.version = try!(parse_version(e)),
-            "module" => layout.elements.push(try!(parse_module(e))),
-            "net" => layout.elements.push(try!(parse_net(e))),
-            "net_class" => layout.elements.push(try!(parse_net_class(e))),
-            "setup" => layout.setup = try!(parse_setup(e)),
-            _ => layout.elements.push(parse_other(e)),
-        }
     }
-    Ok(layout)
-}
-
-pub fn parse_str(s: &str) -> ERes<Layout> {
-    parse(s)
-}
-
-pub fn parse_file(filename: &PathBuf) -> ERes<Layout> {
-    let name = filename.to_str().unwrap();
-    let s = try!(match read_file(name) {
-        Ok(s) => Ok(s),
-        Err(x) => Err(format!("io error: {}", x))
-    });
-    parse(&s[..])
 }
