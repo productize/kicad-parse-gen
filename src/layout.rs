@@ -383,6 +383,42 @@ impl FromSexp for ERes<Area> {
     }
 }
 
+impl FromSexp for ERes<Vec<Layer> > {
+    fn from_sexp(s:&Sexp) -> ERes<Vec<Layer> > {
+        let mut v = vec![];
+        let l = try!(s.slice_atom("layers"));
+        for x in l {
+            let layer = try!(ERes::from_sexp(&x));
+            v.push(layer)
+        }
+        Ok(v)
+    }
+}
+
+impl FromSexp for ERes<Layer> {
+    fn from_sexp(s:&Sexp) -> ERes<Layer> {
+        let l = try!(s.list());
+        if l.len() != 3 {
+            return Err(format!("expecting 3 elements in layer: {}", s))
+        }
+        let num = try!(l[0].i());
+        let layer = try!(ERes::from_sexp(&l[1]));
+        let layer_type = try!(ERes::from_sexp(&l[2]));
+        Ok(Layer { num:num, layer:layer, layer_type:layer_type, })
+    }
+}
+
+impl FromSexp for ERes<LayerType> {
+    fn from_sexp(s:&Sexp) -> ERes<LayerType> {
+        let x = try!(s.string());
+        match &x[..] {
+            "signal" => Ok(LayerType::Signal),
+            "user" => Ok(LayerType::User),
+            _ => Err(format!("unknown layertype {} in {}", x, s)),
+        }
+    }
+}
+
 impl FromSexp for ERes<NetClass> {
     fn from_sexp(s:&Sexp) -> ERes<NetClass> {
         fn parse(e:&Sexp, name:&str) -> ERes<f64> {
@@ -476,6 +512,9 @@ impl FromSexp for ERes<Layout> {
                 },
                 "page" => {
                     layout.page = try!(parse_page(&e))
+                },
+                "layers" => {
+                    layout.layers = try!(ERes::from_sexp(&e))
                 },
                 "module" => {
                     let module = try!(wrap(e, ERes::from_sexp, Element::Module));
