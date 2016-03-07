@@ -16,6 +16,7 @@ pub struct Layout {
     pub version:i64,
     pub host:Host,
     pub general:General,
+    pub page:String,
     pub setup:Setup,
     pub elements:Vec<Element>,
 }
@@ -46,6 +47,7 @@ pub struct General {
     pub modules:i64,
     pub nets:i64,
 }
+
 #[derive(Clone)]
 pub struct Area {
     x1:f64, y1:f64,
@@ -86,6 +88,7 @@ impl Layout {
             elements:vec![],
             setup:Setup::new(),
             general:General::new(),
+            page:String::from("A4"),
         }
     }
 
@@ -305,6 +308,11 @@ fn parse_version(e:&Sexp) -> ERes<i64> {
     l[0].i()
 }
 
+fn parse_page(e:&Sexp) -> ERes<String> {
+    let l = try!(e.slice_atom("page"));
+    Ok(try!(l[0].string()).clone())
+}
+
 impl FromSexp for ERes<Net> {
     fn from_sexp(s:&Sexp) -> ERes<Net> {
         let l = try!(s.slice_atom_num("net", 2));
@@ -450,6 +458,9 @@ impl FromSexp for ERes<Layout> {
                 },
                 "general" => {
                     layout.general = try!(ERes::from_sexp(&e))
+                },
+                "page" => {
+                    layout.page = try!(parse_page(&e))
                 },
                 "module" => {
                     let module = try!(wrap(e, ERes::from_sexp, Element::Module));
