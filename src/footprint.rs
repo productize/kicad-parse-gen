@@ -391,6 +391,7 @@ pub enum LayerType {
     Cuts,
     CrtYd,
     Fab,
+    Margin,
 }
 
 #[derive(Debug,Clone)]
@@ -400,7 +401,7 @@ pub struct Layer {
 }
 
 impl Layer {
-    fn from_string(s: String) -> ERes<Layer> {
+    pub fn from_string(s: String) -> ERes<Layer> {
         let sp:Vec<&str> = s.split('.').collect();
         let mut side = LayerSide::None;
         let mut s_t = sp[0];
@@ -428,6 +429,7 @@ impl Layer {
             "Cuts" => LayerType::Cuts,
             "CrtYd" => LayerType::CrtYd,
             "Fab" => LayerType::Fab,
+            "Margin" => LayerType::Margin,
             x => return Err(format!("unknown layer type {}", x)),
         };
         Ok(Layer { side:side, t:t, })
@@ -460,6 +462,7 @@ impl fmt::Display for Layer {
             LayerType::Cuts  => write!(f,"Cuts"),
             LayerType::CrtYd => write!(f,"CrtYd"),
             LayerType::Fab   => write!(f,"Fab"),
+            LayerType::Margin => write!(f,"Margin"),
         }
     }
 }
