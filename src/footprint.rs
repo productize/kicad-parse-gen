@@ -368,7 +368,7 @@ impl fmt::Display for PadShape {
 }
 
 #[derive(Debug,Clone)]
-enum LayerSide {
+pub enum LayerSide {
     Front,
     Back,
     Dwgs,
@@ -381,7 +381,7 @@ enum LayerSide {
 }
 
 #[derive(Debug,Clone)]
-enum LayerType {
+pub enum LayerType {
     Cu,
     Paste,
     Mask,
@@ -394,7 +394,7 @@ enum LayerType {
 }
 
 #[derive(Debug,Clone)]
-struct Layer {
+pub struct Layer {
     side: LayerSide,
     t: LayerType,
 }

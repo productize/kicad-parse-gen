@@ -58,7 +58,7 @@ pub struct Area {
 #[derive(Clone)]
 pub struct Layer {
     pub num:i64,
-    pub name:String, // TODO
+    pub layer:footprint::Layer,
     pub layer_type:LayerType,
 }
 
