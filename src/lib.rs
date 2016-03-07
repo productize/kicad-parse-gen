@@ -1,4 +1,4 @@
-// (c) 2016 Joost Yervante Damad <joost@productize.be>
+// (c) 2016 Productize SPRL <joost@productize.be>
 
 use std::fmt;
 use std::fs::File;

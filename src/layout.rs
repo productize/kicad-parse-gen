@@ -14,6 +14,8 @@ use self::rustysexp::Sexp;
 
 pub struct Layout {
     pub version:i64,
+    pub host:Host,
+    pub general:General,
     pub setup:Setup,
     pub elements:Vec<Element>,
 }
@@ -24,6 +26,30 @@ pub enum Element {
     Net(Net),
     NetClass(NetClass),
     Other(Sexp),
+}
+
+#[derive(Clone)]
+pub struct Host {
+    pub tool:String,
+    pub build:String,
+}
+
+#[derive(Clone)]
+pub struct General {
+    pub links:i64,
+    pub no_connects:i64,
+    pub area:Area,
+    pub thickness:f64,
+    pub drawings:i64,
+    pub tracks:i64,
+    pub zones:i64,
+    pub modules:i64,
+    pub nets:i64,
+}
+#[derive(Clone)]
+pub struct Area {
+    x1:f64, y1:f64,
+    x2:f64, y2:f64,
 }
 
 #[derive(Clone)]
@@ -55,9 +81,11 @@ pub struct NetClass {
 impl Layout {
     pub fn new() -> Layout {
         Layout {
-            version:0,
+            version:4,
+            host:Host::new(),
             elements:vec![],
             setup:Setup::new(),
+            general:General::new(),
         }
     }
 
@@ -119,6 +147,39 @@ impl Layout {
     }
 }
 
+impl Host {
+    pub fn new() -> Host {
+        Host { tool:String::from("pcbnew"), build:String::from("custom") }
+    }
+}
+
+impl General {
+    fn new() -> General {
+        General {
+            links:0,
+            no_connects:0,
+            area:Area::new(),
+            thickness:1.6,
+            drawings:0,
+            tracks:0,
+            zones:0,
+            modules:0,
+            nets:0,
+        }
+    }
+}
+
+impl Area {
+    fn new() -> Area {
+        Area {
+            x1:0.0, y1:0.0,
+            x2:0.0, y2:0.0,
+        }
+    }
+}
+    
+    
+
 impl NetClass {
     pub fn equal_no_net(&self, other:&NetClass) -> bool {
         let mut s1 = self.clone();
@@ -170,7 +231,7 @@ impl Setup {
 
 impl fmt::Display for Layout {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        try!(writeln!(f, "(kicad_pcb (version {})", self.version));
+        try!(writeln!(f, "(kicad_pcb (version {}) (host {} \"{}\")", self.version, self.host.tool, self.host.build));
         let mut i = 0;
         for element in &self.elements[..] {
             try!(writeln!(f, "  {}", element));
@@ -250,6 +311,52 @@ impl FromSexp for ERes<Net> {
         let num = try!(l[0].i());
         let name = try!(l[1].string()).clone();
         Ok(Net { name:name, num:num })
+    }
+}
+
+impl FromSexp for ERes<Host> {
+    fn from_sexp(s:&Sexp) -> ERes<Host> {
+        let l = try!(s.slice_atom_num("host", 2));
+        let tool = try!(l[0].string()).clone();
+        let build = try!(l[1].string()).clone();
+        Ok(Host { tool:tool, build:build })
+    }
+}
+
+impl FromSexp for ERes<General> {
+    fn from_sexp(s:&Sexp) -> ERes<General> {
+        let l = try!(s.slice_atom_num("general", 9));
+        let links = try!(l[0].i());
+        let no_connects = try!(l[1].i());
+        let area = try!(ERes::from_sexp(&l[2]));
+        let thickness = try!(l[3].f());
+        let drawings = try!(l[4].i());
+        let tracks = try!(l[5].i());
+        let zones = try!(l[6].i());
+        let modules = try!(l[7].i());
+        let nets = try!(l[8].i());
+        Ok(General {
+            links:links,
+            no_connects:no_connects,
+            area:area,
+            thickness:thickness,
+            drawings:drawings,
+            tracks:tracks,
+            zones:zones,
+            modules:modules,
+            nets:nets,
+        })
+    }
+}
+
+impl FromSexp for ERes<Area> {
+    fn from_sexp(s:&Sexp) -> ERes<Area> {
+        let l = try!(s.slice_atom_num("area", 4));
+        let x1 = try!(l[0].f());
+        let y1 = try!(l[1].f());
+        let x2 = try!(l[2].f());
+        let y2 = try!(l[3].f());
+        Ok(Area { x1:x1, y1:y1, x2:x2, y2:y2 })
     }
 }
 
@@ -338,6 +445,12 @@ impl FromSexp for ERes<Layout> {
                 "version" => {
                     layout.version = try!(parse_version(e))
                 },
+                "host" => {
+                    layout.host = try!(ERes::from_sexp(&e))
+                },
+                "general" => {
+                    layout.general = try!(ERes::from_sexp(&e))
+                },
                 "module" => {
                     let module = try!(wrap(e, ERes::from_sexp, Element::Module));
                     layout.elements.push(module)
@@ -354,6 +467,7 @@ impl FromSexp for ERes<Layout> {
                     layout.setup = try!(ERes::from_sexp(&e))
                 },
                 _ => {
+                    println!("unimplemented: {}", e);
                     layout.elements.push(parse_other(e))
                 },
             }
