@@ -18,6 +18,7 @@ pub struct Layout {
     pub general:General,
     pub page:String,
     pub setup:Setup,
+    pub layers:Vec<Layer>,
     pub elements:Vec<Element>,
 }
 
@@ -55,6 +56,19 @@ pub struct Area {
 }
 
 #[derive(Clone)]
+pub struct Layer {
+    pub num:i64,
+    pub name:String, // TODO
+    pub layer_type:LayerType,
+}
+
+#[derive(Clone)]
+pub enum LayerType {
+    Signal,
+    User,
+}
+
+#[derive(Clone)]
 pub struct Setup {
     pub elements:Vec<(String, String)>,
     pub pcbplotparams:Option<Sexp>,
@@ -89,6 +103,7 @@ impl Layout {
             setup:Setup::new(),
             general:General::new(),
             page:String::from("A4"),
+            layers:vec![],
         }
     }
 
