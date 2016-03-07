@@ -70,8 +70,14 @@ pub enum LayerType {
 
 #[derive(Clone)]
 pub struct Setup {
-    pub elements:Vec<(String, String)>,
-    pub pcbplotparams:Option<Sexp>,
+    pub elements:Vec<SetupElement>,
+    pub pcbplotparams:Vec<SetupElement>,
+}
+
+#[derive(Clone)]
+pub struct SetupElement {
+    pub name:String,
+    pub value:String,
 }
 
 
@@ -224,12 +230,12 @@ impl Setup {
         let v = vec![s2];
         let mut s1 = rustysexp::Sexp::new_empty();
         s1.element = rustysexp::Element::List(v);
-        Setup { elements:vec![], pcbplotparams:Some(s1) }
+        Setup { elements:vec![], pcbplotparams:vec![] }
     }
     pub fn get(&self, s:&String) -> Option<&String> {
         for element in &self.elements {
-            if &element.0[..] == &s[..] {
-                return Some(&element.1)
+            if &element.name[..] == &s[..] {
+                return Some(&element.value)
             }
         }
         return None
@@ -237,13 +243,13 @@ impl Setup {
 
     pub fn update_element(&mut self, name:&'static str, value:String) {
         for element in &mut self.elements {
-            if &element.0[..] == name {
-                element.1 = value;
+            if &element.name[..] == name {
+                element.value = value;
                 return;
                     
             }
         }
-        self.elements.push((String::from(name), value));
+        self.elements.push(SetupElement { name:String::from(name), value:value })
     }
 }
 
@@ -309,12 +315,13 @@ impl fmt::Display for Setup {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(writeln!(f, "(setup"));
         for ref k in &self.elements {
-            try!(writeln!(f, "   ({} {})", k.0, k.1));
+            try!(writeln!(f, "   ({} {})", k.name, k.value));
         }
-        match self.pcbplotparams {
-            None => writeln!(f, ")"),
-            Some(ref s) => writeln!(f, " {})", s),
+        try!(writeln!(f, " pcbplotparams"));
+        for ref k in &self.pcbplotparams {
+            try!(writeln!(f, "     ({} {})", k.name, k.value));
         }
+        writeln!(f, "))")
     }
 }
 
@@ -349,15 +356,15 @@ impl FromSexp for ERes<Host> {
 impl FromSexp for ERes<General> {
     fn from_sexp(s:&Sexp) -> ERes<General> {
         let l = try!(s.slice_atom_num("general", 9));
-        let links = try!(l[0].i());
-        let no_connects = try!(l[1].i());
+        let links = try!(l[0].named_value_i("links"));
+        let no_connects = try!(l[1].named_value_i("no_connects"));
         let area = try!(ERes::from_sexp(&l[2]));
-        let thickness = try!(l[3].f());
-        let drawings = try!(l[4].i());
-        let tracks = try!(l[5].i());
-        let zones = try!(l[6].i());
-        let modules = try!(l[7].i());
-        let nets = try!(l[8].i());
+        let thickness = try!(l[3].named_value_f("thickness"));
+        let drawings = try!(l[4].named_value_i("drawings"));
+        let tracks = try!(l[5].named_value_i("tracks"));
+        let zones = try!(l[6].named_value_i("zones"));
+        let modules = try!(l[7].named_value_i("modules"));
+        let nets = try!(l[8].named_value_i("nets"));
         Ok(General {
             links:links,
             no_connects:no_connects,
@@ -398,11 +405,12 @@ impl FromSexp for ERes<Vec<Layer> > {
 impl FromSexp for ERes<Layer> {
     fn from_sexp(s:&Sexp) -> ERes<Layer> {
         let l = try!(s.list());
+        println!("making layer from {}", s);
         if l.len() != 3 {
             return Err(format!("expecting 3 elements in layer: {}", s))
         }
         let num = try!(l[0].i());
-        let layer = try!(ERes::from_sexp(&l[1]));
+        let layer = try!(footprint::Layer::from_string(try!(l[1].string()).clone()));
         let layer_type = try!(ERes::from_sexp(&l[2]));
         Ok(Layer { num:num, layer:layer, layer_type:layer_type, })
     }
@@ -416,6 +424,18 @@ impl FromSexp for ERes<LayerType> {
             "user" => Ok(LayerType::User),
             _ => Err(format!("unknown layertype {} in {}", x, s)),
         }
+    }
+}
+
+impl FromSexp for ERes<SetupElement> {
+    fn from_sexp(s:&Sexp) -> ERes<SetupElement> {
+        let l = try!(s.list());
+        if l.len() != 2 {
+            return Err(format!("expecting 2 elements in setup element: {}", s))
+        }
+        let name = try!(l[0].string()).clone();
+        let value = try!(l[1].string()).clone();
+        Ok(SetupElement { name:name, value:value, })
     }
 }
 
@@ -463,27 +483,24 @@ impl FromSexp for ERes<NetClass> {
 
 impl FromSexp for ERes<Setup> {
     fn from_sexp(s:&Sexp) -> ERes<Setup> {
-        let mut h = vec![];
-        let mut pcbplotparams = None;
+        let mut elements = vec![];
+        let mut pcbplotparams = vec![];
         for v in try!(s.slice_atom("setup")) {
             let n = v.list_name().unwrap().clone();
             match &n[..] {
-                "pcbplotparams" => { pcbplotparams = Some(v.clone()); },
-                x => {
-                    // TODO: this is a kludge, implement proper data type for Setup
-                    let v2 = v.slice_atom(x).unwrap();
-                    let mut s = String::new();
-                    let mut first = true;
-                    for z in v2 {
-                        if !first { s.push_str(" ") };
-                        first = false;
-                        s.push_str(z.string().unwrap());
+                "pcbplotparams" => {
+                    for y in try!(v.slice_atom("pcbplotparams")) {
+                        let p_e = try!(ERes::from_sexp(&y));
+                        pcbplotparams.push(p_e)
                     }
-                    h.push((n.clone(), s));
                 },
+                _ => {
+                    let setup_element = try!(ERes::from_sexp(&s));
+                    elements.push(setup_element)
+                }
             }
         }
-        let s = Setup { elements:h , pcbplotparams:pcbplotparams };
+        let s = Setup { elements:elements , pcbplotparams:pcbplotparams };
         Ok(s)
     }
 }
