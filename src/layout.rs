@@ -105,7 +105,7 @@ pub struct NetClass {
 #[derive(Clone)]
 pub enum Graphics {
     GrText(GrText),
-    GrLine,
+    GrLine(GrLine),
     GrArc,
     Dimension,
     Segment,
@@ -121,6 +121,14 @@ pub struct GrText {
     pub effects:footprint::Effects,
 }
 
+#[derive(Clone)]
+pub struct GrLine {
+    pub start:footprint::Xy,
+    pub end:footprint::Xy,
+    pub angle:i64,
+    pub layer:footprint::Layer,
+    pub width:f64,
+}
 
 impl Layout {
     pub fn new() -> Layout {
@@ -355,6 +363,7 @@ impl fmt::Display for Graphics {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
             Graphics::GrText(ref x) => write!(f, "{}", x),
+            Graphics::GrLine(ref x) => write!(f, "{}", x),
             _ => write!(f, "(TODO)"),
         }
     }
@@ -365,7 +374,13 @@ impl fmt::Display for GrText {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(writeln!(f,"(gr_text {} {} {}", self.value, self.at, self.layer));
         try!(writeln!(f,"    {}", self.effects));
-        writeln!(f,")")
+        write!(f,")")
+    }
+}
+
+impl fmt::Display for GrLine {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(gr_line {} {} (angle {}) {} (width {}))", self.start, self.end, self.angle, self.layer, self.width)
     }
 }
 
@@ -571,7 +586,23 @@ impl FromSexp for ERes<GrText> {
     }
 }
 
-
+impl FromSexp for ERes<GrLine> {
+    fn from_sexp(s:&Sexp) -> ERes<GrLine> {
+        let l = try!(s.slice_atom_num("gr_line", 5));
+        let start = try!(ERes::from_sexp(&l[0]));
+        let end = try!(ERes::from_sexp(&l[1]));
+        let angle = {
+            let l2 = try!(l[2].slice_atom("angle"));
+            try!(l2[0].i())
+        };
+        let layer = try!(ERes::from_sexp(&l[3]));
+        let width = {
+            let l2 = try!(l[4].slice_atom("width"));
+            try!(l2[0].f())
+        };
+        Ok(GrLine { start:start, end:end, angle:angle, layer:layer, width:width })
+    }
+}
 
 impl FromSexp for ERes<Layout> {
     fn from_sexp(s:&Sexp) -> ERes<Layout> {
@@ -608,6 +639,10 @@ impl FromSexp for ERes<Layout> {
                 },
                 "gr_text" => {
                     let g = try!(wrap(e, ERes::from_sexp, Graphics::GrText));
+                    layout.elements.push(Element::Graphics(g))
+                },
+                "gr_line" => {
+                    let g = try!(wrap(e, ERes::from_sexp, Graphics::GrLine));
                     layout.elements.push(Element::Graphics(g))
                 },
                 "setup" => {
