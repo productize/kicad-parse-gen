@@ -106,8 +106,8 @@ pub struct NetClass {
 pub enum Graphics {
     GrText(GrText),
     GrLine(GrLine),
-    GrArc,
-    Dimension,
+    GrArc(GrArc),
+    Dimension(Dimension),
     Segment,
     Via,
     FilledPolygon,
@@ -128,6 +128,30 @@ pub struct GrLine {
     pub angle:i64,
     pub layer:footprint::Layer,
     pub width:f64,
+}
+
+#[derive(Clone)]
+pub struct GrArc {
+    pub start:footprint::Xy,
+    pub end:footprint::Xy,
+    pub angle:i64,
+    pub layer:footprint::Layer,
+    pub width:f64,
+}
+
+#[derive(Clone)]
+pub struct Dimension {
+    pub name:String,
+    pub width:f64,
+    pub layer:footprint::Layer,
+    pub text:GrText,
+    pub feature1:footprint::Pts,
+    pub feature2:footprint::Pts,
+    pub crossbar:footprint::Pts,
+    pub arrow1a:footprint::Pts,
+    pub arrow1b:footprint::Pts,
+    pub arrow2a:footprint::Pts,
+    pub arrow2b:footprint::Pts,
 }
 
 impl Layout {
@@ -364,6 +388,8 @@ impl fmt::Display for Graphics {
         match *self {
             Graphics::GrText(ref x) => write!(f, "{}", x),
             Graphics::GrLine(ref x) => write!(f, "{}", x),
+            Graphics::GrArc(ref x) => write!(f, "{}", x),
+            Graphics::Dimension(ref x) => write!(f, "{}", x),
             _ => write!(f, "(TODO)"),
         }
     }
@@ -372,7 +398,7 @@ impl fmt::Display for Graphics {
 
 impl fmt::Display for GrText {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        try!(writeln!(f,"(gr_text {} {} {}", self.value, self.at, self.layer));
+        try!(writeln!(f,"(gr_text {} {} (layer {})", rustysexp::display_string(&self.value), self.at, self.layer));
         try!(writeln!(f,"    {}", self.effects));
         write!(f,")")
     }
@@ -380,10 +406,30 @@ impl fmt::Display for GrText {
 
 impl fmt::Display for GrLine {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(gr_line {} {} (angle {}) {} (width {}))", self.start, self.end, self.angle, self.layer, self.width)
+        write!(f, "(gr_line {} {} (angle {}) (layer {}) (width {}))", self.start, self.end, self.angle, self.layer, self.width)
     }
 }
 
+impl fmt::Display for GrArc {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(gr_arc {} {} (angle {}) (layer {}) (width {}))", self.start, self.end, self.angle, self.layer, self.width)
+    }
+}
+
+impl fmt::Display for Dimension {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(writeln!(f, "(dimension {} (width {}) (layer {})", rustysexp::display_string(&self.name), self.width, self.layer));
+        try!(writeln!(f, "{}", self.text));
+        try!(writeln!(f, "(feature1 {})", self.feature1));
+        try!(writeln!(f, "(feature2 {})", self.feature2));
+        try!(writeln!(f, "(crossbar {})", self.crossbar));
+        try!(writeln!(f, "(arrow1a {})", self.arrow1a));
+        try!(writeln!(f, "(arrow1b {})", self.arrow1b));
+        try!(writeln!(f, "(arrow2a {})", self.arrow2a));
+        try!(writeln!(f, "(arrow2b {})", self.arrow2b));
+        writeln!(f, ")")
+    }
+}
 
 fn parse_version(e:&Sexp) -> ERes<i64> {
     let l = try!(e.slice_atom("version"));
@@ -604,6 +650,45 @@ impl FromSexp for ERes<GrLine> {
     }
 }
 
+impl FromSexp for ERes<GrArc> {
+    fn from_sexp(s:&Sexp) -> ERes<GrArc> {
+        let l = try!(s.slice_atom_num("gr_arc", 5));
+        let start = try!(ERes::from_sexp(&l[0]));
+        let end = try!(ERes::from_sexp(&l[1]));
+        let angle = {
+            let l2 = try!(l[2].slice_atom("angle"));
+            try!(l2[0].i())
+        };
+        let layer = try!(ERes::from_sexp(&l[3]));
+        let width = {
+            let l2 = try!(l[4].slice_atom("width"));
+            try!(l2[0].f())
+        };
+        Ok(GrArc { start:start, end:end, angle:angle, layer:layer, width:width })
+    }
+}
+
+impl FromSexp for ERes<Dimension> {
+    fn from_sexp(s:&Sexp) -> ERes<Dimension> {
+        let l = try!(s.slice_atom_num("dimension", 11));
+        let name = try!(l[0].string()).clone();
+        let width = {
+            let l2 = try!(l[1].slice_atom("width"));
+            try!(l2[0].f())
+        };
+        let layer    = try!(ERes::from_sexp(&l[2]));
+        let text     = try!(ERes::from_sexp(&l[3]));
+        let feature1 = try!(ERes::from_sexp(try!(l[4].named_value("feature1"))));
+        let feature2 = try!(ERes::from_sexp(try!(l[5].named_value("feature2"))));
+        let crossbar = try!(ERes::from_sexp(try!(l[6].named_value("crossbar"))));
+        let arrow1a = try!(ERes::from_sexp(try!(l[7].named_value("arrow1a"))));
+        let arrow1b = try!(ERes::from_sexp(try!(l[8].named_value("arrow1b"))));
+        let arrow2a = try!(ERes::from_sexp(try!(l[9].named_value("arrow2a"))));
+        let arrow2b = try!(ERes::from_sexp(try!(l[10].named_value("arrow2b"))));
+        Ok(Dimension { name:name, width:width, layer:layer, text:text, feature1:feature1, feature2:feature2, crossbar:crossbar, arrow1a:arrow1a, arrow1b:arrow1b, arrow2a:arrow2a, arrow2b:arrow2b })
+    }
+}
+
 impl FromSexp for ERes<Layout> {
     fn from_sexp(s:&Sexp) -> ERes<Layout> {
         let l1 = try!(s.slice_atom("kicad_pcb"));
@@ -643,6 +728,14 @@ impl FromSexp for ERes<Layout> {
                 },
                 "gr_line" => {
                     let g = try!(wrap(e, ERes::from_sexp, Graphics::GrLine));
+                    layout.elements.push(Element::Graphics(g))
+                },
+                "gr_arc" => {
+                    let g = try!(wrap(e, ERes::from_sexp, Graphics::GrArc));
+                    layout.elements.push(Element::Graphics(g))
+                },
+                "dimension" => {
+                    let g = try!(wrap(e, ERes::from_sexp, Graphics::Dimension));
                     layout.elements.push(Element::Graphics(g))
                 },
                 "setup" => {

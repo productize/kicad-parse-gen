@@ -249,6 +249,11 @@ pub struct Xy {
     t: XyType,
 }
 
+#[derive(Debug,Clone)]
+pub struct Pts {
+    pub elements: Vec<Xy>
+}
+
 impl Xy {
     fn new(x: f64, y: f64, t: XyType) -> Xy {
         Xy { x:x, y:y, t:t }
@@ -257,6 +262,11 @@ impl Xy {
         Xy { x:0.0, y:0.0, t:t }
     }
 }
+
+impl Pts {
+    fn new() -> Pts { Pts { elements:vec![] } }
+}
+
 
 impl fmt::Display for Xy {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
@@ -267,6 +277,15 @@ impl fmt::Display for Xy {
             XyType::Size => write!(f,"(size {} {})", self.x, self.y),
             XyType::Center => write!(f,"(center {} {})", self.x, self.y),
         }
+    }
+}
+impl fmt::Display for Pts {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(write!(f, "(pts"));
+        for x in &self.elements {
+            try!(write!(f, " {}", x));
+        }
+        write!(f,")")
     }
 }
 
@@ -302,7 +321,7 @@ enum Part {
     Layers(Layers),
     Width(f64),
     Xy(Xy),
-    Pts(Vec<Xy>),
+    Pts(Pts),
     Thickness(f64),
     Net(Net),
     Drill(Drill),
@@ -574,28 +593,25 @@ impl fmt::Display for Pad {
 
 #[derive(Debug,Clone)]
 pub struct FpPoly {
-    pts:Vec<Xy>,
+    pts:Pts,
     width:f64,
     layer:Layer,
 }
 
 impl FpPoly {
     fn new() -> FpPoly {
-        FpPoly { pts:vec![], width:0.0, layer:Layer::default() }
+        FpPoly { pts:Pts::new(), width:0.0, layer:Layer::default() }
     }
 }
 
 impl fmt::Display for FpPoly {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        let l = self.pts.len();
+        let l = self.pts.elements.len();
         if l == 0 {
             return Ok(())
         }
-        try!(write!(f, "(fp_poly (pts"));
-        for x in &self.pts[..] {
-            try!(write!(f, " {}", x))
-        }
-        write!(f, ") (layer {}) (width {}))", self.layer, self.width)
+        try!(write!(f, "(fp_poly {}", self.pts));
+        write!(f, " (layer {}) (width {}))", self.layer, self.width)
     }
 }
 
@@ -832,6 +848,19 @@ impl FromSexp for ERes<Xy> {
         Ok(Xy::new(x,y,t))
     }
 }
+
+impl FromSexp for ERes<Pts> {
+    fn from_sexp(s: &Sexp) -> ERes<Pts> {
+        let v = try!(s.slice_atom("pts"));
+        let mut r = vec![];
+        for x in v {
+            let xy = try!(ERes::from_sexp(x));
+            r.push(xy)
+        }
+        Ok(Pts { elements:r })
+    }
+}
+
 
 impl FromSexp for ERes<Xyz> {
     fn from_sexp(s: &Sexp) -> ERes<Xyz> {
