@@ -27,6 +27,7 @@ pub enum Element {
     Module(footprint::Module),
     Net(Net),
     NetClass(NetClass),
+    Graphics(Graphics),
     Other(Sexp),
 }
 
@@ -101,6 +102,26 @@ pub struct NetClass {
     pub nets:Vec<String>,
 }
 
+#[derive(Clone)]
+pub enum Graphics {
+    GrText(GrText),
+    GrLine,
+    GrArc,
+    Dimension,
+    Segment,
+    Via,
+    FilledPolygon,
+}
+
+#[derive(Clone)]
+pub struct GrText {
+    pub value:String,
+    pub at:footprint::At,
+    pub layer:footprint::Layer,
+    pub effects:footprint::Effects,
+}
+
+
 impl Layout {
     pub fn new() -> Layout {
         Layout {
@@ -146,9 +167,10 @@ impl Layout {
                         return Ok(fun(m))
                     }
                 },
-                Element::Net(_) => (),
+                Element::Net(_)      => (),
                 Element::NetClass(_) => (),
-                Element::Other(_) => (),
+                Element::Other(_)    => (),
+                Element::Graphics(_) => (),
             }
         }
         Err(format!("did not find module with reference {}", reference))
@@ -272,6 +294,7 @@ impl fmt::Display for Element {
             Element::Module(ref s) => write!(f, "{}", s),
             Element::Net(ref s) => write!(f, "{}", s),
             Element::NetClass(ref s) => write!(f, "{}", s),
+            Element::Graphics(ref s) => write!(f, "{}", s),
         }
     }
 }
@@ -327,6 +350,25 @@ impl fmt::Display for Setup {
         writeln!(f, "))")
     }
 }
+
+impl fmt::Display for Graphics {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            Graphics::GrText(ref x) => write!(f, "{}", x),
+            _ => write!(f, "(TODO)"),
+        }
+    }
+}
+
+
+impl fmt::Display for GrText {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(writeln!(f,"(gr_text {} {} {}", self.value, self.at, self.layer));
+        try!(writeln!(f,"    {}", self.effects));
+        writeln!(f,")")
+    }
+}
+
 
 fn parse_version(e:&Sexp) -> ERes<i64> {
     let l = try!(e.slice_atom("version"));
@@ -518,6 +560,18 @@ fn parse_other(e:&Sexp) -> Element {
     Element::Other(e2)
 }
 
+impl FromSexp for ERes<GrText> {
+    fn from_sexp(s:&Sexp) -> ERes<GrText> {
+        let l = try!(s.slice_atom_num("gr_text", 4));
+        let value = try!(l[0].string()).clone();
+        let at = try!(ERes::from_sexp(&l[1]));
+        let layer = try!(ERes::from_sexp(&l[2]));
+        let effects = try!(ERes::from_sexp(&l[3]));
+        Ok(GrText { value:value, at:at, layer:layer, effects:effects })
+    }
+}
+
+
 
 impl FromSexp for ERes<Layout> {
     fn from_sexp(s:&Sexp) -> ERes<Layout> {
@@ -551,6 +605,10 @@ impl FromSexp for ERes<Layout> {
                 "net_class" => {
                     let nc = try!(wrap(e, ERes::from_sexp, Element::NetClass));
                     layout.elements.push(nc)
+                },
+                "gr_text" => {
+                    let g = try!(wrap(e, ERes::from_sexp, Graphics::GrText));
+                    layout.elements.push(Element::Graphics(g))
                 },
                 "setup" => {
                     layout.setup = try!(ERes::from_sexp(&e))

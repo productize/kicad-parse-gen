@@ -194,21 +194,40 @@ impl fmt::Display for Font {
 
 #[derive(Debug,Clone)]
 pub struct Effects {
-    font: Font
+    font: Font,
+    justify:Option<Justify>,
+}
+
+
+#[derive(Debug,Clone)]
+pub enum Justify {
+    Mirror,
 }
 
 impl Effects {
     fn new() -> Effects {
-        Effects { font: Font::new() }
+        Effects { font: Font::new(), justify:None }
     }
-    fn from_font(font: Font) -> Effects {
-        Effects { font: font }
+    fn from_font(font: Font, justify: Option<Justify>) -> Effects {
+        Effects { font: font, justify:justify }
     }
 }
 
 impl fmt::Display for Effects {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(effects (font (size {} {}) (thickness {})))", self.font.size.x, self.font.size.y, self.font.thickness)
+        let justify = match self.justify {
+            None => String::from(""),
+            Some(ref j) => format!(" {}", j),
+        };
+        write!(f, "(effects (font (size {} {}) (thickness {})){})", self.font.size.x, self.font.size.y, self.font.thickness, justify)
+    }
+}
+
+impl fmt::Display for Justify {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            Justify::Mirror => write!(f,"(justify mirror)"),
+        }
     }
 }
 
@@ -707,8 +726,30 @@ impl FromSexp for ERes<Effects> {
         //let v = try!(s.slice_atom_num("effects", 1));
         // TODO investigate why the above doesn't work !?
         let v = try!(s.slice_atom("effects"));
+        if v.len() < 1 {
+            return Err(format!("Expected at least one element in {}", s))
+        }
         let font = try!(ERes::from_sexp(&v[0]));
-        Ok(Effects::from_font(font))
+        let justify = if v.len() > 1 {
+            Some(try!(ERes::from_sexp(&v[1])))
+        } else {
+            None
+        };
+        Ok(Effects::from_font(font, justify))
+    }
+}
+
+impl FromSexp for ERes<Justify> {
+    fn from_sexp(s:&Sexp) -> ERes<Justify> {
+        let v = try!(s.slice_atom("justify"));
+        if v.len() < 1 {
+            return Err(format!("Expected at least one element in {}", s))
+        }
+        let s = try!(v[0].string());
+        match &s[..] {
+            "mirror" => Ok(Justify::Mirror),
+            _ => Err(format!("unknown justify: {}", s))
+        }
     }
 }
 
