@@ -77,7 +77,8 @@ pub struct Setup {
 #[derive(Clone)]
 pub struct SetupElement {
     pub name:String,
-    pub value:String,
+    pub value1:String,
+    pub value2:Option<String>,
 }
 
 
@@ -224,18 +225,12 @@ impl NetClass {
 
 impl Setup {
     pub fn new() -> Setup {
-        let mut s2 = rustysexp::Sexp::new_empty();
-        let e = rustysexp::Element::String(String::from("pcbplotparams"));
-        s2.element = e;
-        let v = vec![s2];
-        let mut s1 = rustysexp::Sexp::new_empty();
-        s1.element = rustysexp::Element::List(v);
         Setup { elements:vec![], pcbplotparams:vec![] }
     }
     pub fn get(&self, s:&String) -> Option<&String> {
         for element in &self.elements {
             if &element.name[..] == &s[..] {
-                return Some(&element.value)
+                return Some(&element.value1)
             }
         }
         return None
@@ -244,12 +239,12 @@ impl Setup {
     pub fn update_element(&mut self, name:&'static str, value:String) {
         for element in &mut self.elements {
             if &element.name[..] == name {
-                element.value = value;
+                element.value1 = value;
                 return;
                     
             }
         }
-        self.elements.push(SetupElement { name:String::from(name), value:value })
+        self.elements.push(SetupElement { name:String::from(name), value1:value, value2:None })
     }
 }
 
@@ -310,16 +305,24 @@ impl fmt::Display for NetClass {
         
     }
 }
+impl fmt::Display for SetupElement {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match self.value2 {
+            Some(ref x) => writeln!(f, "   ({} {} {})", self.name, self.value1, x),
+            None => writeln!(f, "   ({} {})", self.name, self.value1),
+        }
+    }
+}
 
 impl fmt::Display for Setup {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(writeln!(f, "(setup"));
         for ref k in &self.elements {
-            try!(writeln!(f, "   ({} {})", k.name, k.value));
+            try!(writeln!(f, "   ({} {})", k.name, k.value1));
         }
         try!(writeln!(f, " pcbplotparams"));
         for ref k in &self.pcbplotparams {
-            try!(writeln!(f, "     ({} {})", k.name, k.value));
+            try!(writeln!(f, "     ({} {})", k.name, k.value1));
         }
         writeln!(f, "))")
     }
@@ -405,7 +408,7 @@ impl FromSexp for ERes<Vec<Layer> > {
 impl FromSexp for ERes<Layer> {
     fn from_sexp(s:&Sexp) -> ERes<Layer> {
         let l = try!(s.list());
-        println!("making layer from {}", s);
+        //println!("making layer from {}", s);
         if l.len() != 3 {
             return Err(format!("expecting 3 elements in layer: {}", s))
         }
@@ -430,12 +433,16 @@ impl FromSexp for ERes<LayerType> {
 impl FromSexp for ERes<SetupElement> {
     fn from_sexp(s:&Sexp) -> ERes<SetupElement> {
         let l = try!(s.list());
-        if l.len() != 2 {
-            return Err(format!("expecting 2 elements in setup element: {}", s))
+        if l.len() != 2 && l.len() != 3 {
+            return Err(format!("expecting 2 or 3 elements in setup element: {}", s))
         }
         let name = try!(l[0].string()).clone();
-        let value = try!(l[1].string()).clone();
-        Ok(SetupElement { name:name, value:value, })
+        let value1 = try!(l[1].string()).clone();
+        let value2 = match l.len() {
+            3 => Some(try!(l[2].string()).clone()),
+            _ => None,
+        };
+        Ok(SetupElement { name:name, value1:value1, value2:value2, })
     }
 }
 
@@ -495,7 +502,7 @@ impl FromSexp for ERes<Setup> {
                     }
                 },
                 _ => {
-                    let setup_element = try!(ERes::from_sexp(&s));
+                    let setup_element = try!(ERes::from_sexp(&v));
                     elements.push(setup_element)
                 }
             }
