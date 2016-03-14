@@ -191,6 +191,23 @@ impl Layout {
         v
     }
 
+    pub fn get_module(&mut self, reference:&String) -> Option<&footprint::Module> {
+        for ref x in &self.elements[..] {
+            match **x {
+                Element::Module(ref m) => {
+                    if m.is_reference(reference) {
+                        return Some(&m)
+                    }
+                },
+                Element::Net(_)      => (),
+                Element::NetClass(_) => (),
+                Element::Other(_)    => (),
+                Element::Graphics(_) => (),
+            }
+        }
+        return None
+    }
+    
     pub fn modify_module<F>(&mut self, reference:&String, fun:F) -> ERes<()> 
         where F:Fn(&mut footprint::Module) -> ()
     {
