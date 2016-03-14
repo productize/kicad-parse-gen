@@ -103,6 +103,7 @@ pub struct NetClass {
     pub nets:Vec<String>,
 }
 
+// TODO: support tstamp in graphics elements
 #[derive(Clone)]
 pub enum Graphics {
     GrText(GrText),
