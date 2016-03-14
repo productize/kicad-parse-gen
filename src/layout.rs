@@ -311,9 +311,11 @@ impl fmt::Display for Layout {
         try!(writeln!(f, "  {}", self.general));
         try!(writeln!(f, "  (page {})", self.page));
         try!(writeln!(f, "  {}", self.setup));
+        try!(writeln!(f, "(layers "));
         for layer in &self.layers[..] {
             try!(writeln!(f, "  {}", layer));
         }
+        try!(writeln!(f, ")"));
         for element in &self.elements[..] {
             try!(writeln!(f, "  {}", element));
             try!(writeln!(f, ""));
