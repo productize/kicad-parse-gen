@@ -429,11 +429,11 @@ impl fmt::Display for Setup {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(writeln!(f, "(setup"));
         for ref k in &self.elements {
-            try!(writeln!(f, "   ({} {})", k.name, k.value1));
+            try!(writeln!(f, "   {}", k));
         }
         try!(writeln!(f, " (pcbplotparams"));
         for ref k in &self.pcbplotparams {
-            try!(writeln!(f, "     ({} {})", k.name, k.value1));
+            try!(writeln!(f, "     {}", k));
         }
         writeln!(f, "))")
     }
