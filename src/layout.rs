@@ -308,7 +308,12 @@ impl fmt::Display for Layout {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(writeln!(f, "(kicad_pcb (version {}) (host {} \"{}\")", self.version, self.host.tool, self.host.build));
         //let mut i = 0;
+        try!(writeln!(f, "  {}", self.general));
+        try!(writeln!(f, "  (page {})", self.page));
         try!(writeln!(f, "  {}", self.setup));
+        for layer in &self.layers[..] {
+            try!(writeln!(f, "  {}", layer));
+        }
         for element in &self.elements[..] {
             try!(writeln!(f, "  {}", element));
             try!(writeln!(f, ""));
@@ -321,6 +326,28 @@ impl fmt::Display for Layout {
         writeln!(f, ")")
     }
 }
+
+impl fmt::Display for General {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(writeln!(f, "(general"));
+        try!(writeln!(f, "  (links {})", self.links));
+        try!(writeln!(f, "  {}", self.area));
+        try!(writeln!(f, "  (thickness {})", self.thickness));
+        try!(writeln!(f, "  (drawings {})", self.drawings));
+        try!(writeln!(f, "  (tracks {})", self.tracks));
+        try!(writeln!(f, "  (zones {})", self.zones));
+        try!(writeln!(f, "  (modules {})", self.modules));
+        try!(writeln!(f, "  (nets {})", self.nets));
+        writeln!(f, ")")
+    }
+}
+
+impl fmt::Display for Area {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        writeln!(f, "(area {} {} {} {})", self.x1, self.y1, self.x2, self.y2)
+    }
+}
+
 
 impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
@@ -363,6 +390,30 @@ impl fmt::Display for NetClass {
         
     }
 }
+
+// (0 F.Cu signal)
+impl fmt::Display for Layer {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        if self.hide == false {
+            write!(f, "({} {} {})", self.num, self.layer, self.layer_type)
+        } else {
+            write!(f, "({} {} {} hide)", self.num, self.layer, self.layer_type)
+        }
+            
+    }
+}
+
+impl fmt::Display for LayerType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        let s = match *self {
+            LayerType::Signal => "signal",
+            LayerType::User => "user",
+        };
+        write!(f, "{}", s)
+    }
+}
+
+
 impl fmt::Display for SetupElement {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match self.value2 {
@@ -516,7 +567,7 @@ impl FromSexp for ERes<Layer> {
         let l = try!(s.list());
         //println!("making layer from {}", s);
         if l.len() != 3 && l.len() != 4 {
-            return Err(format!("expecting 3 elements in layer: {}", s))
+            return Err(format!("expecting 3 or 4 elements in layer: {}", s))
         }
         let num = try!(l[0].i());
         let layer = try!(footprint::Layer::from_string(try!(l[1].string()).clone()));
