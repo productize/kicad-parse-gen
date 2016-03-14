@@ -61,6 +61,7 @@ pub struct Layer {
     pub num:i64,
     pub layer:footprint::Layer,
     pub layer_type:LayerType,
+    pub hide:bool,
 }
 
 #[derive(Clone)]
@@ -512,13 +513,22 @@ impl FromSexp for ERes<Layer> {
     fn from_sexp(s:&Sexp) -> ERes<Layer> {
         let l = try!(s.list());
         //println!("making layer from {}", s);
-        if l.len() != 3 {
+        if l.len() != 3 && l.len() != 4 {
             return Err(format!("expecting 3 elements in layer: {}", s))
         }
         let num = try!(l[0].i());
         let layer = try!(footprint::Layer::from_string(try!(l[1].string()).clone()));
         let layer_type = try!(ERes::from_sexp(&l[2]));
-        Ok(Layer { num:num, layer:layer, layer_type:layer_type, })
+        let hide = if l.len() == 3 {
+            false
+        } else {
+            let h = try!(l[3].string());
+            match &h[..] {
+                "hide" => true,
+                _ => false,
+            }
+        };
+        Ok(Layer { num:num, layer:layer, layer_type:layer_type, hide:hide })
     }
 }
 
