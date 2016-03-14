@@ -464,6 +464,8 @@ impl Layer {
                 "Eco1" => LayerSide::Eco1,
                 "Eco2" => LayerSide::Eco2,
                 "Edge" => LayerSide::Edge,
+                "In1" => LayerSide::In1,
+                "In2" => LayerSide::In2,
                 "*" => LayerSide::Both,
                 x => return Err(format!("unknown layer side {}", x)),
             };
@@ -499,6 +501,8 @@ impl fmt::Display for Layer {
             LayerSide::Eco1  => write!(f, "Eco1."),
             LayerSide::Eco2  => write!(f, "Eco2."),
             LayerSide::Edge  => write!(f, "Edge."),
+            LayerSide::In1   => write!(f, "In1."),
+            LayerSide::In2   => write!(f, "In2."),
             LayerSide::Both  => write!(f, "*."),
             LayerSide::None  => Ok(()),
         });
