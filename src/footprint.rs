@@ -65,7 +65,23 @@ impl Module {
     }
 
     pub fn bounding_box(&self) -> (f64, f64, f64, f64) {
-        return (0.0, 0.0, 0.0, 0.0)
+        let mut x1 = 10000.0_f64;
+        let mut y1 = 10000.0_f64;
+        let mut x2 = 0.0_f64;
+        let mut y2 = 0.0_f64;
+        let (x,y) = self.at();
+        for element in &self.elements {
+            match element.bounding_box() {
+                None => (),
+                Some((x1a, y1a, x2a, y2a)) => {
+                    x1 = x1.min(x+x1a);
+                    y1 = y1.min(y+y1a);
+                    x2 = x2.max(x+x2a);
+                    y2 = y2.max(y+y2a);
+                }
+            }
+        }
+        return (x1, y1, x2, y2)
     }
 }
 
@@ -96,6 +112,18 @@ pub enum Element {
     At(At),
     Model(Model),
     Locked,
+}
+
+impl Element {
+    pub fn bounding_box(&self) -> Option<(f64, f64, f64, f64)> {
+        match *self {
+            Element::Pad(ref x) => Some(x.bounding_box()),
+            Element::FpPoly(ref x) => Some(x.bounding_box()),
+            Element::FpLine(ref x) => Some(x.bounding_box()),
+            Element::FpCircle(ref x) => Some(x.bounding_box()),
+            _ => None,
+        }
+    }
 }
 
 impl fmt::Display for Element {
@@ -586,6 +614,17 @@ impl Pad {
     fn set_drill(&mut self, drill:&Drill) {
         self.drill = Some(drill.clone())
     }
+
+    pub fn bounding_box(&self) -> (f64,f64,f64,f64) {
+        let x = self.at.x;
+        let y = self.at.y;
+        let (dx, dy) = if self.at.rot < 0.1 {
+            (self.size.x, self.size.y)
+        } else {
+            (self.size.y, self.size.x)
+        };
+        (x-dx/2.0, y-dy/2.0, x+dx/2.0, y+dy/2.0)
+    }
 }
 
 impl fmt::Display for Pad {
@@ -617,6 +656,20 @@ impl FpPoly {
     fn new() -> FpPoly {
         FpPoly { pts:Pts::new(), width:0.0, layer:Layer::default() }
     }
+
+    fn bounding_box(&self) -> (f64,f64,f64,f64) {
+        let mut x1 = 10000.0_f64;
+        let mut y1 = 10000.0_f64;
+        let mut x2 = 0.0_f64;
+        let mut y2 = 0.0_f64;
+        for p in &self.pts.elements {
+            x1 = x1.min(p.x);
+            y1 = y1.min(p.y);
+            x2 = x2.max(p.x);
+            y2 = y2.max(p.y);
+        }
+        (x1,y2,x2,y2)
+    }
 }
 
 impl fmt::Display for FpPoly {
@@ -642,6 +695,18 @@ impl FpLine {
     fn new() -> FpLine {
         FpLine { start:Xy::new_empty(XyType::Start), end:Xy::new_empty(XyType::End), layer:Layer::default(), width:0.0 }
     }
+    
+    fn bounding_box(&self) -> (f64,f64,f64,f64) {
+        let mut x1 = 10000.0_f64;
+        let mut y1 = 10000.0_f64;
+        let mut x2 = 0.0_f64;
+        let mut y2 = 0.0_f64;
+        x1 = x1.min(self.start.x);
+        y1 = y1.min(self.start.y);
+        x2 = x2.max(self.end.x);
+        y2 = y2.max(self.end.y);
+        (x1,y1,x2,y2)
+    }
 }
 
 
@@ -654,6 +719,21 @@ impl fmt::Display for FpLine {
 impl FpCircle {
     fn new() -> FpCircle {
         FpCircle { center:Xy::new_empty(XyType::Center), end:Xy::new_empty(XyType::End), layer:Layer::default(), width:0.0 }
+    }
+    fn bounding_box(&self) -> (f64,f64,f64,f64) {
+        let mut x1 = 10000.0_f64;
+        let mut y1 = 10000.0_f64;
+        let mut x2 = 0.0_f64;
+        let mut y2 = 0.0_f64;
+        let dx = self.center.x - self.end.x;
+        let dy = self.center.y - self.end.y;
+        let d2 = dx*dx + dy*dy;
+        let d = d2.sqrt();
+        x1 = x1.min(self.center.x-d);
+        y1 = y1.min(self.center.y-d);
+        x2 = x2.max(self.center.x+d);
+        y2 = y2.max(self.center.y+d);
+        (x1,y1,x2,y2)
     }
 }
 
