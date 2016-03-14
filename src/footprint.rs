@@ -63,6 +63,10 @@ impl Module {
         }
         return (0.0, 0.0)
     }
+
+    pub fn bounding_box(&self) -> (f64, f64, f64, f64) {
+        return (0.0, 0.0, 0.0, 0.0)
+    }
 }
 
 impl fmt::Display for Module {
@@ -419,6 +423,8 @@ pub enum LayerSide {
     Eco2,
     Edge,
     Both,
+    In1,
+    In2,
     None,
 }
 
