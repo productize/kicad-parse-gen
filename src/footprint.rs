@@ -91,6 +91,7 @@ pub enum Element {
     Path(String),
     At(At),
     Model(Model),
+    Locked,
 }
 
 impl fmt::Display for Element {
@@ -110,6 +111,7 @@ impl fmt::Display for Element {
             Element::Path(ref p) => write!(f, "(path {})", p),
             Element::At(ref p) => write!(f, "{}", p),
             Element::Model(ref p) => write!(f, "{}", p),
+            Element::Locked => write!(f, "locked"),
         }
     }
 }
@@ -1082,23 +1084,34 @@ impl FromSexp for ERes<Model> {
 
 impl FromSexp for ERes<Element> {
     fn from_sexp(s:&Sexp) -> ERes<Element> {
-        let name = try!(s.list_name());
-        match &name[..] {
-            "layer" => wrap(s, parse_string_element, Element::Layer),
-            "descr" => wrap(s, parse_string_element, Element::Descr),
-            "tags" => wrap(s, parse_string_element, Element::Tags),
-            "attr" => wrap(s, parse_string_element, Element::Attr),
-            "fp_text" => wrap(s, ERes::from_sexp, Element::FpText),
-            "pad" => wrap(s, ERes::from_sexp, Element::Pad),
-            "fp_poly" => wrap(s, ERes::from_sexp, Element::FpPoly),
-            "fp_line" => wrap(s, ERes::from_sexp, Element::FpLine),
-            "fp_circle" => wrap(s, ERes::from_sexp, Element::FpCircle),
-            "tedit" => wrap(s, parse_string_element, Element::TEdit),
-            "tstamp" => wrap(s, parse_string_element, Element::TStamp),
-            "path" => wrap(s, parse_string_element, Element::Path),
-            "at" => wrap(s, ERes::from_sexp, Element::At),
-            "model" => wrap(s, ERes::from_sexp, Element::Model),
-            _ => Err(format!("unknown element in module: {}", name))
+        match s.element {
+            rustysexp::Element::String(ref s) => {
+                match &s[..] {
+                    "locked" => Ok(Element::Locked),
+                    _ => Err(format!("unknown element in module: {}", s))
+                }
+            },
+            rustysexp::Element::List(_) => {
+                let name = try!(s.list_name());
+                match &name[..] {
+                    "layer" => wrap(s, parse_string_element, Element::Layer),
+                    "descr" => wrap(s, parse_string_element, Element::Descr),
+                    "tags" => wrap(s, parse_string_element, Element::Tags),
+                    "attr" => wrap(s, parse_string_element, Element::Attr),
+                    "fp_text" => wrap(s, ERes::from_sexp, Element::FpText),
+                    "pad" => wrap(s, ERes::from_sexp, Element::Pad),
+                    "fp_poly" => wrap(s, ERes::from_sexp, Element::FpPoly),
+                    "fp_line" => wrap(s, ERes::from_sexp, Element::FpLine),
+                    "fp_circle" => wrap(s, ERes::from_sexp, Element::FpCircle),
+                    "tedit" => wrap(s, parse_string_element, Element::TEdit),
+                    "tstamp" => wrap(s, parse_string_element, Element::TStamp),
+                    "path" => wrap(s, parse_string_element, Element::Path),
+                    "at" => wrap(s, ERes::from_sexp, Element::At),
+                    "model" => wrap(s, ERes::from_sexp, Element::Model),
+                    _ => Err(format!("unknown element in module: {}", name))
+                }
+            },
+            rustysexp::Element::Empty => unreachable!(),
         }
     }
 }
