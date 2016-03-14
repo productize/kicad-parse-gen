@@ -377,7 +377,7 @@ impl fmt::Display for Setup {
         for ref k in &self.elements {
             try!(writeln!(f, "   ({} {})", k.name, k.value1));
         }
-        try!(writeln!(f, " pcbplotparams"));
+        try!(writeln!(f, " (pcbplotparams"));
         for ref k in &self.pcbplotparams {
             try!(writeln!(f, "     ({} {})", k.name, k.value1));
         }
