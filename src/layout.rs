@@ -307,15 +307,16 @@ impl Setup {
 impl fmt::Display for Layout {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(writeln!(f, "(kicad_pcb (version {}) (host {} \"{}\")", self.version, self.host.tool, self.host.build));
-        let mut i = 0;
+        //let mut i = 0;
+        try!(writeln!(f, "  {}", self.setup));
         for element in &self.elements[..] {
             try!(writeln!(f, "  {}", element));
             try!(writeln!(f, ""));
             // kludge to put setup at the right order in the file
-            if i == 3 {
-                try!(writeln!(f, "  {}", self.setup));
-            }
-            i+=1;
+            //if i == 3 {
+            //    try!(writeln!(f, "  {}", self.setup));
+            //}
+            //i+=1;
         }
         writeln!(f, ")")
     }
