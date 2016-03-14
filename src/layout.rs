@@ -191,7 +191,7 @@ impl Layout {
         v
     }
 
-    pub fn get_module(&mut self, reference:&String) -> Option<&footprint::Module> {
+    pub fn get_module(&self, reference:&String) -> Option<&footprint::Module> {
         for ref x in &self.elements[..] {
             match **x {
                 Element::Module(ref m) => {
