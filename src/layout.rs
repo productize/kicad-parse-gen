@@ -644,16 +644,21 @@ impl FromSexp for ERes<GrText> {
 
 impl FromSexp for ERes<GrLine> {
     fn from_sexp(s:&Sexp) -> ERes<GrLine> {
-        let l = try!(s.slice_atom_num("gr_line", 5));
+        let l = try!(s.slice_atom("gr_line"));
+        if l.len() !=4 && l.len() != 5 {
+            return Err(format!("expected 4 or 5 elements in {}", s))
+        }
         let start = try!(ERes::from_sexp(&l[0]));
         let end = try!(ERes::from_sexp(&l[1]));
-        let angle = {
+        let (angle,i) = if l.len() == 4 {
+            (0,2)
+        } else {
             let l2 = try!(l[2].slice_atom("angle"));
-            try!(l2[0].i())
+            (try!(l2[0].i()), 3)
         };
-        let layer = try!(ERes::from_sexp(&l[3]));
+        let layer = try!(ERes::from_sexp(&l[i]));
         let width = {
-            let l2 = try!(l[4].slice_atom("width"));
+            let l2 = try!(l[i+1].slice_atom("width"));
             try!(l2[0].f())
         };
         Ok(GrLine { start:start, end:end, angle:angle, layer:layer, width:width })
