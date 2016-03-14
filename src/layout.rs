@@ -644,6 +644,7 @@ impl FromSexp for ERes<GrText> {
 
 impl FromSexp for ERes<GrLine> {
     fn from_sexp(s:&Sexp) -> ERes<GrLine> {
+        println!("GrLine: {}", s);
         let l = try!(s.slice_atom("gr_line"));
         if l.len() !=4 && l.len() != 5 {
             return Err(format!("expected 4 or 5 elements in {}", s))
