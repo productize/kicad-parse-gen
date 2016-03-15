@@ -121,7 +121,7 @@ pub struct GrText {
     pub at:footprint::At,
     pub layer:footprint::Layer,
     pub effects:footprint::Effects,
-    pub stamp:Option<String>,
+    pub tstamp:String,
 }
 
 // only used internally
@@ -132,6 +132,8 @@ enum GrElement {
     Layer(footprint::Layer),
     Width(f64),
     TStamp(String),
+    At(footprint::At),
+    Effects(footprint::Effects),
 }
 
 #[derive(Clone)]
@@ -719,23 +721,22 @@ fn parse_other(e:&Sexp) -> Element {
 impl FromSexp for ERes<GrText> {
     fn from_sexp(s:&Sexp) -> ERes<GrText> {
         let l = try!(s.slice_atom("gr_text"));
-        if l.len() != 4 && l.len() != 5 {
-            return Err(format!("expected 4 or 5 elements in {}", s))
-        }
         let value = try!(l[0].string()).clone();
-        let at = try!(ERes::from_sexp(&l[1]));
-        let layer = try!(ERes::from_sexp(&l[2]));
-        let stamp = if l.len() == 5 {
-            Some(try!(l[3].string()).clone())
-        } else {
-            None
-        };
-        let effects = if l.len() == 5 {
-            try!(ERes::from_sexp(&l[4]))
-        } else {
-            try!(ERes::from_sexp(&l[3]))
-        };
-        Ok(GrText { value:value, at:at, layer:layer, effects:effects, stamp:stamp, })
+        let mut layer = footprint::Layer::new();
+        let mut tstamp = String::from("");
+        let mut at = footprint::At::new_empty();
+        let mut effects = footprint::Effects::new();
+        for x in &l[1..] {
+            let elem = try!(ERes::from_sexp(x));
+            match elem {
+                GrElement::At(x) => at = x,
+                GrElement::Layer(x) => layer = x,
+                GrElement::TStamp(x) => tstamp = x,
+                GrElement::Effects(x) => effects = x,
+                _ => (), // TODO
+            }
+        }
+        Ok(GrText { value:value, at:at, layer:layer, effects:effects, tstamp:tstamp, })
     }
 }
 
@@ -758,6 +759,8 @@ impl FromSexp for ERes<GrElement> {
                 let sx = try!(l2[0].string()).clone();
                 Ok(GrElement::TStamp(sx))
             },
+            "at" => wrap(s, ERes::from_sexp, GrElement::At),
+            "effects" => wrap(s, ERes::from_sexp, GrElement::Effects),
             x => {
                 Err(format!("unknown element {} in {}", x, s))
             }
@@ -785,6 +788,7 @@ impl FromSexp for ERes<GrLine> {
                 GrElement::Layer(x) => layer = x,
                 GrElement::TStamp(x) => tstamp = x,
                 GrElement::Width(x) => width = x,
+                _ => (), // TODO
             }
         }
         Ok(GrLine { start:start, end:end, angle:angle, layer:layer, width:width, tstamp:tstamp })
@@ -809,6 +813,7 @@ impl FromSexp for ERes<GrArc> {
                 GrElement::Layer(x) => layer = x,
                 GrElement::TStamp(x) => tstamp = x,
                 GrElement::Width(x) => width = x,
+                _ => (), // TODO
             }
         }
         Ok(GrArc { start:start, end:end, angle:angle, layer:layer, width:width, tstamp:tstamp })

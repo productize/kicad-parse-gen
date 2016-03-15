@@ -193,10 +193,10 @@ pub struct At {
 }
 
 impl At {
-    fn new(x:f64 ,y:f64, rot:f64) -> At {
+    pub fn new(x:f64 ,y:f64, rot:f64) -> At {
         At { x:x, y:y, rot:rot }
     }
-    fn new_empty() -> At {
+    pub fn new_empty() -> At {
         At { x:0.0, y:0.0, rot:0.0 }
     }
 }
@@ -243,10 +243,10 @@ pub enum Justify {
 }
 
 impl Effects {
-    fn new() -> Effects {
+    pub fn new() -> Effects {
         Effects { font: Font::new(), justify:None }
     }
-    fn from_font(font: Font, justify: Option<Justify>) -> Effects {
+    pub fn from_font(font: Font, justify: Option<Justify>) -> Effects {
         Effects { font: font, justify:justify }
     }
 }
