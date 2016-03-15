@@ -725,11 +725,15 @@ impl FromSexp for ERes<GrText> {
         let value = try!(l[0].string()).clone();
         let at = try!(ERes::from_sexp(&l[1]));
         let layer = try!(ERes::from_sexp(&l[2]));
-        let effects = try!(ERes::from_sexp(&l[3]));
         let stamp = if l.len() == 5 {
-            Some(try!(l[4].string()).clone())
+            Some(try!(l[3].string()).clone())
         } else {
             None
+        };
+        let effects = if l.len() == 5 {
+            try!(ERes::from_sexp(&l[4]))
+        } else {
+            try!(ERes::from_sexp(&l[3]))
         };
         Ok(GrText { value:value, at:at, layer:layer, effects:effects, stamp:stamp, })
     }
