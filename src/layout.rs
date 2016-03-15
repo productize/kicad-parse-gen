@@ -754,7 +754,7 @@ impl FromSexp for ERes<GrElement> {
                 let l2 = try!(s.slice_atom("width"));
                 Ok(GrElement::Width(try!(l2[0].f())))
             },
-            "stamp" => {
+            "tstamp" => {
                 let l2 = try!(s.slice_atom("tstamp"));
                 let sx = try!(l2[0].string()).clone();
                 Ok(GrElement::TStamp(sx))
