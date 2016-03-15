@@ -81,6 +81,8 @@ impl Module {
                 }
             }
         }
+        let (x1, x2) = if x1 < x2 { (x1, x2) } else { (x2, x1) };
+        let (y1, y2) = if y1 < y2 { (y1, y2) } else { (y2, y1) };
         return (x1, y1, x2, y2)
     }
 }
@@ -289,10 +291,10 @@ pub struct Pts {
 }
 
 impl Xy {
-    fn new(x: f64, y: f64, t: XyType) -> Xy {
+    pub fn new(x: f64, y: f64, t: XyType) -> Xy {
         Xy { x:x, y:y, t:t }
     }
-    fn new_empty(t: XyType) -> Xy {
+    pub fn new_empty(t: XyType) -> Xy {
         Xy { x:0.0, y:0.0, t:t }
     }
 }
@@ -478,6 +480,10 @@ pub struct Layer {
 }
 
 impl Layer {
+
+    pub fn new() -> Layer {
+        Layer { side:LayerSide::Front, t:LayerType::Cu }
+    }
     
     pub fn from_string(s: String) -> ERes<Layer> {
         let sp:Vec<&str> = s.split('.').collect();

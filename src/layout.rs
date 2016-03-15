@@ -121,6 +121,17 @@ pub struct GrText {
     pub at:footprint::At,
     pub layer:footprint::Layer,
     pub effects:footprint::Effects,
+    pub stamp:Option<String>,
+}
+
+// only used internally
+enum GrElement {
+    Start(footprint::Xy),
+    End(footprint::Xy),
+    Angle(i64),
+    Layer(footprint::Layer),
+    Width(f64),
+    TStamp(String),
 }
 
 #[derive(Clone)]
@@ -130,6 +141,7 @@ pub struct GrLine {
     pub angle:i64,
     pub layer:footprint::Layer,
     pub width:f64,
+    pub tstamp:String,
 }
 
 #[derive(Clone)]
@@ -139,6 +151,7 @@ pub struct GrArc {
     pub angle:i64,
     pub layer:footprint::Layer,
     pub width:f64,
+    pub tstamp:String,
 }
 
 #[derive(Clone)]
@@ -705,54 +718,96 @@ fn parse_other(e:&Sexp) -> Element {
 
 impl FromSexp for ERes<GrText> {
     fn from_sexp(s:&Sexp) -> ERes<GrText> {
-        let l = try!(s.slice_atom_num("gr_text", 4));
+        let l = try!(s.slice_atom("gr_text"));
+        if l.len() != 4 && l.len() != 5 {
+            return Err(format!("expected 4 or 5 elements in {}", s))
+        }
         let value = try!(l[0].string()).clone();
         let at = try!(ERes::from_sexp(&l[1]));
         let layer = try!(ERes::from_sexp(&l[2]));
         let effects = try!(ERes::from_sexp(&l[3]));
-        Ok(GrText { value:value, at:at, layer:layer, effects:effects })
+        let stamp = if l.len() == 5 {
+            Some(try!(l[4].string()).clone())
+        } else {
+            None
+        };
+        Ok(GrText { value:value, at:at, layer:layer, effects:effects, stamp:stamp, })
     }
 }
+
+impl FromSexp for ERes<GrElement> {
+    fn from_sexp(s:&Sexp) -> ERes<GrElement> {
+        match &try!(s.list_name())[..] {
+            "start" => wrap(s, ERes::from_sexp, GrElement::Start),
+            "end" => wrap(s, ERes::from_sexp, GrElement::End),
+            "angle" => {
+                let l2 = try!(s.slice_atom("angle"));
+                Ok(GrElement::Angle(try!(l2[0].i())))
+            },
+            "layer" => wrap(s, ERes::from_sexp, GrElement::Layer),
+            "width" => {
+                let l2 = try!(s.slice_atom("width"));
+                Ok(GrElement::Width(try!(l2[0].f())))
+            },
+            "stamp" => {
+                let l2 = try!(s.slice_atom("tstamp"));
+                let sx = try!(l2[0].string()).clone();
+                Ok(GrElement::TStamp(sx))
+            },
+            x => {
+                Err(format!("unknown element {} in {}", x, s))
+            }
+        }
+    }
+}
+
 
 impl FromSexp for ERes<GrLine> {
     fn from_sexp(s:&Sexp) -> ERes<GrLine> {
         //println!("GrLine: {}", s);
         let l = try!(s.slice_atom("gr_line"));
-        if l.len() !=4 && l.len() != 5 {
-            return Err(format!("expected 4 or 5 elements in {}", s))
+        let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
+        let mut end = footprint::Xy::new_empty(footprint::XyType::End);
+        let mut angle = 0;
+        let mut layer = footprint::Layer::new();
+        let mut width = 0.0_f64;
+        let mut tstamp = String::from("");
+        for x in l {
+            let elem = try!(ERes::from_sexp(x));
+            match elem {
+                GrElement::Start(x) => start = x,
+                GrElement::End(x) => end = x,
+                GrElement::Angle(x) => angle = x,
+                GrElement::Layer(x) => layer = x,
+                GrElement::TStamp(x) => tstamp = x,
+                GrElement::Width(x) => width = x,
+            }
         }
-        let start = try!(ERes::from_sexp(&l[0]));
-        let end = try!(ERes::from_sexp(&l[1]));
-        let (angle,i) = if l.len() == 4 {
-            (0,2)
-        } else {
-            let l2 = try!(l[2].slice_atom("angle"));
-            (try!(l2[0].i()), 3)
-        };
-        let layer = try!(ERes::from_sexp(&l[i]));
-        let width = {
-            let l2 = try!(l[i+1].slice_atom("width"));
-            try!(l2[0].f())
-        };
-        Ok(GrLine { start:start, end:end, angle:angle, layer:layer, width:width })
+        Ok(GrLine { start:start, end:end, angle:angle, layer:layer, width:width, tstamp:tstamp })
     }
 }
 
 impl FromSexp for ERes<GrArc> {
     fn from_sexp(s:&Sexp) -> ERes<GrArc> {
-        let l = try!(s.slice_atom_num("gr_arc", 5));
-        let start = try!(ERes::from_sexp(&l[0]));
-        let end = try!(ERes::from_sexp(&l[1]));
-        let angle = {
-            let l2 = try!(l[2].slice_atom("angle"));
-            try!(l2[0].i())
-        };
-        let layer = try!(ERes::from_sexp(&l[3]));
-        let width = {
-            let l2 = try!(l[4].slice_atom("width"));
-            try!(l2[0].f())
-        };
-        Ok(GrArc { start:start, end:end, angle:angle, layer:layer, width:width })
+        let l = try!(s.slice_atom("gr_arc"));
+        let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
+        let mut end = footprint::Xy::new_empty(footprint::XyType::End);
+        let mut angle = 0;
+        let mut layer = footprint::Layer::new();
+        let mut width = 0.0_f64;
+        let mut tstamp = String::from("");
+        for x in l {
+            let elem = try!(ERes::from_sexp(x));
+            match elem {
+                GrElement::Start(x) => start = x,
+                GrElement::End(x) => end = x,
+                GrElement::Angle(x) => angle = x,
+                GrElement::Layer(x) => layer = x,
+                GrElement::TStamp(x) => tstamp = x,
+                GrElement::Width(x) => width = x,
+            }
+        }
+        Ok(GrArc { start:start, end:end, angle:angle, layer:layer, width:width, tstamp:tstamp })
     }
 }
 
@@ -830,7 +885,7 @@ impl FromSexp for ERes<Layout> {
                     layout.setup = try!(ERes::from_sexp(&e))
                 },
                 _ => {
-                    println!("unimplemented: {}", e);
+                    //println!("unimplemented: {}", e);
                     layout.elements.push(parse_other(e))
                 },
             }
