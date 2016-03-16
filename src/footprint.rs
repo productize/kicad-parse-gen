@@ -63,6 +63,18 @@ impl Module {
         }
         return (0.0, 0.0)
     }
+    
+    pub fn front(&self) -> bool {
+        for element in &self.elements[..] {
+            match *element {
+                Element::Layer(ref layer) => {
+                    return &layer[..] == "F.Cu"
+                }
+                _ => ()
+            }
+        }
+        true
+    }
 
     pub fn bounding_box(&self) -> (f64, f64, f64, f64) {
         let mut x1 = 10000.0_f64;
@@ -99,7 +111,7 @@ impl fmt::Display for Module {
 
 #[derive(Debug,Clone)]
 pub enum Element {
-    Layer(String),
+    Layer(String), // TODO: use Layer type
     Descr(String),
     Tags(String),
     Attr(String),
