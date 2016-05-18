@@ -4,7 +4,8 @@
 //use std::str::FromStr;
 
 // get from parent
-use ERes;
+use Result;
+use str_error;
 
 // first line starts with:
 // update=
@@ -14,9 +15,9 @@ pub struct Project {
     pub data:String,
 }
 
-pub fn parse_str(s: &str) -> ERes<Project> {
+pub fn parse_str(s: &str) -> Result<Project> {
     if !s.starts_with("update=") {
-        Err(format!("not a kicad project file!"))
+        str_error(format!("not a kicad project file!"))
     } else {
         Ok(Project { data:String::from(s) })
     }

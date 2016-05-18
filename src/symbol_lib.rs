@@ -1,15 +1,17 @@
-// (c) 2016 Joost Yervante Damad <joost@productize.be>
+// (c) 2016 Productize SPRL <joost@productize.be>
 
 use std::fmt;
+use std::result;
 use std::str::FromStr;
 use std::path::PathBuf;
 
 // get from parent
-use ERes;
-use err;
+use Result;
+use str_error as err;
 use read_file;
 use parse_split_quote_aware;
 use schematic;
+use str_error;
 
 #[derive(Debug)]
 pub struct SymbolLib {
@@ -69,7 +71,7 @@ impl SymbolLib {
 }
 
 impl fmt::Display for SymbolLib {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(writeln!(f, "EESchema-LIBRARY Version 2.3"));
         try!(writeln!(f, "#encoding utf-8"));
         try!(writeln!(f, "#"));
@@ -107,7 +109,7 @@ impl Symbol {
 }
 
 impl fmt::Display for Symbol {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(writeln!(f, "# {}", &&self.fields[1].value));
         try!(writeln!(f, "#"));
         try!(writeln!(f, "DEF {} {} 0 {} {} {} {} {} {}",
@@ -151,7 +153,7 @@ impl Field {
 }
 
 impl fmt::Display for Field {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(write!(f, "F{} \"{}\" {} {} {} {} {} {} {}{}{}",
                self.i, self.value, self.x, self.y, self.dimension,
                self.orientation,
@@ -170,10 +172,10 @@ impl fmt::Display for Field {
 macro_rules! assume_line {
     ($s:expr, $exp:expr) => (
         if $s.eof() {
-            return err("end of file reached")
+            return str_error("end of file reached".to_string())
         }
         if $s.here() != $exp {
-            return Err(format!("expected '{}', got '{}'", $exp, $s.here()))
+            return str_error(format!("expected '{}', got '{}'", $exp, $s.here()))
         }
         $s.i += 1;
     )
@@ -208,35 +210,35 @@ impl ParseState {
     }
 }
 
-fn assume_string(e:&'static str, s:&String) -> ERes<()> {
+fn assume_string(e:&'static str, s:&String) -> Result<()> {
     if String::from(e) != *s {
-        return Err(format!("expecting: {}, actually: {}", e, s))
+        return str_error(format!("expecting: {}, actually: {}", e, s))
     }
     return Ok(())
 }
 
-fn i64_from_string(p:&ParseState, s:&String) -> ERes<i64> {
+fn i64_from_string(p:&ParseState, s:&String) -> Result<i64> {
     match i64::from_str(&s[..]) {
         Ok(i) => Ok(i),
-        _ => Err(format!("int parse error in {}; line: {}", s, p.here()))
+        _ => str_error(format!("int parse error in {}; line: {}", s, p.here()))
     }
 }
 
-fn f64_from_string(p:&ParseState, s:&String) -> ERes<f64> {
+fn f64_from_string(p:&ParseState, s:&String) -> Result<f64> {
     match f64::from_str(&s[..]) {
         Ok(i) => Ok(i),
-        _ => Err(format!("float parse error in {}; line: {}", s, p.here()))
+        _ => str_error(format!("float parse error in {}; line: {}", s, p.here()))
     }
 }
 
-fn bool_from_string(s:&String, t:&'static str, f:&'static str) -> ERes<bool> {
+fn bool_from_string(s:&String, t:&'static str, f:&'static str) -> Result<bool> {
     if &s[..] == t {
         return Ok(true)
     }
     if &s[..] == f {
         return Ok(false)
     }
-    Err(format!("unknown boolean {}, expected {} or {}", s, t, f))
+    str_error(format!("unknown boolean {}, expected {} or {}", s, t, f))
 }
 
 fn char_at(s:&String, p:usize) -> char {
@@ -244,13 +246,13 @@ fn char_at(s:&String, p:usize) -> char {
     v[..][p]
 }
 
-fn parse_symbol(p:&mut ParseState) -> ERes<Symbol> {
+fn parse_symbol(p:&mut ParseState) -> Result<Symbol> {
     p.next(); // skip line like # name
     assume_line!(p,"#");
     let s = p.here();
     let v = &parse_split_quote_aware(&s);
     if v.len() != 10 {
-        return Err(format!("unexpected elements in {}", s))
+        return str_error(format!("unexpected elements in {}", s))
     }
     try!(assume_string("DEF", &v[0]));
     let mut s = Symbol::new(v[1].clone(), v[2].clone());
@@ -299,22 +301,22 @@ fn parse_symbol(p:&mut ParseState) -> ERes<Symbol> {
     Ok(s)
 }
 
-fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> ERes<bool> {
+fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> Result<bool> {
     if i == t {
         return Ok(true)
     }
     if i == f {
         return Ok(false)
     }
-    Err(format!("unknown boolean {}, expected {} or {}", i, t, f))
+    str_error(format!("unknown boolean {}, expected {} or {}", i, t, f))
 }
 
 // F0 "L" 0 50 40 H V C CNN
-fn parse_field(p:&mut ParseState, line:&String) -> ERes<Field> {
+fn parse_field(p:&mut ParseState, line:&String) -> Result<Field> {
     let mut f = Field::new();
     let v = &parse_split_quote_aware(&line);
     if v.len() != 9 && v.len() != 10 {
-        return Err(format!("unexpected elements in {}", line))
+        return str_error(format!("unexpected elements in {}", line))
     }
     f.i = try!(i64_from_string(p, &String::from(&v[0][1..])));
     let name = if v.len() == 10 {
@@ -325,7 +327,7 @@ fn parse_field(p:&mut ParseState, line:&String) -> ERes<Field> {
             1 => String::from("Value"),
             2 => String::from("Footprint"),
             3 => String::from("UserDocLink"),
-            _ => return Err(format!("expecting name for componentfield > 3")),
+            _ => return str_error(format!("expecting name for componentfield > 3")),
         }
     };
     f.value = v[1].clone();
@@ -342,7 +344,7 @@ fn parse_field(p:&mut ParseState, line:&String) -> ERes<Field> {
     Ok(f)
 }
     
-fn parse(s: &str) -> ERes<SymbolLib> {
+fn parse(s: &str) -> Result<SymbolLib> {
     let mut lib = SymbolLib::new();
     let v:Vec<&str> = s.lines().collect();
     let p = &mut ParseState::new(v);
@@ -362,11 +364,11 @@ fn parse(s: &str) -> ERes<SymbolLib> {
 }
 
 
-pub fn parse_str(s:&str) -> ERes<SymbolLib> {
+pub fn parse_str(s:&str) -> Result<SymbolLib> {
     parse(s)
 }
 
-pub fn parse_file(filename:&PathBuf) -> ERes<SymbolLib> {
+pub fn parse_file(filename:&PathBuf) -> Result<SymbolLib> {
     let name = filename.to_str().unwrap();
     let s = try!(read_file(name));
     parse(&s[..])

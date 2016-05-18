@@ -1,13 +1,22 @@
 // (c) 2015-2016 Joost Yervante Damad <joost@productize.be>
 
 use std::fmt;
+use std::result;
 
 // get from parent
-use ERes;
-use err;
+use Result;
+use str_error;
+use Sexp;
+use symbolic_expressions;
 
-extern crate rustysexp;
-use self::rustysexp::Sexp;
+// TODO: get rid of it
+pub fn display_string(s:&String) -> String {
+    if s.contains("(") || s.contains(" ") || s.len() == 0 {
+        format!("\"{}\"", s)
+    } else {
+        s.clone()
+    }
+}
 
 pub trait FromSexp {
     fn from_sexp(&Sexp) -> Self;
@@ -100,7 +109,7 @@ impl Module {
 }
 
 impl fmt::Display for Module {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(write!(f, "(module {}\n", self.name));
         for e in &self.elements {
             try!(write!(f, "    {}\n", e))
@@ -141,12 +150,12 @@ impl Element {
 }
 
 impl fmt::Display for Element {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
             Element::Layer(ref s) => write!(f, "(layer {})", s),
-            Element::Descr(ref s) => write!(f, "(descr {})", rustysexp::display_string(s)),
-            Element::Tags(ref s) => write!(f, "(tags {})", rustysexp::display_string(s)),
-            Element::Attr(ref s) => write!(f, "(attr {})", rustysexp::display_string(s)),
+            Element::Descr(ref s) => write!(f, "(descr {})", display_string(s)),
+            Element::Tags(ref s) => write!(f, "(tags {})", display_string(s)),
+            Element::Attr(ref s) => write!(f, "(attr {})", display_string(s)),
             Element::FpText(ref p) => write!(f, "{}",p),
             Element::Pad(ref pad) => write!(f, "{}", pad),
             Element::FpPoly(ref p) => write!(f, "{}", p),
@@ -192,8 +201,8 @@ impl FpText {
 }
 
 impl fmt::Display for FpText {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "(fp_text {} {} {} (layer {}){} {})", self.name, rustysexp::display_string(&self.value), self.at, self.layer, if self.hide { " hide" } else { "" }, self.effects)
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        write!(f, "(fp_text {} {} {} (layer {}){} {})", self.name, display_string(&self.value), self.at, self.layer, if self.hide { " hide" } else { "" }, self.effects)
     }
 }
 
@@ -214,7 +223,7 @@ impl At {
 }
 
 impl fmt::Display for At {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         if self.rot == 0.0 {
             write!(f, "(at {} {})", self.x, self.y)
         } else {
@@ -237,7 +246,7 @@ impl Font {
 
 
 impl fmt::Display for Font {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "(font (size {} {}) (thickness {}))", self.size.x, self.size.y, self.thickness)
     }
 }
@@ -264,7 +273,7 @@ impl Effects {
 }
 
 impl fmt::Display for Effects {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         let justify = match self.justify {
             None => String::from(""),
             Some(ref j) => format!(" {}", j),
@@ -274,7 +283,7 @@ impl fmt::Display for Effects {
 }
 
 impl fmt::Display for Justify {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
             Justify::Mirror => write!(f,"(justify mirror)"),
         }
@@ -317,7 +326,7 @@ impl Pts {
 
 
 impl fmt::Display for Xy {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match self.t {
             XyType::Xy => write!(f,"(xy {} {})", self.x, self.y),
             XyType::Start => write!(f,"(start {} {})", self.x, self.y),
@@ -328,7 +337,7 @@ impl fmt::Display for Xy {
     }
 }
 impl fmt::Display for Pts {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(write!(f, "(pts"));
         for x in &self.elements {
             try!(write!(f, " {}", x));
@@ -345,7 +354,7 @@ pub struct Drill {
 }
 
 impl fmt::Display for Drill {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(write!(f,"(drill "));
         match self.shape {
             Some(ref s) => try!(write!(f, "{} ", s)),
@@ -378,7 +387,7 @@ enum Part {
 
 // as parts are intermediate only Display doesn't really matter
 impl fmt::Display for Part {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
             Part::At(ref at)           => write!(f, "{}", at),
             Part::Layer(ref layer)     => write!(f, "(layer {})", layer),
@@ -406,18 +415,18 @@ pub enum PadType {
 }
 
 impl PadType {
-    fn from_string(s: String) -> ERes<PadType> {
+    fn from_string(s: String) -> Result<PadType> {
         match &s[..] {
             "smd" => Ok(PadType::Smd),
             "thru_hole" => Ok(PadType::Pth),
             "np_thru_hole" => Ok(PadType::NpPth),
-            x => Err(format!("unknown PadType {}", x))
+            x => str_error(format!("unknown PadType {}", x))
         }
     }
 }
 
 impl fmt::Display for PadType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
             PadType::Smd => write!(f, "smd"),
             PadType::Pth => write!(f, "thru_hole"),
@@ -435,18 +444,18 @@ pub enum PadShape {
 }
 
 impl PadShape {
-    fn from_string(s: String) -> ERes<PadShape> {
+    fn from_string(s: String) -> Result<PadShape> {
         match &s[..] {
             "rect" => Ok(PadShape::Rect),
             "circle" => Ok(PadShape::Circle),
             "oval" => Ok(PadShape::Oval),
-            x => Err(format!("unknown PadShape: {}", x))
+            x => str_error(format!("unknown PadShape: {}", x))
         }
     }
 }
 
 impl fmt::Display for PadShape {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
             PadShape::Rect => write!(f, "rect"),
             PadShape::Circle => write!(f, "circle"),
@@ -497,7 +506,7 @@ impl Layer {
         Layer { side:LayerSide::Front, t:LayerType::Cu }
     }
     
-    pub fn from_string(s: String) -> ERes<Layer> {
+    pub fn from_string(s: String) -> Result<Layer> {
         let sp:Vec<&str> = s.split('.').collect();
         let mut side = LayerSide::None;
         let mut s_t = sp[0];
@@ -513,7 +522,7 @@ impl Layer {
                 "In1" => LayerSide::In1,
                 "In2" => LayerSide::In2,
                 "*" => LayerSide::Both,
-                x => return Err(format!("unknown layer side {}", x)),
+                x => return str_error(format!("unknown layer side {}", x)),
             };
             s_t = sp[1];
         }
@@ -538,7 +547,7 @@ impl Layer {
 }
 
 impl fmt::Display for Layer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(match self.side {
             LayerSide::Front => write!(f, "F."),
             LayerSide::Back  => write!(f, "B."),
@@ -585,7 +594,7 @@ impl Layers {
 }
 
 impl fmt::Display for Layers {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         let len = self.layers.len();
         if len == 0 {
             return write!(f,"(layers)"); // or nothing?
@@ -646,7 +655,7 @@ impl Pad {
 }
 
 impl fmt::Display for Pad {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         let net = match self.net {
             None => String::from(""),
             Some(ref net) => format!(" {}", net),
@@ -691,7 +700,7 @@ impl FpPoly {
 }
 
 impl fmt::Display for FpPoly {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         let l = self.pts.elements.len();
         if l == 0 {
             return Ok(())
@@ -729,7 +738,7 @@ impl FpLine {
 
 
 impl fmt::Display for FpLine {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "(fp_line {} {} (layer {}) (width {}))", self.start, self.end, self.layer, self.width)
     }
 }
@@ -764,7 +773,7 @@ pub struct FpCircle {
 }
 
 impl fmt::Display for FpCircle {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "(fp_circle {} {} (layer {}) (width {}))", self.center, self.end, self.layer, self.width)
     }
 }
@@ -776,7 +785,7 @@ pub struct Net {
 }
 
 impl fmt::Display for Net {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "(net {} \"{}\")", self.num, self.name)
     }
 }
@@ -790,7 +799,7 @@ pub struct Model {
 }
 
 impl fmt::Display for Model {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "(model {} (at {}) (scale {}) (rotate {}))", self.name, self.at, self.scale, self.rotate)
     }
 }
@@ -810,14 +819,14 @@ impl Xyz {
 
 
 impl fmt::Display for Xyz {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "(xyz {} {} {})", self.x, self.y, self.z)
     }
 }
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
-impl FromSexp for ERes<At> {
-    fn from_sexp(s:&Sexp) -> ERes<At> {
+impl FromSexp for Result<At> {
+    fn from_sexp(s:&Sexp) -> Result<At> {
         let v = try!(s.slice_atom("at"));
         match v.len() {
             2 => {
@@ -831,20 +840,20 @@ impl FromSexp for ERes<At> {
                 let rot = try!(v[2].f());
                 Ok(At::new(x, y, rot))
             }
-            _ => err("at with wrong length")
+            _ => str_error("at with wrong length".to_string())
         }
     }
 }
 
-pub fn wrap<X,Y,F,G>(s:&Sexp, make:F, wrapper:G) -> ERes<Y>
-    where F:Fn(&Sexp) -> ERes<X>, G:Fn(X) -> Y
+pub fn wrap<X,Y,F,G>(s:&Sexp, make:F, wrapper:G) -> Result<Y>
+    where F:Fn(&Sexp) -> Result<X>, G:Fn(X) -> Y
 {
     Ok(wrapper(try!(make(s))))
 }
 
 
-impl FromSexp for ERes<Layer> {
-    fn from_sexp(s:&Sexp) -> ERes<Layer> {
+impl FromSexp for Result<Layer> {
+    fn from_sexp(s:&Sexp) -> Result<Layer> {
         let v = try!(s.slice_atom("layer"));
         let layer = try!(v[0].string());
         let layer = try!(Layer::from_string(layer.clone()));
@@ -852,17 +861,17 @@ impl FromSexp for ERes<Layer> {
     }
 }
 
-impl FromSexp for ERes<Effects> {
-    fn from_sexp(s:&Sexp) -> ERes<Effects> {
+impl FromSexp for Result<Effects> {
+    fn from_sexp(s:&Sexp) -> Result<Effects> {
         //let v = try!(s.slice_atom_num("effects", 1));
         // TODO investigate why the above doesn't work !?
         let v = try!(s.slice_atom("effects"));
         if v.len() < 1 {
-            return Err(format!("Expected at least one element in {}", s))
+            return str_error(format!("Expected at least one element in {}", s))
         }
-        let font = try!(ERes::from_sexp(&v[0]));
+        let font = try!(Result::from_sexp(&v[0]));
         let justify = if v.len() > 1 {
-            Some(try!(ERes::from_sexp(&v[1])))
+            Some(try!(Result::from_sexp(&v[1])))
         } else {
             None
         };
@@ -870,22 +879,22 @@ impl FromSexp for ERes<Effects> {
     }
 }
 
-impl FromSexp for ERes<Justify> {
-    fn from_sexp(s:&Sexp) -> ERes<Justify> {
+impl FromSexp for Result<Justify> {
+    fn from_sexp(s:&Sexp) -> Result<Justify> {
         let v = try!(s.slice_atom("justify"));
         if v.len() < 1 {
-            return Err(format!("Expected at least one element in {}", s))
+            return str_error(format!("Expected at least one element in {}", s))
         }
         let s = try!(v[0].string());
         match &s[..] {
             "mirror" => Ok(Justify::Mirror),
-            _ => Err(format!("unknown justify: {}", s))
+            _ => str_error(format!("unknown justify: {}", s))
         }
     }
 }
 
-impl FromSexp for ERes<Font> {
-    fn from_sexp(s:&Sexp) -> ERes<Font> {
+impl FromSexp for Result<Font> {
+    fn from_sexp(s:&Sexp) -> Result<Font> {
         let v = try!(s.slice_atom("font"));
         let parts = try!(parse_parts(&v));
         let mut font = Font::new();
@@ -908,8 +917,8 @@ impl FromSexp for ERes<Font> {
     }
 }
 
-impl FromSexp for ERes<Layers> {
-    fn from_sexp(s:&Sexp) -> ERes<Layers> {
+impl FromSexp for Result<Layers> {
+    fn from_sexp(s:&Sexp) -> Result<Layers> {
         let mut l = Layers::new();
         let v = try!(s.slice_atom("layers"));
         for v1 in v {
@@ -921,31 +930,31 @@ impl FromSexp for ERes<Layers> {
     }
 }
 
-fn parse_part_float<F>(e: &Sexp, make:F) -> ERes<Part>
+fn parse_part_float<F>(e: &Sexp, make:F) -> Result<Part>
     where F:Fn(f64) -> Part
 {
     let v = try!(e.list());
     if v.len() < 2 {
-        return Err(format!("not enough elements in {}", e))
+        return str_error(format!("not enough elements in {}", e))
     }
     let f = try!(v[1].f());
     Ok(make(f))
 }
 
-impl FromSexp for ERes<Vec<Xy> > {
-    fn from_sexp(s:&Sexp) -> ERes<Vec<Xy> > {
+impl FromSexp for Result<Vec<Xy> > {
+    fn from_sexp(s:&Sexp) -> Result<Vec<Xy> > {
         let v = try!(s.slice_atom("pts"));
         let mut pts = vec![];
         for e in &v[1..] {
-            let p = try!(ERes::from_sexp(e));
+            let p = try!(Result::from_sexp(e));
             pts.push(p)
         }
         Ok(pts)
     }
 }
 
-impl FromSexp for ERes<Xy> {
-    fn from_sexp(s: &Sexp) -> ERes<Xy> {
+impl FromSexp for Result<Xy> {
+    fn from_sexp(s: &Sexp) -> Result<Xy> {
         let name = try!(s.list_name());
         let t = try!(match &name[..] {
             "xy" => Ok(XyType::Xy),
@@ -953,7 +962,7 @@ impl FromSexp for ERes<Xy> {
             "end" => Ok(XyType::End),
             "size" => Ok(XyType::Size),
             "center" => Ok(XyType::Center),
-            ref x => Err(format!("unknown XyType {}", x)),
+            ref x => str_error(format!("unknown XyType {}", x)),
         });
         let v = try!(s.slice_atom_num(&name, 2));
         let x = try!(v[0].f());
@@ -962,12 +971,12 @@ impl FromSexp for ERes<Xy> {
     }
 }
 
-impl FromSexp for ERes<Pts> {
-    fn from_sexp(s: &Sexp) -> ERes<Pts> {
+impl FromSexp for Result<Pts> {
+    fn from_sexp(s: &Sexp) -> Result<Pts> {
         let v = try!(s.slice_atom("pts"));
         let mut r = vec![];
         for x in v {
-            let xy = try!(ERes::from_sexp(x));
+            let xy = try!(Result::from_sexp(x));
             r.push(xy)
         }
         Ok(Pts { elements:r })
@@ -975,8 +984,8 @@ impl FromSexp for ERes<Pts> {
 }
 
 
-impl FromSexp for ERes<Xyz> {
-    fn from_sexp(s: &Sexp) -> ERes<Xyz> {
+impl FromSexp for Result<Xyz> {
+    fn from_sexp(s: &Sexp) -> Result<Xyz> {
         let v = try!(s.slice_atom_num("xyz", 3));
         let x = try!(v[0].f());
         let y = try!(v[1].f());
@@ -985,8 +994,8 @@ impl FromSexp for ERes<Xyz> {
     }
 }
 
-impl FromSexp for ERes<Net> {
-    fn from_sexp(s: &Sexp) -> ERes<Net> {
+impl FromSexp for Result<Net> {
+    fn from_sexp(s: &Sexp) -> Result<Net> {
         let v = try!(s.slice_atom_num("net", 2));
         let num = try!(v[0].i());
         let name = try!(v[1].string());
@@ -994,8 +1003,8 @@ impl FromSexp for ERes<Net> {
     }
 }
 
-impl FromSexp for ERes<Drill> {
-    fn from_sexp(s: &Sexp) -> ERes<Drill> {
+impl FromSexp for Result<Drill> {
+    fn from_sexp(s: &Sexp) -> Result<Drill> {
         let v = try!(s.slice_atom("drill"));
         if v.len() == 1 {
             let drill = try!(v[0].f());
@@ -1007,60 +1016,60 @@ impl FromSexp for ERes<Drill> {
             let drill2 = try!(v[2].f());
             Ok(Drill { shape:Some(shape.clone()), drill:drill, drill2:Some(drill2) })
         } else {
-            Err(format!("unknown drill format"))
+            str_error(format!("unknown drill format"))
         }
     }
 }
 
-impl FromSexp for ERes<Part> {
-    fn from_sexp(s:&Sexp) -> ERes<Part> {
+impl FromSexp for Result<Part> {
+    fn from_sexp(s:&Sexp) -> Result<Part> {
         match s.string() {
             Ok(ref sx) => match &sx[..] {
                 "hide" => Ok(Part::Hide),
-                x => Err(format!("unknown part in element: {}", x))
+                x => str_error(format!("unknown part in element: {}", x))
             },
             _ => {
                 let name = &try!(s.list_name())[..];
                 match name {
-                    "at" => wrap(s, ERes::from_sexp, Part::At),
-                    "layer" => wrap(s, ERes::from_sexp, Part::Layer),
-                    "effects" => wrap(s, ERes::from_sexp, Part::Effects),
-                    "layers" => wrap(s, ERes::from_sexp, Part::Layers),
+                    "at" => wrap(s, Result::from_sexp, Part::At),
+                    "layer" => wrap(s, Result::from_sexp, Part::Layer),
+                    "effects" => wrap(s, Result::from_sexp, Part::Effects),
+                    "layers" => wrap(s, Result::from_sexp, Part::Layers),
                     "width" => parse_part_float(s, Part::Width),
-                    "start" => wrap(s, ERes::from_sexp, Part::Xy),
-                    "end" => wrap(s, ERes::from_sexp, Part::Xy),
-                    "size" => wrap(s, ERes::from_sexp, Part::Xy),
-                    "center" => wrap(s, ERes::from_sexp, Part::Xy),
-                    "pts" => wrap(s, ERes::from_sexp, Part::Pts),
+                    "start" => wrap(s, Result::from_sexp, Part::Xy),
+                    "end" => wrap(s, Result::from_sexp, Part::Xy),
+                    "size" => wrap(s, Result::from_sexp, Part::Xy),
+                    "center" => wrap(s, Result::from_sexp, Part::Xy),
+                    "pts" => wrap(s, Result::from_sexp, Part::Pts),
                     "thickness" => parse_part_float(s, Part::Thickness),
-                    "net" => wrap(s, ERes::from_sexp, Part::Net),
-                    "drill" => wrap(s, ERes::from_sexp, Part::Drill),
+                    "net" => wrap(s, Result::from_sexp, Part::Net),
+                    "drill" => wrap(s, Result::from_sexp, Part::Drill),
                     "solder_paste_margin" => parse_part_float(s, Part::SolderPasteMargin),
-                    x => Err(format!("unknown part {}", x))
+                    x => str_error(format!("unknown part {}", x))
                 }
             }
         }
     }        
 }
 
-fn parse_parts(v: &[Sexp]) -> ERes<Vec<Part>> {
+fn parse_parts(v: &[Sexp]) -> Result<Vec<Part>> {
     let mut res = Vec::new();
     for e in v {
-        let p = try!(ERes::from_sexp(e));
+        let p = try!(Result::from_sexp(e));
         res.push(p);
     }
     Ok(res)
 }
 
-fn parse_string_element(s:&Sexp) -> ERes<String> {
+fn parse_string_element(s:&Sexp) -> Result<String> {
     let name = try!(s.list_name());
     let v = try!(s.slice_atom_num(&name, 1));
     let s = try!(v[0].string());
     Ok(s.clone())
 }
 
-impl FromSexp for ERes<FpText> {
-    fn from_sexp(s:&Sexp) -> ERes<FpText> {
+impl FromSexp for Result<FpText> {
+    fn from_sexp(s:&Sexp) -> Result<FpText> {
         let v = try!(s.slice_atom("fp_text"));
         let name = try!(v[0].string());
         let value = try!(v[1].string());
@@ -1081,7 +1090,7 @@ impl FromSexp for ERes<FpText> {
                     fp.set_effects(effects)
                 }
                 ref x => {
-                    return Err(format!("fp_text: unknown {}", x))
+                    return str_error(format!("fp_text: unknown {}", x))
                 }
             }
         }
@@ -1089,11 +1098,11 @@ impl FromSexp for ERes<FpText> {
     }
 }
 
-impl FromSexp for ERes<Pad> {
-    fn from_sexp(s:&Sexp) -> ERes<Pad> {
+impl FromSexp for Result<Pad> {
+    fn from_sexp(s:&Sexp) -> Result<Pad> {
         let v = try!(s.slice_atom("pad"));
         if v.len() < 3 {
-            return Err(format!("not enough elements in pad"))
+            return str_error(format!("not enough elements in pad"))
         }
         let name = try!(v[0].string()).clone();
         let t = try!(v[1].string());
@@ -1111,15 +1120,15 @@ impl FromSexp for ERes<Pad> {
                 Part::Net(ref n) => pad.set_net(n),
                 Part::Drill(ref n) => pad.set_drill(n),
                 Part::SolderPasteMargin(n) => pad.solder_paste_margin = Some(n),
-                ref x => return Err(format!("pad: unknown {}", x)),
+                ref x => return str_error(format!("pad: unknown {}", x)),
             }
         }
         Ok(pad)
     }
 }
 
-impl FromSexp for ERes<FpPoly> {
-    fn from_sexp(s:&Sexp) -> ERes<FpPoly> {
+impl FromSexp for Result<FpPoly> {
+    fn from_sexp(s:&Sexp) -> Result<FpPoly> {
         let v = try!(s.slice_atom("fp_poly"));
         let mut fp_poly = FpPoly::new();
         let parts = try!(parse_parts(&v));
@@ -1135,8 +1144,8 @@ impl FromSexp for ERes<FpPoly> {
     }
 }
 
-impl FromSexp for ERes<FpLine> {
-    fn from_sexp(s:&Sexp) -> ERes<FpLine> {
+impl FromSexp for Result<FpLine> {
+    fn from_sexp(s:&Sexp) -> Result<FpLine> {
         let v = try!(s.slice_atom("fp_line"));
         let mut fp_line = FpLine::new();
         let parts = try!(parse_parts(&v));
@@ -1146,15 +1155,15 @@ impl FromSexp for ERes<FpLine> {
                 Part::Xy(ref xy) if xy.t == XyType::End => fp_line.end.clone_from(xy),
                 Part::Layer(ref layer) => fp_line.layer.clone_from(layer),
                 Part::Width(w) => fp_line.width = w,
-                ref x => return Err(format!("fp_line: unknown {}", x)),
+                ref x => return str_error(format!("fp_line: unknown {}", x)),
             }
         }
         Ok(fp_line)
     }
 }
 
-impl FromSexp for ERes<FpCircle> {
-    fn from_sexp(s:&Sexp) -> ERes<FpCircle> {
+impl FromSexp for Result<FpCircle> {
+    fn from_sexp(s:&Sexp) -> Result<FpCircle> {
         let v = try!(s.slice_atom("fp_circle"));
         let mut fp_circle = FpCircle::new();
         let parts = try!(parse_parts(&v));
@@ -1164,22 +1173,22 @@ impl FromSexp for ERes<FpCircle> {
                 Part::Xy(ref xy) if xy.t == XyType::End => fp_circle.end.clone_from(xy),
                 Part::Layer(ref layer) => fp_circle.layer.clone_from(layer),
                 Part::Width(w) => fp_circle.width = w,
-                ref x => return Err(format!("fp_circle: unexpected {}", x)),
+                ref x => return str_error(format!("fp_circle: unexpected {}", x)),
             }
         }
         Ok(fp_circle)
     }
 }
 
-fn parse_sublist<X>(s:&Sexp, name:&'static str) -> ERes<X>
-    where ERes<X>:FromSexp {
+fn parse_sublist<X>(s:&Sexp, name:&'static str) -> Result<X>
+    where Result<X>:FromSexp {
     let x = &try!(s.slice_atom_num(name, 1))[0];
-    ERes::from_sexp(x)
+    Result::from_sexp(x)
 }
 
 
-impl FromSexp for ERes<Model> {
-    fn from_sexp(s:&Sexp) -> ERes<Model> {
+impl FromSexp for Result<Model> {
+    fn from_sexp(s:&Sexp) -> Result<Model> {
         let v = try!(s.slice_atom_num("model", 4));
         let name = try!(v[0].string()).clone();
         let at = try!(parse_sublist(&v[1], "at"));
@@ -1190,59 +1199,59 @@ impl FromSexp for ERes<Model> {
     }
 }
 
-impl FromSexp for ERes<Element> {
-    fn from_sexp(s:&Sexp) -> ERes<Element> {
-        match s.element {
-            rustysexp::Element::String(ref s) => {
+impl FromSexp for Result<Element> {
+    fn from_sexp(s:&Sexp) -> Result<Element> {
+        match *s {
+            Sexp::String(ref s) => {
                 match &s[..] {
                     "locked" => Ok(Element::Locked),
-                    _ => Err(format!("unknown element in module: {}", s))
+                    _ => str_error(format!("unknown element in module: {}", s))
                 }
             },
-            rustysexp::Element::List(_) => {
+            Sexp::List(_) => {
                 let name = try!(s.list_name());
                 match &name[..] {
                     "layer" => wrap(s, parse_string_element, Element::Layer),
                     "descr" => wrap(s, parse_string_element, Element::Descr),
                     "tags" => wrap(s, parse_string_element, Element::Tags),
                     "attr" => wrap(s, parse_string_element, Element::Attr),
-                    "fp_text" => wrap(s, ERes::from_sexp, Element::FpText),
-                    "pad" => wrap(s, ERes::from_sexp, Element::Pad),
-                    "fp_poly" => wrap(s, ERes::from_sexp, Element::FpPoly),
-                    "fp_line" => wrap(s, ERes::from_sexp, Element::FpLine),
-                    "fp_circle" => wrap(s, ERes::from_sexp, Element::FpCircle),
+                    "fp_text" => wrap(s, Result::from_sexp, Element::FpText),
+                    "pad" => wrap(s, Result::from_sexp, Element::Pad),
+                    "fp_poly" => wrap(s, Result::from_sexp, Element::FpPoly),
+                    "fp_line" => wrap(s, Result::from_sexp, Element::FpLine),
+                    "fp_circle" => wrap(s, Result::from_sexp, Element::FpCircle),
                     "tedit" => wrap(s, parse_string_element, Element::TEdit),
                     "tstamp" => wrap(s, parse_string_element, Element::TStamp),
                     "path" => wrap(s, parse_string_element, Element::Path),
-                    "at" => wrap(s, ERes::from_sexp, Element::At),
-                    "model" => wrap(s, ERes::from_sexp, Element::Model),
-                    _ => Err(format!("unknown element in module: {}", name))
+                    "at" => wrap(s, Result::from_sexp, Element::At),
+                    "model" => wrap(s, Result::from_sexp, Element::Model),
+                    _ => str_error(format!("unknown element in module: {}", name))
                 }
             },
-            rustysexp::Element::Empty => unreachable!(),
+            Sexp::Empty => unreachable!(),
         }
     }
 }
 
-impl FromSexp for ERes<Module> {
-    fn from_sexp(s:&Sexp) -> ERes<Module> {
+impl FromSexp for Result<Module> {
+    fn from_sexp(s:&Sexp) -> Result<Module> {
         let v = try!(s.slice_atom("module"));
         if v.len() < 1 {
-            return Err(String::from("no name in module"));
+            return str_error("no name in module".to_string());
         }
         let name = try!(v[0].string());
         let mut module = Module::new(name.clone());
         for e in &v[1..] {
-            let el = try!(ERes::from_sexp(&e));
+            let el = try!(Result::from_sexp(&e));
             module.append(el)
         }
         Ok(module)
     }
 }
 
-pub fn parse(s: &str) -> ERes<Module> {
-    match rustysexp::parse_str(s) {
-        Ok(s) => ERes::from_sexp(&s),
-        Err(x) => Err(format!("IOError: {}", x))
+pub fn parse(s: &str) -> Result<Module> {
+    match symbolic_expressions::parser::parse_str(s) {
+        Ok(s) => Result::from_sexp(&s),
+        Err(x) => str_error(format!("IOError: {:?}", x))
     }
 }

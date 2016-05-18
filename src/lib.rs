@@ -1,34 +1,29 @@
 // (c) 2016 Productize SPRL <joost@productize.be>
 
+#![cfg_attr(feature = "nightly-testing", plugin(clippy))]
+
+#[macro_use]
+extern crate nom;
+
+extern crate rustc_serialize;
+extern crate symbolic_expressions;
+
 use std::fmt;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
 
-extern crate rustc_serialize;
+pub use symbolic_expressions::Sexp;
+pub use error::*;
 
-#[macro_use]
-extern crate nom;
-
-pub type ERes<T> = Result<T, String>;
-
-pub fn err<T>(msg: &str) -> ERes<T> {
-    Err(String::from(msg))
-}
-
-pub fn read_file(name: &str) -> ERes<String> {
-    let mut f = try!(match File::open(name) {
-        Ok(f) => Ok(f),
-        Err(err) => Err(format!("open error in file '{}': {}", name, err))
-    });
+pub fn read_file(name: &str) -> Result<String> {
+    let mut f = try!(File::open(name));
     let mut s = String::new();
-    match f.read_to_string(&mut s) {
-        Ok(_) => Ok(s),
-        Err(err) => Err(format!("read error in file '{}': {}", name, err))
-    }
+    try!(f.read_to_string(&mut s));
+    Ok(s)
 }
 
-pub fn write_file(name:&str, data:&String) -> ERes<()> {
+pub fn write_file(name:&str, data:&String) -> Result<()> {
     let mut f = try!(match File::create(name) {
         Ok(f) => Ok(f),
         Err(err) => Err(format!("create error in file '{}': {}", name, err))
@@ -75,7 +70,7 @@ pub fn parse_split_quote_aware(s:&String) -> Vec<String> {
     return v
 }
 
-pub fn parse_split_quote_aware_n(n:usize, s:&String) -> ERes<Vec<String>> {
+pub fn parse_split_quote_aware_n(n:usize, s:&String) -> Result<Vec<String>> {
     let mut i = 0;
     let mut v:Vec<String> = vec![];
     let mut in_q:bool = false;
@@ -112,18 +107,10 @@ pub fn parse_split_quote_aware_n(n:usize, s:&String) -> ERes<Vec<String>> {
         v.push(s2.clone())
     }
     if v.len() < n {
-        return Err(format!("expecting {} elements in {}", n, s))
+        return str_error(format!("expecting {} elements in {}", n, s))
     }
     Ok(v)
 }
-
-pub mod footprint;
-pub mod schematic;
-pub mod layout;
-pub mod symbol_lib;
-pub mod project;
-
-//pub mod schematic2;
 
 pub enum KicadFile {
     Unknown(String),
@@ -146,7 +133,7 @@ pub enum Expected {
 
 
 impl fmt::Display for KicadFile {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> std::result::Result<(), fmt::Error> {
         match *self {
             KicadFile::Unknown(ref x)   => write!(f, "unknown: {}", x),
             KicadFile::Module(_)    => write!(f, "module"),
@@ -159,7 +146,7 @@ impl fmt::Display for KicadFile {
 }
 
 
-pub fn read_kicad_file(name: &str, expected:Expected) -> ERes<KicadFile> {
+pub fn read_kicad_file(name: &str, expected:Expected) -> Result<KicadFile> {
     let pb = std::path::PathBuf::from(name);
     let data = try!(read_file(name));
     let mut msg = String::new();
@@ -186,37 +173,44 @@ pub fn read_kicad_file(name: &str, expected:Expected) -> ERes<KicadFile> {
     return Ok(KicadFile::Unknown(format!("{}: {}", name, msg)))
 }
 
-pub fn read_module(name: &str) -> ERes<footprint::Module> {
+pub fn read_module(name: &str) -> Result<footprint::Module> {
     match try!(read_kicad_file(name, Expected::Module)) {
         KicadFile::Module(mo) => Ok(mo),
-        x => Err(format!("unexpected {} in {}", x, name)),
+        x => str_error(format!("unexpected {} in {}", x, name)),
     }
 }
 
-pub fn read_schematic(name: &str) -> ERes<schematic::Schematic> {
+pub fn read_schematic(name: &str) -> Result<schematic::Schematic> {
     match try!(read_kicad_file(name, Expected::Schematic)) {
         KicadFile::Schematic(mo) => Ok(mo),
-        x => Err(format!("unexpected {} in {}", x, name)),
+        x => str_error(format!("unexpected {} in {}", x, name)),
     }
 }
 
-pub fn read_layout(name: &str) -> ERes<layout::Layout> {
+pub fn read_layout(name: &str) -> Result<layout::Layout> {
     match try!(read_kicad_file(name, Expected::Layout)) {
         KicadFile::Layout(mo) => Ok(mo),
-        x => Err(format!("unexpected {} in {}", x, name)),
+        x => str_error(format!("unexpected {} in {}", x, name)),
     }
 }
 
-pub fn read_symbol_lib(name: &str) -> ERes<symbol_lib::SymbolLib> {
+pub fn read_symbol_lib(name: &str) -> Result<symbol_lib::SymbolLib> {
     match try!(read_kicad_file(name, Expected::SymbolLib)) {
         KicadFile::SymbolLib(mo) => Ok(mo),
-        x => Err(format!("unexpected {} in {}", x, name)),
+        x => str_error(format!("unexpected {} in {}", x, name)),
     }
 }
 
-pub fn read_project(name: &str) -> ERes<project::Project> {
+pub fn read_project(name: &str) -> Result<project::Project> {
     match try!(read_kicad_file(name, Expected::Project)) {
         KicadFile::Project(mo) => Ok(mo),
-        x => Err(format!("unexpected {} in {}", x, name)),
+        x => str_error(format!("unexpected {} in {}", x, name)),
     }
 }
+
+pub mod error;
+pub mod footprint;
+pub mod schematic;
+pub mod layout;
+pub mod symbol_lib;
+pub mod project;

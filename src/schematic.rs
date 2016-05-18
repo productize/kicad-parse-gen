@@ -4,11 +4,13 @@ use std::fmt;
 use std::str::FromStr;
 use std::path::PathBuf;
 use std::collections::HashMap;
+use std::result;
 
 // get from parent
-use ERes;
-use err;
+use Result;
+use str_error as err;
 use read_file;
+use str_error;
 
 #[derive(Debug)]
 pub struct Schematic {
@@ -98,7 +100,7 @@ impl Schematic {
         v
     }
 
-    pub fn component_by_reference(&self, reference:&String) -> ERes<Component> {
+    pub fn component_by_reference(&self, reference:&String) -> Result<Component> {
         for ref x in self.elements.iter() {
             match **x {
                 Element::Component(ref c) => {
@@ -116,7 +118,7 @@ impl Schematic {
                 _ => ()
             }
         }
-        Err(format!("could not find component {} in schematic", reference))
+        str_error(format!("could not find component {} in schematic", reference))
     }
 
     pub fn increment_sheet_count(&mut self) {
@@ -126,7 +128,7 @@ impl Schematic {
 }
 
 impl fmt::Display for Schematic {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(writeln!(f, "EESchema Schematic File Version 2"));
         for v in &self.libraries[..] {
             try!(writeln!(f, "LIBS:{}", v))
@@ -148,10 +150,10 @@ impl fmt::Display for Schematic {
 macro_rules! assume_line {
     ($s:expr, $exp:expr) => (
         if $s.eof() {
-            return err("end of file reached")
+            return str_error("end of file reached".to_string())
         }
         if $s.here() != $exp {
-            return Err(format!("expected '{}', got '{}'", $exp, $s.here()))
+            return str_error(format!("expected '{}', got '{}'", $exp, $s.here()))
         }
         $s.i += 1;
     )
@@ -237,7 +239,7 @@ impl Description {
 }
 
 impl fmt::Display for Description {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(writeln!(f, "$Descr {} {} {}", self.size, self.dimx, self.dimy));
         try!(writeln!(f, "encoding utf-8"));
         try!(writeln!(f, "Sheet {} {}", self.sheet, self.sheet_count));
@@ -260,7 +262,7 @@ pub enum Element {
 }
 
 impl fmt::Display for Element {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
             Element::Component(ref c) => write!(f, "{}", c),
             Element::Other(ref c) => write!(f, "{}\n", c),
@@ -377,7 +379,7 @@ impl Component {
 }
 
 impl fmt::Display for Component {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(writeln!(f, "$Comp"));
         try!(writeln!(f, "L {} {}", self.name, self.reference));
         try!(writeln!(f, "{}", self.u));
@@ -406,18 +408,18 @@ pub enum Orientation {
 }
 
 impl Orientation {
-    pub fn new(c:char) -> ERes<Orientation> {
+    pub fn new(c:char) -> Result<Orientation> {
         match c {
             'H' => Ok(Orientation::Horizontal),
             'V' => Ok(Orientation::Vertical),
-            _ => Err(format!("unknown orientation {}", c))
+            _ => str_error(format!("unknown orientation {}", c))
         }
         
     }
 }
 
 impl fmt::Display for Orientation {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
             Orientation::Horizontal => write!(f, "H"),
             Orientation::Vertical => write!(f, "V"),
@@ -436,20 +438,20 @@ pub enum Justify {
 }
 
 impl Justify {
-    pub fn new(c: char) -> ERes<Justify> {
+    pub fn new(c: char) -> Result<Justify> {
         match c {
             'C' => Ok(Justify::Center),
             'R' => Ok(Justify::Right),
             'L' => Ok(Justify::Left),
             'B' => Ok(Justify::Bottom),
             'T' => Ok(Justify::Top),
-            _ => Err(format!("unexpected justify: {}", c))
+            _ => str_error(format!("unexpected justify: {}", c))
         }
     }
 }
 
 impl fmt::Display for Justify {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
             Justify::Left => write!(f, "L"),
             Justify::Right => write!(f, "R"),
@@ -479,9 +481,9 @@ pub struct ComponentField {
 }
 
 impl ComponentField {
-    fn new(p:&ParseState, v:&Vec<String>) -> ERes<ComponentField> {
+    fn new(p:&ParseState, v:&Vec<String>) -> Result<ComponentField> {
         if v.len() != 10 && v.len() != 11 {
-            return Err(format!("expecting 10 or 11 parts got {} in {}", v.len(), p.here()))
+            return str_error(format!("expecting 10 or 11 parts got {} in {}", v.len(), p.here()))
         }
         let i = try!(i64_from_string(p, &v[1]));
         let name = if v.len() == 11 {
@@ -492,7 +494,7 @@ impl ComponentField {
                 1 => String::from("Value"),
                 2 => String::from("Footprint"),
                 3 => String::from("UserDocLink"),
-                _ => return Err(format!("expecting name for componentfield > 3")),
+                _ => return str_error(format!("expecting name for componentfield > 3")),
             }
         };
         let c = ComponentField {
@@ -531,7 +533,7 @@ impl ComponentField {
 }
 
 impl fmt::Display for ComponentField {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(write!(f, "F {} \"{}\" {} ", self.i, self.value, self.orientation));
         try!(write!(f, "{} {} {} ", self.x, self.y, self.size));
         try!(write!(f, "{} ", if self.visible { "0000" } else { "0001" }));
@@ -570,7 +572,7 @@ impl Sheet {
 }
 
 impl fmt::Display for Sheet {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(writeln!(f, "$Sheet"));
         try!(writeln!(f, "S {} {} {} {}", self.x, self.y, self.dimx, self.dimy));
         try!(writeln!(f, "U {}", self.unique));
@@ -607,7 +609,7 @@ impl SheetLabel {
 }
 
 impl fmt::Display for SheetLabel {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "\"{}\" {} {} {} {} {}", self.name, self.form, self.side, self.x, self.y, self.size)
     }
 }
@@ -616,7 +618,7 @@ impl fmt::Display for SheetLabel {
 pub enum LabelForm { Input, Output, BiDi, TriState, Unspecified }
 
 impl fmt::Display for LabelForm {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         let c = match *self {
             LabelForm::Input => 'I',
             LabelForm::Output => 'O',
@@ -632,7 +634,7 @@ impl fmt::Display for LabelForm {
 pub enum LabelSide { Left, Right, Top, Bottom }
 
 impl fmt::Display for LabelSide {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         let c = match *self {
             LabelSide::Left => 'L',
             LabelSide::Right => 'R',
@@ -649,9 +651,9 @@ fn char_at(s:&String, p:usize) -> char {
 }
 
 
-fn assume_string(e:&'static str, s:&String) -> ERes<()> {
+fn assume_string(e:&'static str, s:&String) -> Result<()> {
     if String::from(e) != *s {
-        return Err(format!("expecting: {}, actually: {}", e, s))
+        return str_error(format!("expecting: {}, actually: {}", e, s))
     }
     return Ok(())
 }
@@ -689,7 +691,7 @@ fn parse_split_quote_aware(s:&String) -> Vec<String> {
     return v
 }
 
-fn parse_split_quote_aware_n(n:usize, s:&String) -> ERes<Vec<String>> {
+fn parse_split_quote_aware_n(n:usize, s:&String) -> Result<Vec<String>> {
     let mut i = 0;
     let mut v:Vec<String> = vec![];
     let mut in_q:bool = false;
@@ -726,46 +728,46 @@ fn parse_split_quote_aware_n(n:usize, s:&String) -> ERes<Vec<String>> {
         v.push(s2.clone())
     }
     if v.len() < n {
-        return Err(format!("expecting {} elements in {}", n, s))
+        return str_error(format!("expecting {} elements in {}", n, s))
     }
     Ok(v)
 }
 
-fn i64_from_string(p:&ParseState, s:&String) -> ERes<i64> {
+fn i64_from_string(p:&ParseState, s:&String) -> Result<i64> {
     match i64::from_str(&s[..]) {
         Ok(i) => Ok(i),
-        _ => Err(format!("int parse error in {}; line: {}", s, p.here()))
+        _ => str_error(format!("int parse error in {}; line: {}", s, p.here()))
     }
 }
 
-fn f64_from_string(p:&ParseState, s:&String) -> ERes<f64> {
+fn f64_from_string(p:&ParseState, s:&String) -> Result<f64> {
     match f64::from_str(&s[..]) {
         Ok(i) => Ok(i),
-        _ => Err(format!("float parse error in {}; line: {}", s, p.here()))
+        _ => str_error(format!("float parse error in {}; line: {}", s, p.here()))
     }
 }
 
-fn bool_from_string(s:&String, t:&'static str, f:&'static str) -> ERes<bool> {
+fn bool_from_string(s:&String, t:&'static str, f:&'static str) -> Result<bool> {
     if &s[..] == t {
         return Ok(true)
     }
     if &s[..] == f {
         return Ok(false)
     }
-    Err(format!("unknown boolean {}, expected {} or {}", s, t, f))
+    str_error(format!("unknown boolean {}, expected {} or {}", s, t, f))
 }
 
-fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> ERes<bool> {
+fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> Result<bool> {
     if i == t {
         return Ok(true)
     }
     if i == f {
         return Ok(false)
     }
-    Err(format!("unknown boolean {}, expected {} or {}", i, t, f))
+    str_error(format!("unknown boolean {}, expected {} or {}", i, t, f))
 }
 
-fn word_and_qstring<F>(d:&mut Description, name:&'static str, s:&String, setter:F) -> ERes<()>
+fn word_and_qstring<F>(d:&mut Description, name:&'static str, s:&String, setter:F) -> Result<()>
     where F:Fn(&mut Description, String) -> ()
 {
     let v = try!(parse_split_quote_aware_n(2, s));
@@ -775,7 +777,7 @@ fn word_and_qstring<F>(d:&mut Description, name:&'static str, s:&String, setter:
 }
     
     
-fn parse_description(p:&mut ParseState) -> ERes<Description> {
+fn parse_description(p:&mut ParseState) -> Result<Description> {
     let mut d = Description::new();
     let v = try!(parse_split_quote_aware_n(4, &p.here()));
     d.size = v[1].clone();
@@ -784,7 +786,7 @@ fn parse_description(p:&mut ParseState) -> ERes<Description> {
     p.next(); // $Descr
     p.next(); // encoding
     let v = try!(parse_split_quote_aware_n(3, &p.here()));
-    if v[0] != "Sheet" { return Err(String::from("Expecting 'Sheet'")) };
+    if v[0] != "Sheet" { return str_error(String::from("Expecting 'Sheet'")) };
     d.sheet = try!(i64_from_string(p, &v[1]));
     d.sheet_count = try!(i64_from_string(p, &v[2]));
     p.next(); // Sheet
@@ -808,26 +810,26 @@ fn parse_description(p:&mut ParseState) -> ERes<Description> {
     Ok(d)
 }
 
-fn parse_component_l(p:&mut ParseState, d:&mut Component) -> ERes<()> {
+fn parse_component_l(p:&mut ParseState, d:&mut Component) -> Result<()> {
     let v = try!(parse_split_quote_aware_n(3, &p.here()));
     d.set_name(v[1].clone());
     d.set_reference(v[2].clone());
     Ok(())
 }
 
-fn parse_component_u(p:&mut ParseState, d:&mut Component) -> ERes<()> {
+fn parse_component_u(p:&mut ParseState, d:&mut Component) -> Result<()> {
     d.u = p.here();
     Ok(())
 }
 
-fn parse_component_p(p:&mut ParseState, d:&mut Component) -> ERes<()> {
+fn parse_component_p(p:&mut ParseState, d:&mut Component) -> Result<()> {
     let v = try!(parse_split_quote_aware_n(3, &p.here()));
     d.x = try!(i64_from_string(p, &v[1]));
     d.y = try!(i64_from_string(p, &v[2]));
     Ok(())
 }
 
-fn parse_component_f(p:&mut ParseState, d:&mut Component) -> ERes<()> {
+fn parse_component_f(p:&mut ParseState, d:&mut Component) -> Result<()> {
     //println!("{}", p.here());
     let v = parse_split_quote_aware(&p.here());
     //for i in &v[..] {
@@ -838,12 +840,12 @@ fn parse_component_f(p:&mut ParseState, d:&mut Component) -> ERes<()> {
     Ok(())
 }
 
-fn parse_component_rotation(p:&mut ParseState, d:&mut Component) -> ERes<()> {
+fn parse_component_rotation(p:&mut ParseState, d:&mut Component) -> Result<()> {
     p.next(); // skip redundant position line
     let s = p.here();
     let v:Vec<&str> = s.split_whitespace().collect();
     if v.len() != 4 {
-        return Err(format!("expecting 4 elements in {}", s))
+        return str_error(format!("expecting 4 elements in {}", s))
     }
     let a = try!(i64_from_string(p, &String::from(v[0])));
     let b = try!(i64_from_string(p, &String::from(v[1])));
@@ -854,7 +856,7 @@ fn parse_component_rotation(p:&mut ParseState, d:&mut Component) -> ERes<()> {
     Ok(())
 }
 
-fn parse_component(p:&mut ParseState) -> ERes<Component> {
+fn parse_component(p:&mut ParseState) -> Result<Component> {
     let mut d = Component::new();
     p.next();
     loop {
@@ -877,7 +879,7 @@ fn parse_component(p:&mut ParseState) -> ERes<Component> {
 }
 
 // S 5250 2300 950  3100
-fn parse_sheet_s(p:&mut ParseState, s:&mut Sheet) -> ERes<()> {
+fn parse_sheet_s(p:&mut ParseState, s:&mut Sheet) -> Result<()> {
     let v = try!(parse_split_quote_aware_n(5, &p.here()));
     s.x = try!(i64_from_string(p, &v[1]));
     s.y = try!(i64_from_string(p, &v[2]));
@@ -887,36 +889,36 @@ fn parse_sheet_s(p:&mut ParseState, s:&mut Sheet) -> ERes<()> {
 }
 
 // U 5655A9F3
-fn parse_sheet_u(p:&mut ParseState, s:&mut Sheet) -> ERes<()> {
+fn parse_sheet_u(p:&mut ParseState, s:&mut Sheet) -> Result<()> {
     let v = try!(parse_split_quote_aware_n(2, &p.here()));
     s.unique = v[1].clone();
     Ok(())
 }
 
-fn parse_label_form(s:&String) -> ERes<LabelForm> {
+fn parse_label_form(s:&String) -> Result<LabelForm> {
     match &s[..] {
         "I" => Ok(LabelForm::Input),
         "O" => Ok(LabelForm::Output),
         "B" => Ok(LabelForm::BiDi),
         "T" => Ok(LabelForm::TriState),
         "U" => Ok(LabelForm::Unspecified),
-        _ => Err(format!("unknown labelform {}", s))
+        _ => str_error(format!("unknown labelform {}", s))
     }
 }
 
-fn parse_label_side(s:&String) -> ERes<LabelSide> {
+fn parse_label_side(s:&String) -> Result<LabelSide> {
     match &s[..] {
         "L" => Ok(LabelSide::Left),
         "R" => Ok(LabelSide::Right),
         "T" => Ok(LabelSide::Top),
         "B" => Ok(LabelSide::Bottom),
-        _ => Err(format!("unknown labelside {}", s))
+        _ => str_error(format!("unknown labelside {}", s))
     }
 }
 
 
 // F3 "P0.02/AIN0" I L 5250 2450 60 
-fn parse_sheet_label(p:&ParseState, s:&String) -> ERes<SheetLabel> {
+fn parse_sheet_label(p:&ParseState, s:&String) -> Result<SheetLabel> {
     let mut l = SheetLabel::new();
     let v = try!(parse_split_quote_aware_n(7, s));
     l.name = v[1].clone();
@@ -928,7 +930,7 @@ fn parse_sheet_label(p:&ParseState, s:&String) -> ERes<SheetLabel> {
     Ok(l)
 }
 
-fn parse_sheet_f(p:&mut ParseState, s:&mut Sheet, f:&str) -> ERes<()> {
+fn parse_sheet_f(p:&mut ParseState, s:&mut Sheet, f:&str) -> Result<()> {
     //s.u = p.here();
     let mut f = String::from(f);
     f.remove(0);
@@ -951,7 +953,7 @@ fn parse_sheet_f(p:&mut ParseState, s:&mut Sheet, f:&str) -> ERes<()> {
 }
 
 
-fn parse_sheet(p:&mut ParseState) -> ERes<Sheet> {
+fn parse_sheet(p:&mut ParseState) -> Result<Sheet> {
     let mut s = Sheet::new();
     p.next();
     loop {
@@ -977,7 +979,7 @@ fn parse_sheet(p:&mut ParseState) -> ERes<Sheet> {
 }
 
 
-pub fn parse(filename:Option<PathBuf>, s: &str) -> ERes<Schematic> {
+pub fn parse(filename:Option<PathBuf>, s: &str) -> Result<Schematic> {
     let mut sch = Schematic::new();
     sch.filename = filename;
     let v:Vec<&str> = s.lines().collect();
@@ -1023,17 +1025,17 @@ pub fn parse(filename:Option<PathBuf>, s: &str) -> ERes<Schematic> {
 }
 
 
-pub fn parse_str(s:&str) -> ERes<Schematic> {
+pub fn parse_str(s:&str) -> Result<Schematic> {
     parse(None, s)
 }
 
-pub fn parse_file(filename:&PathBuf) -> ERes<Schematic> {
+pub fn parse_file(filename:&PathBuf) -> Result<Schematic> {
     let name = filename.to_str().unwrap();
     let s = try!(read_file(name));
     parse(Some(filename.clone()), &s[..])
 }
 
-pub fn filename_for_sheet(schematic:&Schematic, sheet:&Sheet) -> ERes<PathBuf> {
+pub fn filename_for_sheet(schematic:&Schematic, sheet:&Sheet) -> Result<PathBuf> {
     let path = try!(match schematic.filename {
         Some(ref path) => Ok(path),
         None => Err(format!("can't load sheet when there is no filename for the schematic")),
@@ -1046,7 +1048,7 @@ pub fn filename_for_sheet(schematic:&Schematic, sheet:&Sheet) -> ERes<PathBuf> {
 }
 
 
-pub fn parse_file_for_sheet(schematic:&Schematic, sheet:&Sheet) -> ERes<Schematic> {
+pub fn parse_file_for_sheet(schematic:&Schematic, sheet:&Sheet) -> Result<Schematic> {
     let f = try!(filename_for_sheet(schematic,sheet));
     parse_file(&f)
 }
