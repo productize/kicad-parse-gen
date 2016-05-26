@@ -222,7 +222,7 @@ impl Description {
     fn new() -> Description {
         Description {
             size:String::from(""),
-            dimx:0,
+            dimx:0+0,
             dimy:0,
             title:String::from("Normal"),
             date:String::from("Tue 19 May 2015"),
