@@ -83,7 +83,7 @@ impl fmt::Display for SymbolLib {
 }
 
 impl Symbol {
-    fn new(name:String, reference:String) -> Symbol {
+    pub fn new(name:String, reference:String) -> Symbol {
         Symbol {
             name:name,
             reference:reference,
@@ -134,7 +134,7 @@ impl fmt::Display for Symbol {
 }
 
 impl Field {
-    fn new() -> Field {
+    pub fn new() -> Field {
         Field {
             i:0,
             value:String::from(""),
