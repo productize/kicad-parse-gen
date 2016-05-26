@@ -19,10 +19,8 @@ impl error::Error for Error {
     
     fn description(&self) -> &str {
         match *self {
-            Error::Other(ref s) => {
-                format!("Other Error: {}", s).as_str()
-            },
-            Error::Parse(ref s) => &format!("Parse Error: {}", s),
+            Error::Other(ref s) => s,
+            Error::Parse(ref s) => s,
             Error::Io(ref error) => error::Error::description(error),
             Error::Symbolic(ref error) => error.description(),
         }
