@@ -14,7 +14,7 @@ use symbolic_expressions;
 use str_error;
 
 // TODO: get rid of it
-pub fn display_string(s:&String) -> String {
+pub fn display_string(s:&str) -> String {
     if s.contains("(") || s.contains(" ") || s.len() == 0 {
         format!("\"{}\"", s)
     } else {
@@ -197,9 +197,8 @@ impl Layout {
     pub fn nets(&self) -> Vec<&Net> {
         let mut v = vec![];
         for element in &self.elements {
-            match *element {
-                Element::Net(ref net) => v.push(net),
-                _ => (),
+            if let Element::Net(ref net) = *element {
+                v.push(net)
             }
         }
         v
@@ -208,9 +207,8 @@ impl Layout {
     pub fn netclasses(&self) -> Vec<&NetClass> {
         let mut v = vec![];
         for element in &self.elements {
-            match *element {
-                Element::NetClass(ref net_class) => v.push(net_class),
-                _ => (),
+            if let Element::NetClass(ref net_class) = *element {
+                v.push(net_class)
             }
         }
         v

@@ -367,9 +367,9 @@ impl Component {
         }
     }
 
-    pub fn add_new_field(&mut self, template:&ComponentField, name:&String, value:&str) {
+    pub fn add_new_field(&mut self, template:&ComponentField, name:&str, value:&str) {
         let i = self.get_available_field_num();
-        let mut c = ComponentField::new_from(i, name.clone(), value.to_string(), template.x, template.y);
+        let mut c = ComponentField::new_from(i, name.to_string(), value.to_string(), template.x, template.y);
         c.visible = false;
         self.fields.push(c)
     }
@@ -479,7 +479,7 @@ pub struct ComponentField {
 }
 
 impl ComponentField {
-    fn new(p:&ParseState, v:&Vec<String>) -> Result<ComponentField> {
+    fn new(p:&ParseState, v:&[String]) -> Result<ComponentField> {
         if v.len() != 10 && v.len() != 11 {
             return str_error(format!("expecting 10 or 11 parts got {} in {}", v.len(), p.here()))
         }
@@ -643,20 +643,20 @@ impl fmt::Display for LabelSide {
     }
 }
 
-fn char_at(s:&String, p:usize) -> char {
+fn char_at(s:&str, p:usize) -> char {
     let v:Vec<char> = s.chars().collect();
     v[..][p]
 }
 
 
-fn assume_string(e:&'static str, s:&String) -> Result<()> {
-    if String::from(e) != *s {
+fn assume_string(e:&'static str, s:&str) -> Result<()> {
+    if *e != *s {
         return str_error(format!("expecting: {}, actually: {}", e, s))
     }
     Ok(())
 }
 
-fn parse_split_quote_aware(s:&String) -> Vec<String> {
+fn parse_split_quote_aware(s:&str) -> Vec<String> {
     let mut v:Vec<String> = vec![];
     let mut in_q:bool = false;
     let mut q_seen:bool = false;
@@ -674,7 +674,7 @@ fn parse_split_quote_aware(s:&String) -> Vec<String> {
             continue
         }
         if !in_q && c == ' ' {
-            if s2.len() > 0 || q_seen {
+            if !s2.is_empty() || q_seen {
                 v.push(s2.clone());
                 s2.clear();
             }
@@ -683,7 +683,7 @@ fn parse_split_quote_aware(s:&String) -> Vec<String> {
         }
         s2.push(c);
     }
-    if s2.len() > 0 || q_seen {
+    if !s2.is_empty() || q_seen {
         v.push(s2.clone())
     }
     v
@@ -731,21 +731,21 @@ fn parse_split_quote_aware_n(n:usize, s:&str) -> Result<Vec<String>> {
     Ok(v)
 }
 
-fn i64_from_string(p:&ParseState, s:&String) -> Result<i64> {
+fn i64_from_string(p:&ParseState, s:&str) -> Result<i64> {
     match i64::from_str(&s[..]) {
         Ok(i) => Ok(i),
         _ => str_error(format!("int parse error in {}; line: {}", s, p.here()))
     }
 }
 
-fn f64_from_string(p:&ParseState, s:&String) -> Result<f64> {
-    match f64::from_str(&s[..]) {
+fn f64_from_string(p:&ParseState, s:&str) -> Result<f64> {
+    match f64::from_str(s) {
         Ok(i) => Ok(i),
         _ => str_error(format!("float parse error in {}; line: {}", s, p.here()))
     }
 }
 
-fn bool_from_string(s:&String, t:&'static str, f:&'static str) -> Result<bool> {
+fn bool_from_string(s:&str, t:&'static str, f:&'static str) -> Result<bool> {
     if &s[..] == t {
         return Ok(true)
     }
@@ -765,7 +765,7 @@ fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> Result<bool> {
     str_error(format!("unknown boolean {}, expected {} or {}", i, t, f))
 }
 
-fn word_and_qstring<F>(d:&mut Description, name:&'static str, s:&String, setter:F) -> Result<()>
+fn word_and_qstring<F>(d:&mut Description, name:&'static str, s:&str, setter:F) -> Result<()>
     where F:Fn(&mut Description, String) -> ()
 {
     let v = try!(parse_split_quote_aware_n(2, s));
@@ -867,8 +867,7 @@ fn parse_component(p:&mut ParseState) -> Result<Component> {
             Some("U") => try!(parse_component_u(p, &mut d)),
             Some("P") => try!(parse_component_p(p, &mut d)),
             Some("F") => try!(parse_component_f(p, &mut d)),
-            Some("1") => try!(parse_component_rotation(p, &mut d)),
-            Some("0") => try!(parse_component_rotation(p, &mut d)),
+            Some("1") | Some("0") => try!(parse_component_rotation(p, &mut d)),
             _ => println!("skipping unknown component line {}", s)
         }
         p.next()
@@ -893,7 +892,7 @@ fn parse_sheet_u(p:&mut ParseState, s:&mut Sheet) -> Result<()> {
     Ok(())
 }
 
-fn parse_label_form(s:&String) -> Result<LabelForm> {
+fn parse_label_form(s:&str) -> Result<LabelForm> {
     match &s[..] {
         "I" => Ok(LabelForm::Input),
         "O" => Ok(LabelForm::Output),
@@ -904,7 +903,7 @@ fn parse_label_form(s:&String) -> Result<LabelForm> {
     }
 }
 
-fn parse_label_side(s:&String) -> Result<LabelSide> {
+fn parse_label_side(s:&str) -> Result<LabelSide> {
     match &s[..] {
         "L" => Ok(LabelSide::Left),
         "R" => Ok(LabelSide::Right),
@@ -916,7 +915,7 @@ fn parse_label_side(s:&String) -> Result<LabelSide> {
 
 
 // F3 "P0.02/AIN0" I L 5250 2450 60 
-fn parse_sheet_label(p:&ParseState, s:&String) -> Result<SheetLabel> {
+fn parse_sheet_label(p:&ParseState, s:&str) -> Result<SheetLabel> {
     let mut l = SheetLabel::new();
     let v = try!(parse_split_quote_aware_n(7, s));
     l.name = v[1].clone();
@@ -963,7 +962,7 @@ fn parse_sheet(p:&mut ParseState) -> Result<Sheet> {
             Some("S") => try!(parse_sheet_s(p, &mut s)),
             Some("U") => try!(parse_sheet_u(p, &mut s)),
             Some(x) => {
-                if x.starts_with("F") {
+                if x.starts_with('F') {
                     try!(parse_sheet_f(p, &mut s, x))
                 } else {
                     println!("skipping unknown sheet line {}", st)
@@ -1036,11 +1035,11 @@ pub fn parse_file(filename:&PathBuf) -> Result<Schematic> {
 pub fn filename_for_sheet(schematic:&Schematic, sheet:&Sheet) -> Result<PathBuf> {
     let path = try!(match schematic.filename {
         Some(ref path) => Ok(path),
-        None => Err(format!("can't load sheet when there is no filename for the schematic")),
+        None => Err("can't load sheet when there is no filename for the schematic".to_string()),
     });
     let dir = try!(match path.parent() {
         Some(dir) => Ok(dir),
-        None => Err(format!("can't load sheet when I don't know the dir of the schematic")),
+        None => Err("can't load sheet when I don't know the dir of the schematic".to_string()),
     });
     Ok(dir.join(&sheet.filename))
 }
