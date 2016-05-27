@@ -51,8 +51,8 @@ pub struct General {
 
 #[derive(Clone)]
 pub struct Area {
-    x1:f64, y1:f64,
-    x2:f64, y2:f64,
+    pub x1:f64, pub y1:f64,
+    pub x2:f64, pub y2:f64,
 }
 
 #[derive(Clone)]
@@ -124,7 +124,7 @@ pub struct GrText {
 }
 
 // only used internally
-enum GrElement {
+pub enum GrElement {
     Start(footprint::Xy),
     End(footprint::Xy),
     Angle(i64),
@@ -264,7 +264,7 @@ impl Host {
 }
 
 impl General {
-    fn new() -> General {
+    pub fn new() -> General {
         General {
             links:0,
             no_connects:0,
@@ -280,7 +280,7 @@ impl General {
 }
 
 impl Area {
-    fn new() -> Area {
+    pub fn new() -> Area {
         Area {
             x1:0.0, y1:0.0,
             x2:0.0, y2:0.0,

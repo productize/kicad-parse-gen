@@ -16,7 +16,7 @@ use Sexp;
 use symbolic_expressions;
 use str_error;
 
-pub use layout::data::Layout;
+use layout::data::*;
 
 fn parse_version(e:&Sexp) -> Result<i64> {
     let l = try!(e.slice_atom("version"));
