@@ -398,7 +398,7 @@ impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
             Element::Other(ref s) => write!(f, "{}", s),
-            Element::Module(ref s) => write!(f, "{}", s),
+            Element::Module(ref s) => Ok(()),//write!(f, "{}", s), TODO
             Element::Net(ref s) => write!(f, "{}", s),
             Element::NetClass(ref s) => write!(f, "{}", s),
             Element::Graphics(ref s) => write!(f, "{}", s),
