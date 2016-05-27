@@ -15,10 +15,10 @@ use str_error;
 
 // TODO: get rid of it
 pub fn display_string(s:&str) -> String {
-    if s.contains("(") || s.contains(" ") || s.len() == 0 {
+    if s.contains('(') || s.contains(' ') || s.is_empty() {
         format!("\"{}\"", s)
     } else {
-        s.clone()
+        s.to_string()
     }
 }
 
@@ -214,24 +214,24 @@ impl Layout {
         v
     }
 
-    pub fn get_module(&self, reference:&String) -> Option<&footprint::Module> {
+    pub fn get_module(&self, reference:&str) -> Option<&footprint::Module> {
         for ref x in &self.elements[..] {
             match **x {
                 Element::Module(ref m) => {
                     if m.is_reference(reference) {
-                        return Some(&m)
+                        return Some(m)
                     }
                 },
-                Element::Net(_)      => (),
-                Element::NetClass(_) => (),
-                Element::Other(_)    => (),
+                Element::Net(_) |
+                Element::NetClass(_) |
+                Element::Other(_) |
                 Element::Graphics(_) => (),
             }
         }
         None
     }
     
-    pub fn modify_module<F>(&mut self, reference:&String, fun:F) -> Result<()> 
+    pub fn modify_module<F>(&mut self, reference:&str, fun:F) -> Result<()> 
         where F:Fn(&mut footprint::Module) -> ()
     {
         for ref mut x in &mut self.elements[..] {
@@ -241,9 +241,9 @@ impl Layout {
                         return Ok(fun(m))
                     }
                 },
-                Element::Net(_)      => (),
-                Element::NetClass(_) => (),
-                Element::Other(_)    => (),
+                Element::Net(_) |
+                Element::NetClass(_) |
+                Element::Other(_) |
                 Element::Graphics(_) => (),
             }
         }
@@ -323,7 +323,7 @@ impl Setup {
     pub fn new() -> Setup {
         Setup { elements:vec![], pcbplotparams:vec![] }
     }
-    pub fn get(&self, s:&String) -> Option<&String> {
+    pub fn get(&self, s:&str) -> Option<&String> {
         for element in &self.elements {
             if &element.name[..] == &s[..] {
                 return Some(&element.value1)
@@ -405,7 +405,7 @@ impl fmt::Display for Element {
 
 impl fmt::Display for Net {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        if self.name.contains("(") || self.name.contains(")") || self.name.len()==0 {
+        if self.name.contains('(') || self.name.contains(')') || self.name.is_empty() {
             write!(f, "(net {} \"{}\")", self.num, self.name)
         } else {
             write!(f, "(net {} {})", self.num, self.name)
@@ -422,7 +422,7 @@ impl fmt::Display for NetClass {
         try!(write!(f, "(uvia_dia {}) ", self.uvia_dia));
         try!(write!(f, "(uvia_drill {}) ", self.uvia_drill));
         for net in &self.nets {
-            if net.contains("(") || net.contains(")") {
+            if net.contains('(') || net.contains(')') {
                 try!(write!(f, "(add_net \"{}\")", net))
             } else {
                 try!(write!(f, "(add_net {})", net))
@@ -436,7 +436,7 @@ impl fmt::Display for NetClass {
 // (0 F.Cu signal)
 impl fmt::Display for Layer {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        if self.hide == false {
+        if !self.hide {
             write!(f, "({} {} {})", self.num, self.layer, self.layer_type)
         } else {
             write!(f, "({} {} {} hide)", self.num, self.layer, self.layer_type)

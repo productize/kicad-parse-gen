@@ -208,28 +208,28 @@ impl ParseState {
     }
 }
 
-fn assume_string(e:&'static str, s:&String) -> Result<()> {
-    if String::from(e) != *s {
+fn assume_string(e:&'static str, s:&str) -> Result<()> {
+    if *e != *s {
         return str_error(format!("expecting: {}, actually: {}", e, s))
     }
     Ok(())
 }
 
-fn i64_from_string(p:&ParseState, s:&String) -> Result<i64> {
-    match i64::from_str(&s[..]) {
+fn i64_from_string(p:&ParseState, s:&str) -> Result<i64> {
+    match i64::from_str(s) {
         Ok(i) => Ok(i),
         _ => str_error(format!("int parse error in {}; line: {}", s, p.here()))
     }
 }
 
-fn f64_from_string(p:&ParseState, s:&String) -> Result<f64> {
-    match f64::from_str(&s[..]) {
+fn f64_from_string(p:&ParseState, s:&str) -> Result<f64> {
+    match f64::from_str(s) {
         Ok(i) => Ok(i),
         _ => str_error(format!("float parse error in {}; line: {}", s, p.here()))
     }
 }
 
-fn bool_from_string(s:&String, t:&'static str, f:&'static str) -> Result<bool> {
+fn bool_from_string(s:&str, t:&'static str, f:&'static str) -> Result<bool> {
     if &s[..] == t {
         return Ok(true)
     }
@@ -239,7 +239,7 @@ fn bool_from_string(s:&String, t:&'static str, f:&'static str) -> Result<bool> {
     str_error(format!("unknown boolean {}, expected {} or {}", s, t, f))
 }
 
-fn char_at(s:&String, p:usize) -> char {
+fn char_at(s:&str, p:usize) -> char {
     let v:Vec<char> = s.chars().collect();
     v[..][p]
 }
@@ -310,7 +310,7 @@ fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> Result<bool> {
 }
 
 // F0 "L" 0 50 40 H V C CNN
-fn parse_field(p:&mut ParseState, line:&String) -> Result<Field> {
+fn parse_field(p:&mut ParseState, line:&str) -> Result<Field> {
     let mut f = Field::new();
     let v = &parse_split_quote_aware(&line);
     if v.len() != 9 && v.len() != 10 {
@@ -325,7 +325,7 @@ fn parse_field(p:&mut ParseState, line:&String) -> Result<Field> {
             1 => String::from("Value"),
             2 => String::from("Footprint"),
             3 => String::from("UserDocLink"),
-            _ => return str_error(format!("expecting name for componentfield > 3")),
+            _ => return str_error("expecting name for componentfield > 3".to_string()),
         }
     };
     f.value = v[1].clone();
