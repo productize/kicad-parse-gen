@@ -1,5 +1,8 @@
 // (c) 2016 Joost Yervante Damad <joost@productize.be>
 
+// extension: .sch
+// format: old-style
+
 use std::fmt;
 use std::str::FromStr;
 use std::path::PathBuf;
@@ -9,7 +12,7 @@ use std::result;
 // get from parent
 use Result;
 use str_error as err;
-use read_file;
+use util::read_file;
 use str_error;
 
 #[derive(Debug)]

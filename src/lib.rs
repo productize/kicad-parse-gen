@@ -7,33 +7,11 @@ extern crate rustc_serialize;
 extern crate symbolic_expressions;
 
 use std::fmt;
-use std::fs::File;
-use std::io::Read;
-use std::io::Write;
 
 pub use symbolic_expressions::Sexp;
 pub use error::*;
 
-pub fn read_file(name: &str) -> Result<String> {
-    let mut f = try!(File::open(name));
-    let mut s = String::new();
-    try!(f.read_to_string(&mut s));
-    Ok(s)
-}
-
-pub fn write_file(name:&str, data:&str) -> Result<()> {
-    let mut f = try!(match File::create(name) {
-        Ok(f) => Ok(f),
-        Err(err) => Err(format!("create error in file '{}': {}", name, err))
-    });
-    try!(match write!(&mut f, "{}", data) {
-        Ok(f) => Ok(f),
-        Err(err) => Err(format!("write error in file '{}': {}", name, err))
-    });
-         
-    Ok(())
-    
-}
+use util::read_file;
 
 pub fn parse_split_quote_aware(s:&str) -> Vec<String> {
     let mut v:Vec<String> = vec![];
@@ -212,3 +190,4 @@ pub mod schematic;
 pub mod layout;
 pub mod symbol_lib;
 pub mod project;
+pub mod util;

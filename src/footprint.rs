@@ -1,5 +1,8 @@
 // (c) 2015-2016 Joost Yervante Damad <joost@productize.be>
 
+// extension: .kicad_mod
+// format: new-style
+
 use std::fmt;
 use std::result;
 
@@ -8,6 +11,7 @@ use Result;
 use str_error;
 use Sexp;
 use symbolic_expressions;
+use symbolic_expressions::IntoSexp;
 
 // TODO: get rid of it
 
@@ -108,6 +112,17 @@ impl fmt::Display for Module {
     }
 }
 
+impl IntoSexp for Module {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("module"));
+        for e in &self.elements {
+            v.push(e.into_sexp())
+        }
+        Sexp::new_list(v)
+    }
+}
+
 #[derive(Debug,Clone)]
 pub enum Element {
     Layer(String), // TODO: use Layer type
@@ -161,6 +176,28 @@ impl fmt::Display for Element {
     }
 }
 
+impl IntoSexp for Element {
+    fn into_sexp(&self) -> Sexp {
+        match *self {
+            Element::Layer(ref s) => Sexp::new_named("layer", s),
+            Element::Descr(ref s) => Sexp::new_named("descr", s),
+            Element::Tags(ref s) => Sexp::new_named("tags", s),
+            Element::Attr(ref s) => Sexp::new_named("attr", s),
+            Element::FpText(ref p) => p.into_sexp(),
+            Element::Pad(ref pad) => pad.into_sexp(),
+            Element::FpPoly(ref p) => p.into_sexp(),
+            Element::FpLine(ref p) => p.into_sexp(),
+            Element::FpCircle(ref p) => p.into_sexp(),
+            Element::TEdit(ref p) => Sexp::new_named("tedit", p),
+            Element::TStamp(ref p) => Sexp::new_named("tstamp", p),
+            Element::Path(ref p) => Sexp::new_named("path", p),
+            Element::At(ref p) => p.into_sexp(),
+            Element::Model(ref p) => p.into_sexp(),
+            Element::Locked => Sexp::new_string("locked"),
+        }
+    }
+}
+
 #[derive(Debug,Clone)]
 pub struct FpText {
     name: String,
@@ -196,6 +233,22 @@ impl fmt::Display for FpText {
     }
 }
 
+impl IntoSexp for FpText {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("fp_text"));
+        v.push(Sexp::new_string(self.name));
+        v.push(Sexp::new_string(self.value));
+        v.push(self.at.into_sexp());
+        v.push(Sexp::new_named("layer", self.layer));
+        if self.hide {
+            v.push(Sexp::new_string("hide"));
+        }
+        v.push(self.effects.into_sexp());
+        Sexp::new_list(v)
+    }
+}
+
 #[derive(Debug,Clone)]
 pub struct At {
     x: f64,
@@ -221,6 +274,18 @@ impl fmt::Display for At {
         }
     }
 }
+impl IntoSexp for At {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("at"));
+        v.push(Sexp::new_string(self.x));
+        v.push(Sexp::new_string(self.y));
+        if self.rot != 0.0 {
+            v.push(Sexp::new_string(self.rot));
+        }
+        Sexp::new_list(v)
+    }
+}
 
 #[derive(Debug,Clone)]
 pub struct Font {
@@ -238,6 +303,20 @@ impl Font {
 impl fmt::Display for Font {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "(font (size {} {}) (thickness {}))", self.size.x, self.size.y, self.thickness)
+    }
+}
+
+impl IntoSexp for Font {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("font"));
+        let mut v1 = vec![];
+        v1.push(Sexp::new_string("size"));
+        v1.push(Sexp::new_string(self.size.x));
+        v1.push(Sexp::new_string(self.size.y));
+        v.push(Sexp::new_list(v1));
+        v.push(Sexp::new_named("thickness", self.thickness));
+        Sexp::new_list(v)
     }
 }
 
@@ -271,11 +350,30 @@ impl fmt::Display for Effects {
         write!(f, "(effects (font (size {} {}) (thickness {})){})", self.font.size.x, self.font.size.y, self.font.thickness, justify)
     }
 }
+impl IntoSexp for Effects {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("effects"));
+        v.push(self.font.into_sexp());
+        if let Some(ref j) = self.justify {
+            v.push(j.into_sexp())
+        }
+        Sexp::new_list(v)
+    }
+}
 
 impl fmt::Display for Justify {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
             Justify::Mirror => write!(f,"(justify mirror)"),
+        }
+    }
+}
+
+impl IntoSexp for Justify {
+    fn into_sexp(&self) -> Sexp {
+        match *self {
+            Justify::Mirror => Sexp::new_named("justify","mirror"),
         }
     }
 }
@@ -326,6 +424,22 @@ impl fmt::Display for Xy {
         }
     }
 }
+impl IntoSexp for Xy {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string(match self.t {
+            XyType::Xy => "xy",
+            XyType::Start => "start",
+            XyType::End => "end",
+            XyType::Size => "size",
+            XyType::Center => "center",
+        }));
+        v.push(Sexp::new_string(self.x));
+        v.push(Sexp::new_string(self.y));
+        Sexp::new_list(v)
+    }
+}
+
 impl fmt::Display for Pts {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(write!(f, "(pts"));
@@ -333,6 +447,17 @@ impl fmt::Display for Pts {
             try!(write!(f, " {}", x));
         }
         write!(f,")")
+    }
+}
+
+impl IntoSexp for Pts {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("pts"));
+        for x in &self.elements {
+            v.push(x.into_sexp())
+        }
+        Sexp::new_list(v)
     }
 }
 
@@ -354,6 +479,21 @@ impl fmt::Display for Drill {
             try!(write!(f, " {}", d2))
         }
         write!(f,")")
+    }
+}
+
+impl IntoSexp for Drill {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("drill"));
+        if let Some(ref s) = self.shape {
+            v.push(Sexp::new_string(s))
+        }
+        v.push(Sexp::new_string(self.drill));
+        if let Some(ref s) = self.drill2 {
+            v.push(Sexp::new_string(s))
+        }
+        Sexp::new_list(v)
     }
 }
 
@@ -394,7 +534,6 @@ impl fmt::Display for Part {
     }
 }
 
-
 #[derive(Debug,Clone)]
 pub enum PadType {
     Smd,
@@ -423,6 +562,16 @@ impl fmt::Display for PadType {
     }
 }
 
+impl IntoSexp for PadType {
+    fn into_sexp(&self) -> Sexp {
+        Sexp::new_string(match *self {
+            PadType::Smd => "smd",
+            PadType::Pth => "thru_hole",
+            PadType::NpPth => "np_thru_hole",
+        })
+    }
+}
+
 #[derive(Debug,Clone)]
 pub enum PadShape {
     Rect,
@@ -432,8 +581,8 @@ pub enum PadShape {
 }
 
 impl PadShape {
-    fn from_string(s: String) -> Result<PadShape> {
-        match &s[..] {
+    fn from_string(s:&str) -> Result<PadShape> {
+        match s {
             "rect" => Ok(PadShape::Rect),
             "circle" => Ok(PadShape::Circle),
             "oval" => Ok(PadShape::Oval),
@@ -449,6 +598,16 @@ impl fmt::Display for PadShape {
             PadShape::Circle => write!(f, "circle"),
             PadShape::Oval => write!(f, "oval"),
         }
+    }
+}
+
+impl IntoSexp for PadShape {
+    fn into_sexp(&self) -> Sexp {
+        Sexp::new_string(match *self {
+            PadShape::Rect => "rect",
+            PadShape::Circle => "circle",
+            PadShape::Oval => "oval",
+        })
     }
 }
 
@@ -565,6 +724,12 @@ impl fmt::Display for Layer {
     }
 }
 
+impl IntoSexp for Layer {
+    fn into_sexp(&self) -> Sexp {
+        Sexp::new_string(&self)
+    }
+} 
+
 #[derive(Debug,Clone)]
 pub struct Layers {
     layers: Vec<Layer>,
@@ -594,6 +759,18 @@ impl fmt::Display for Layers {
         write!(f, ")")
     }
 }
+
+impl IntoSexp for Layers {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("layers"));
+        for layer in &self.layers {
+            v.push(layer.into_sexp())
+        }
+        Sexp::new_list(v)
+    }
+}
+
 
 #[derive(Debug,Clone)]
 pub struct Pad {
@@ -657,6 +834,29 @@ impl fmt::Display for Pad {
             Some(spm_f) => format!(" (solder_paste_margin {})", spm_f),
         };
         write!(f, "(pad {} {} {} {} {} {}{}{}{})", self.name, self.t, self.shape, self.size, self.at, self.layers, net, drill, spm)
+    }
+}
+
+impl IntoSexp for Pad {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("pad"));
+        v.push(Sexp::new_string(self.name));
+        v.push(self.t.into_sexp());
+        v.push(self.shape.into_sexp());
+        v.push(self.size.into_sexp());
+        v.push(self.at.into_sexp());
+        v.push(self.layers.into_sexp());
+        if let Some(ref net) = self.net {
+            v.push(net.into_sexp());
+        }
+        if let Some(ref drill) = self.drill {
+            v.push(drill.into_sexp());
+        }
+        if let Some(ref spm) = self.solder_paste_margin {
+            v.push(Sexp::new_named("solder_paste_margin", spm));
+        }
+        Sexp::new_list(v)
     }
 }
 
@@ -1093,7 +1293,7 @@ impl FromSexp for Result<Pad> {
         let t = try!(v[1].string());
         let t = try!(PadType::from_string(t.clone()));
         let shape = try!(v[2].string());
-        let shape = try!(PadShape::from_string(shape.clone()));
+        let shape = try!(PadShape::from_string(&shape));
         let mut pad = Pad::new(name, t, shape);
         //println!("{}", pad);
         let parts = try!(parse_parts(&v[3..]));

@@ -1,5 +1,8 @@
 // (c) 2016 Productize SPRL <joost@productize.be>
 
+// extension: .kicad_pcb
+// format: new-style
+
 use std::fmt;
 use std::result;
 

@@ -1,5 +1,8 @@
 // (c) 2016 Productize SPRL <joost@productize.be>
 
+// extension: .lib
+// format: old-style
+
 use std::fmt;
 use std::result;
 use std::str::FromStr;
@@ -8,7 +11,7 @@ use std::path::PathBuf;
 // get from parent
 use Result;
 use str_error as err;
-use read_file;
+use util::read_file;
 use parse_split_quote_aware;
 use schematic;
 use str_error;

@@ -1,14 +1,14 @@
 // (c) 2016 Productize SPRL <joost@productize.be>
 
-//use std::fmt;
-//use std::str::FromStr;
+// extension: .pro
+// format: special project format
+
+// first line starts with:
+// update=
 
 // get from parent
 use Result;
 use str_error;
-
-// first line starts with:
-// update=
 
 #[derive(Debug)]
 pub struct Project {
