@@ -1,9 +1,7 @@
 // (c) 2016 Productize SPRL <joost@productize.be>
 
-#![cfg_attr(feature = "nightly-testing", plugin(clippy))]
-
-#[macro_use]
-extern crate nom;
+#![cfg_attr(feature = "use_clippy", feature(plugin))]
+#![cfg_attr(feature = "use_clippy", plugin(clippy))]
 
 extern crate rustc_serialize;
 extern crate symbolic_expressions;
@@ -23,7 +21,7 @@ pub fn read_file(name: &str) -> Result<String> {
     Ok(s)
 }
 
-pub fn write_file(name:&str, data:&String) -> Result<()> {
+pub fn write_file(name:&str, data:&str) -> Result<()> {
     let mut f = try!(match File::create(name) {
         Ok(f) => Ok(f),
         Err(err) => Err(format!("create error in file '{}': {}", name, err))
@@ -37,7 +35,7 @@ pub fn write_file(name:&str, data:&String) -> Result<()> {
     
 }
 
-pub fn parse_split_quote_aware(s:&String) -> Vec<String> {
+pub fn parse_split_quote_aware(s:&str) -> Vec<String> {
     let mut v:Vec<String> = vec![];
     let mut in_q:bool = false;
     let mut q_seen:bool = false;
@@ -55,7 +53,7 @@ pub fn parse_split_quote_aware(s:&String) -> Vec<String> {
             continue
         }
         if !in_q && c == ' ' {
-            if s2.len() > 0 || q_seen {
+            if !s2.is_empty() || q_seen {
                 v.push(s2.clone());
                 s2.clear();
             }
@@ -64,13 +62,13 @@ pub fn parse_split_quote_aware(s:&String) -> Vec<String> {
         }
         s2.push(c);
     }
-    if s2.len() > 0 || q_seen {
+    if !s2.is_empty() || q_seen {
         v.push(s2.clone())
     }
-    return v
+    v
 }
 
-pub fn parse_split_quote_aware_n(n:usize, s:&String) -> Result<Vec<String>> {
+pub fn parse_split_quote_aware_n(n:usize, s:&str) -> Result<Vec<String>> {
     let mut i = 0;
     let mut v:Vec<String> = vec![];
     let mut in_q:bool = false;
@@ -93,7 +91,7 @@ pub fn parse_split_quote_aware_n(n:usize, s:&String) -> Result<Vec<String>> {
             continue
         }
         if !in_q && c == ' ' {
-            if s2.len() > 0 || q_seen {
+            if !s2.is_empty() || q_seen {
                 i += 1;
                 v.push(s2.clone());
                 s2.clear();
@@ -103,7 +101,7 @@ pub fn parse_split_quote_aware_n(n:usize, s:&String) -> Result<Vec<String>> {
         }
         s2.push(c);
     }
-    if s2.len() > 0 || q_seen {
+    if !s2.is_empty() || q_seen {
         v.push(s2.clone())
     }
     if v.len() < n {
@@ -170,7 +168,7 @@ pub fn read_kicad_file(name: &str, expected:Expected) -> Result<KicadFile> {
         Ok(p) => return Ok(KicadFile::Project(p)),
         Err(x) => { if expected == Expected::Project { msg = format!("{}", x) } },
     }
-    return Ok(KicadFile::Unknown(format!("{}: {}", name, msg)))
+    Ok(KicadFile::Unknown(format!("{}: {}", name, msg)))
 }
 
 pub fn read_module(name: &str) -> Result<footprint::Module> {

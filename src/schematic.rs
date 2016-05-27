@@ -52,7 +52,7 @@ impl Schematic {
         self.elements.push(Element::Other(c))
     }
 
-    pub fn modify_component<F>(&mut self, reference:&String, fun:F)
+    pub fn modify_component<F>(&mut self, reference:&str, fun:F)
         where F:Fn(&mut Component) -> ()
     {
         for ref mut x in &mut self.elements[..] {
@@ -81,8 +81,8 @@ impl Schematic {
     }
     
     pub fn collect_components(&self, v:&mut Vec<Component>) {
-        for ref x in self.elements.iter() {
-            match **x {
+        for x in &self.elements {
+            match *x {
                 Element::Component(ref c) => v.push(c.clone()),
                 Element::Other(_) => (),
             }
@@ -91,8 +91,8 @@ impl Schematic {
     
     pub fn components(&self) -> Vec<Component> {
         let mut v = vec![];
-        for ref x in self.elements.iter() {
-            match **x {
+        for x in &self.elements {
+            match *x {
                 Element::Component(ref c) => v.push(c.clone()),
                 Element::Other(_) => (),
             }
@@ -100,9 +100,9 @@ impl Schematic {
         v
     }
 
-    pub fn component_by_reference(&self, reference:&String) -> Result<Component> {
-        for ref x in self.elements.iter() {
-            match **x {
+    pub fn component_by_reference(&self, reference:&str) -> Result<Component> {
+        for x in &self.elements {
+            match *x {
                 Element::Component(ref c) => {
                     if c.reference == *reference {
                         return Ok(c.clone())
@@ -111,11 +111,10 @@ impl Schematic {
                 Element::Other(_) => (),
             }
         }
-        for ref sheet in self.sheets.iter() {
+        for sheet in &self.sheets {
             let schematic = try!(parse_file_for_sheet(&self, sheet));
-            match schematic.component_by_reference(reference) {
-                Ok(c) => return Ok(c),
-                _ => ()
+            if let Ok(c) = schematic.component_by_reference(reference) {
+                return Ok(c)
             }
         }
         str_error(format!("could not find component {} in schematic", reference))
@@ -174,9 +173,7 @@ impl ParseState {
     }
     
     fn here(&self) -> String {
-        let s =  (self.v[self.i]).clone();
-        //println!("{}", s);
-        s
+        (self.v[self.i]).clone()
     }
 
     fn next(&mut self) {
@@ -222,7 +219,7 @@ impl Description {
     fn new() -> Description {
         Description {
             size:String::from(""),
-            dimx:0+0,
+            dimx:0,
             dimy:0,
             title:String::from("Normal"),
             date:String::from("Tue 19 May 2015"),
@@ -306,7 +303,7 @@ impl Component {
         self.fields.push(f)
     }
 
-    pub fn get_field_value(&self, name:&String) -> Option<String> {
+    pub fn get_field_value(&self, name:&str) -> Option<String> {
         for field in &self.fields[..] {
             if field.name == *name {
                 return Some(field.value.clone())
@@ -314,7 +311,7 @@ impl Component {
         }
         None
     }
-    pub fn get_field(&self, name:&String) -> Option<ComponentField> {
+    pub fn get_field(&self, name:&str) -> Option<ComponentField> {
         for field in &self.fields[..] {
             if field.name == *name {
                 return Some(field.clone())
@@ -358,10 +355,11 @@ impl Component {
         }
     }
 
-    pub fn update_field(&mut self, name:&String, value:&String) {
-        for field in self.fields.iter_mut() {
+    pub fn update_field(&mut self, name:&str, value:&str) {
+        for field in &mut self.fields {
             if field.name == *name {
-                field.value.clone_from(value)
+                field.value.clear();
+                field.value.push_str(value)
             }
             if field.i > 1 {
                 field.visible = false
@@ -369,9 +367,9 @@ impl Component {
         }
     }
 
-    pub fn add_new_field(&mut self, template:&ComponentField, name:&String, value:&String) {
+    pub fn add_new_field(&mut self, template:&ComponentField, name:&String, value:&str) {
         let i = self.get_available_field_num();
-        let mut c = ComponentField::new_from(i, name.clone(), value.clone(), template.x, template.y);
+        let mut c = ComponentField::new_from(i, name.clone(), value.to_string(), template.x, template.y);
         c.visible = false;
         self.fields.push(c)
     }
@@ -494,7 +492,7 @@ impl ComponentField {
                 1 => String::from("Value"),
                 2 => String::from("Footprint"),
                 3 => String::from("UserDocLink"),
-                _ => return str_error(format!("expecting name for componentfield > 3")),
+                _ => return str_error("expecting name for componentfield > 3".to_string()),
             }
         };
         let c = ComponentField {
@@ -655,7 +653,7 @@ fn assume_string(e:&'static str, s:&String) -> Result<()> {
     if String::from(e) != *s {
         return str_error(format!("expecting: {}, actually: {}", e, s))
     }
-    return Ok(())
+    Ok(())
 }
 
 fn parse_split_quote_aware(s:&String) -> Vec<String> {
@@ -688,10 +686,10 @@ fn parse_split_quote_aware(s:&String) -> Vec<String> {
     if s2.len() > 0 || q_seen {
         v.push(s2.clone())
     }
-    return v
+    v
 }
 
-fn parse_split_quote_aware_n(n:usize, s:&String) -> Result<Vec<String>> {
+fn parse_split_quote_aware_n(n:usize, s:&str) -> Result<Vec<String>> {
     let mut i = 0;
     let mut v:Vec<String> = vec![];
     let mut in_q:bool = false;
@@ -714,7 +712,7 @@ fn parse_split_quote_aware_n(n:usize, s:&String) -> Result<Vec<String>> {
             continue
         }
         if !in_q && c == ' ' {
-            if s2.len() > 0 || q_seen {
+            if !s2.is_empty() || q_seen {
                 i += 1;
                 v.push(s2.clone());
                 s2.clear();
@@ -724,7 +722,7 @@ fn parse_split_quote_aware_n(n:usize, s:&String) -> Result<Vec<String>> {
         }
         s2.push(c);
     }
-    if s2.len() > 0 || q_seen {
+    if !s2.is_empty() || q_seen {
         v.push(s2.clone())
     }
     if v.len() < n {
@@ -847,11 +845,11 @@ fn parse_component_rotation(p:&mut ParseState, d:&mut Component) -> Result<()> {
     if v.len() != 4 {
         return str_error(format!("expecting 4 elements in {}", s))
     }
-    let a = try!(i64_from_string(p, &String::from(v[0])));
-    let b = try!(i64_from_string(p, &String::from(v[1])));
-    let c = try!(i64_from_string(p, &String::from(v[2])));
+    let a1 = try!(i64_from_string(p, &String::from(v[0])));
+    let b1 = try!(i64_from_string(p, &String::from(v[1])));
+    let c1 = try!(i64_from_string(p, &String::from(v[2])));
     let d1 = try!(i64_from_string(p, &String::from(v[3])));
-    let rot = ComponentRotation { a:a, b:b, c:c, d:d1 };
+    let rot = ComponentRotation { a:a1, b:b1, c:c1, d:d1 };
     d.rotation = rot;
     Ok(())
 }
@@ -936,18 +934,18 @@ fn parse_sheet_f(p:&mut ParseState, s:&mut Sheet, f:&str) -> Result<()> {
     f.remove(0);
     let i = try!(i64_from_string(p, &f));
     if i == 0 {
-        let v = try!(parse_split_quote_aware_n(3, &p.here()));
-        s.name = v[1].clone();
-        s.name_size = try!(i64_from_string(p, &v[2]));
+        let name_size = try!(parse_split_quote_aware_n(3, &p.here()));
+        s.name = name_size[1].clone();
+        s.name_size = try!(i64_from_string(p, &name_size[2]));
     }
     else if i == 1 {
-        let v = try!(parse_split_quote_aware_n(3, &p.here()));
-        s.filename = v[1].clone();
-        s.filename_size = try!(i64_from_string(p, &v[2]));
+        let filename_size = try!(parse_split_quote_aware_n(3, &p.here()));
+        s.filename = filename_size[1].clone();
+        s.filename_size = try!(i64_from_string(p, &filename_size[2]));
     }
     else {
-        let l = try!(parse_sheet_label(p, &p.here()));
-        s.labels.push(l)
+        let label_el = try!(parse_sheet_label(p, &p.here()));
+        s.labels.push(label_el)
     }
     Ok(())
 }

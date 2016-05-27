@@ -10,11 +10,12 @@ use Sexp;
 use symbolic_expressions;
 
 // TODO: get rid of it
-pub fn display_string(s:&String) -> String {
-    if s.contains("(") || s.contains(" ") || s.len() == 0 {
+
+pub fn display_string(s:&str) -> String {
+    if s.contains('(') || s.contains(' ') || s.is_empty() {
         format!("\"{}\"", s)
     } else {
-        s.clone()
+        s.to_string()
     }
 }
 
@@ -35,51 +36,40 @@ impl Module {
     fn append(&mut self, e: Element) {
         self.elements.push(e)
     }
-    pub fn is_reference(&self, reference:&String) -> bool {
+    pub fn is_reference(&self, reference:&str) -> bool {
         for element in &self.elements[..] {
-            match *element {
-                Element::FpText(ref fp_text) => {
-                    if fp_text.name == "reference" && fp_text.value == *reference {
-                        return true
-                    }
+            if let Element::FpText(ref fp_text) = *element {
+                if fp_text.name == "reference" && fp_text.value == *reference {
+                    return true
                 }
-                _ => ()
             }
         }
-        return false
+        false
     }
-    pub fn set_reference(&mut self, reference:&String, reference2:&String) {
+    pub fn set_reference(&mut self, reference:&str, reference2:&str) {
         //println!("debug: searching '{}'", reference);
         for ref mut element in &mut self.elements[..] {
-            match **element {
-                Element::FpText(ref mut fp_text) => {
-                    if fp_text.name == "reference" && fp_text.value == *reference {
-                        fp_text.value.clone_from(reference2);
-                    }
+            if let Element::FpText(ref mut fp_text) = **element {
+                if fp_text.name == "reference" && fp_text.value == *reference {
+                    fp_text.value.clear();
+                    fp_text.value.push_str(reference2);
                 }
-                _ => ()
             }
         }
     }
     pub fn at(&self) -> (f64, f64) {
         for element in &self.elements[..] {
-            match *element {
-                Element::At(ref at) => {
-                    return (at.x, at.y)
-                }
-                _ => ()
+            if let Element::At(ref at) = *element {
+                return (at.x, at.y)
             }
         }
-        return (0.0, 0.0)
+        (0.0, 0.0)
     }
     
     pub fn front(&self) -> bool {
         for element in &self.elements[..] {
-            match *element {
-                Element::Layer(ref layer) => {
-                    return &layer[..] == "F.Cu"
-                }
-                _ => ()
+            if let Element::Layer(ref layer) = *element {
+                return &layer[..] == "F.Cu"
             }
         }
         true
@@ -104,7 +94,7 @@ impl Module {
         }
         let (x1, x2) = if x1 < x2 { (x1, x2) } else { (x2, x1) };
         let (y1, y2) = if y1 < y2 { (y1, y2) } else { (y2, y1) };
-        return (x1, y1, x2, y2)
+        (x1, y1, x2, y2)
     }
 }
 
@@ -356,14 +346,12 @@ pub struct Drill {
 impl fmt::Display for Drill {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(write!(f,"(drill "));
-        match self.shape {
-            Some(ref s) => try!(write!(f, "{} ", s)),
-            None => (),
+        if let Some(ref s) = self.shape {
+            try!(write!(f, "{} ", s))
         }
         try!(write!(f,"{}", self.drill));
-        match self.drill2 {
-            Some(ref d2) => try!(write!(f, " {}", d2)),
-            None => (),
+        if let Some(ref d2) = self.drill2 {
+            try!(write!(f, " {}", d2))
         }
         write!(f,")")
     }
@@ -1016,7 +1004,7 @@ impl FromSexp for Result<Drill> {
             let drill2 = try!(v[2].f());
             Ok(Drill { shape:Some(shape.clone()), drill:drill, drill2:Some(drill2) })
         } else {
-            str_error(format!("unknown drill format"))
+            str_error("unknown drill format".to_string())
         }
     }
 }
@@ -1036,10 +1024,7 @@ impl FromSexp for Result<Part> {
                     "effects" => wrap(s, Result::from_sexp, Part::Effects),
                     "layers" => wrap(s, Result::from_sexp, Part::Layers),
                     "width" => parse_part_float(s, Part::Width),
-                    "start" => wrap(s, Result::from_sexp, Part::Xy),
-                    "end" => wrap(s, Result::from_sexp, Part::Xy),
-                    "size" => wrap(s, Result::from_sexp, Part::Xy),
-                    "center" => wrap(s, Result::from_sexp, Part::Xy),
+                    "start" | "end" | "size" | "center" => wrap(s, Result::from_sexp, Part::Xy),
                     "pts" => wrap(s, Result::from_sexp, Part::Pts),
                     "thickness" => parse_part_float(s, Part::Thickness),
                     "net" => wrap(s, Result::from_sexp, Part::Net),
@@ -1102,7 +1087,7 @@ impl FromSexp for Result<Pad> {
     fn from_sexp(s:&Sexp) -> Result<Pad> {
         let v = try!(s.slice_atom("pad"));
         if v.len() < 3 {
-            return str_error(format!("not enough elements in pad"))
+            return str_error("not enough elements in pad".to_string())
         }
         let name = try!(v[0].string()).clone();
         let t = try!(v[1].string());

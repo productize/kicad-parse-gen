@@ -230,7 +230,7 @@ impl Layout {
                 Element::Graphics(_) => (),
             }
         }
-        return None
+        None
     }
     
     pub fn modify_module<F>(&mut self, reference:&String, fun:F) -> Result<()> 
@@ -309,7 +309,7 @@ impl NetClass {
         s1.nets = vec![];
         let mut s2 = other.clone();
         s2.nets = vec![];
-        return s1 == s2;
+        s1 == s2
     }
     pub fn has_net(&self, name:&'static str) -> bool {
         for net in &self.nets {
@@ -317,7 +317,7 @@ impl NetClass {
                 return true
             }
         }
-        return false
+        false
     }
 }
 
@@ -331,7 +331,7 @@ impl Setup {
                 return Some(&element.value1)
             }
         }
-        return None
+        None
     }
 
     pub fn update_element(&mut self, name:&'static str, value:String) {
@@ -917,6 +917,6 @@ impl FromSexp for Result<Layout> {
 pub fn parse(s: &str) -> Result<Layout> {
     match symbolic_expressions::parser::parse_str(s) {
         Ok(s) => Result::from_sexp(&s),
-        Err(x) => return str_error(format!("ParseError: {:?}", x)),
+        Err(x) => str_error(format!("ParseError: {:?}", x)),
     }
 }

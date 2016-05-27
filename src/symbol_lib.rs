@@ -196,9 +196,7 @@ impl ParseState {
     }
     
     fn here(&self) -> String {
-        let s =  (self.v[self.i]).clone();
-        //println!("{}", s);
-        s
+        (self.v[self.i]).clone()
     }
 
     fn next(&mut self) {
@@ -214,7 +212,7 @@ fn assume_string(e:&'static str, s:&String) -> Result<()> {
     if String::from(e) != *s {
         return str_error(format!("expecting: {}, actually: {}", e, s))
     }
-    return Ok(())
+    Ok(())
 }
 
 fn i64_from_string(p:&ParseState, s:&String) -> Result<i64> {
