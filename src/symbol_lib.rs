@@ -312,7 +312,7 @@ fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> Result<bool> {
 // F0 "L" 0 50 40 H V C CNN
 fn parse_field(p:&mut ParseState, line:&str) -> Result<Field> {
     let mut f = Field::new();
-    let v = &parse_split_quote_aware(&line);
+    let v = &parse_split_quote_aware(line);
     if v.len() != 9 && v.len() != 10 {
         return str_error(format!("unexpected elements in {}", line))
     }

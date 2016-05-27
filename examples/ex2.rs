@@ -1,4 +1,4 @@
-// (c) 2016 Joost Yervante Damad <joost@productize.be>
+// (c) 2016 Productize SPRL <joost@productize.be>
 
 extern crate rustykicad;
 
