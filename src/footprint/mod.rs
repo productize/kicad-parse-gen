@@ -13,6 +13,8 @@ use Sexp;
 use symbolic_expressions;
 use symbolic_expressions::IntoSexp;
 
+pub use footprint::data::*;
+
 // TODO: get rid of it
 
 pub fn display_string(s:&str) -> String {
@@ -25,81 +27,6 @@ pub fn display_string(s:&str) -> String {
 
 pub trait FromSexp {
     fn from_sexp(&Sexp) -> Self;
-}
-
-#[derive(Debug,Clone)]
-pub struct Module {
-    pub name: String,
-    pub elements: Vec<Element>
-}
-
-impl Module {
-    fn new(name: String) -> Module {
-        Module { name: name, elements: vec![] }
-    }
-    fn append(&mut self, e: Element) {
-        self.elements.push(e)
-    }
-    pub fn is_reference(&self, reference:&str) -> bool {
-        for element in &self.elements[..] {
-            if let Element::FpText(ref fp_text) = *element {
-                if fp_text.name == "reference" && fp_text.value == *reference {
-                    return true
-                }
-            }
-        }
-        false
-    }
-    pub fn set_reference(&mut self, reference:&str, reference2:&str) {
-        //println!("debug: searching '{}'", reference);
-        for ref mut element in &mut self.elements[..] {
-            if let Element::FpText(ref mut fp_text) = **element {
-                if fp_text.name == "reference" && fp_text.value == *reference {
-                    fp_text.value.clear();
-                    fp_text.value.push_str(reference2);
-                }
-            }
-        }
-    }
-    pub fn at(&self) -> (f64, f64) {
-        for element in &self.elements[..] {
-            if let Element::At(ref at) = *element {
-                return (at.x, at.y)
-            }
-        }
-        (0.0, 0.0)
-    }
-    
-    pub fn front(&self) -> bool {
-        for element in &self.elements[..] {
-            if let Element::Layer(ref layer) = *element {
-                return &layer[..] == "F.Cu"
-            }
-        }
-        true
-    }
-
-    pub fn bounding_box(&self) -> (f64, f64, f64, f64) {
-        let mut x1 = 10000.0_f64;
-        let mut y1 = 10000.0_f64;
-        let mut x2 = 0.0_f64;
-        let mut y2 = 0.0_f64;
-        let (x,y) = self.at();
-        for element in &self.elements {
-            match element.bounding_box() {
-                None => (),
-                Some((x1a, y1a, x2a, y2a)) => {
-                    x1 = x1.min(x+x1a);
-                    y1 = y1.min(y+y1a);
-                    x2 = x2.max(x+x2a);
-                    y2 = y2.max(y+y2a);
-                }
-            }
-        }
-        let (x1, x2) = if x1 < x2 { (x1, x2) } else { (x2, x1) };
-        let (y1, y2) = if y1 < y2 { (y1, y2) } else { (y2, y1) };
-        (x1, y1, x2, y2)
-    }
 }
 
 impl fmt::Display for Module {
@@ -120,37 +47,6 @@ impl IntoSexp for Module {
             v.push(e.into_sexp())
         }
         Sexp::new_list(v)
-    }
-}
-
-#[derive(Debug,Clone)]
-pub enum Element {
-    Layer(String), // TODO: use Layer type
-    Descr(String),
-    Tags(String),
-    Attr(String),
-    FpText(FpText),
-    Pad(Pad),
-    FpPoly(FpPoly),
-    FpLine(FpLine),
-    FpCircle(FpCircle),
-    TEdit(String),
-    TStamp(String),
-    Path(String),
-    At(At),
-    Model(Model),
-    Locked,
-}
-
-impl Element {
-    pub fn bounding_box(&self) -> Option<(f64, f64, f64, f64)> {
-        match *self {
-            Element::Pad(ref x) => Some(x.bounding_box()),
-            Element::FpPoly(ref x) => Some(x.bounding_box()),
-            Element::FpLine(ref x) => Some(x.bounding_box()),
-            Element::FpCircle(ref x) => Some(x.bounding_box()),
-            _ => None,
-        }
     }
 }
 
@@ -198,35 +94,6 @@ impl IntoSexp for Element {
     }
 }
 
-#[derive(Debug,Clone)]
-pub struct FpText {
-    name: String,
-    value: String,
-    at: At,
-    layer: Layer,
-    effects: Effects,
-    hide: bool,
-}
-
-impl FpText {
-    fn new(name: String, value: String) -> FpText {
-        FpText {
-            name: name,
-            value: value,
-            at: At::new_empty(),
-            layer: Layer::default(),
-            effects: Effects::new(),
-            hide: false
-        }
-    }
-    fn set_effects(&mut self, effects: &Effects) {
-        self.effects.clone_from(effects)
-    }
-    fn set_layer(&mut self, layer: &Layer) {
-        self.layer.clone_from(layer)
-    }
-}
-
 impl fmt::Display for FpText {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "(fp_text {} {} {} (layer {}){} {})", self.name, display_string(&self.value), self.at, self.layer, if self.hide { " hide" } else { "" }, self.effects)
@@ -246,22 +113,6 @@ impl IntoSexp for FpText {
         }
         v.push(self.effects.into_sexp());
         Sexp::new_list(v)
-    }
-}
-
-#[derive(Debug,Clone)]
-pub struct At {
-    x: f64,
-    y: f64,
-    rot: f64
-}
-
-impl At {
-    pub fn new(x:f64 ,y:f64, rot:f64) -> At {
-        At { x:x, y:y, rot:rot }
-    }
-    pub fn new_empty() -> At {
-        At { x:0.0, y:0.0, rot:0.0 }
     }
 }
 
@@ -287,19 +138,6 @@ impl IntoSexp for At {
     }
 }
 
-#[derive(Debug,Clone)]
-pub struct Font {
-    size: Xy,
-    thickness: f64,
-}
-
-impl Font {
-    fn new() -> Font {
-        Font { size: Xy::new(0.0, 0.0, XyType::Size), thickness: 0.0 }
-    }
-}
-
-
 impl fmt::Display for Font {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "(font (size {} {}) (thickness {}))", self.size.x, self.size.y, self.thickness)
@@ -317,27 +155,6 @@ impl IntoSexp for Font {
         v.push(Sexp::new_list(v1));
         v.push(Sexp::new_named("thickness", self.thickness));
         Sexp::new_list(v)
-    }
-}
-
-#[derive(Debug,Clone)]
-pub struct Effects {
-    font: Font,
-    justify:Option<Justify>,
-}
-
-
-#[derive(Debug,Clone)]
-pub enum Justify {
-    Mirror,
-}
-
-impl Effects {
-    pub fn new() -> Effects {
-        Effects { font: Font::new(), justify:None }
-    }
-    pub fn from_font(font: Font, justify: Option<Justify>) -> Effects {
-        Effects { font: font, justify:justify }
     }
 }
 
@@ -377,41 +194,6 @@ impl IntoSexp for Justify {
         }
     }
 }
-
-#[derive(Debug,Clone,PartialEq)]
-pub enum XyType {
-    Xy,
-    Start,
-    End,
-    Size,
-    Center,
-}
-
-#[derive(Debug,Clone)]
-pub struct Xy {
-    x: f64,
-    y: f64,
-    t: XyType,
-}
-
-#[derive(Debug,Clone)]
-pub struct Pts {
-    pub elements: Vec<Xy>
-}
-
-impl Xy {
-    pub fn new(x: f64, y: f64, t: XyType) -> Xy {
-        Xy { x:x, y:y, t:t }
-    }
-    pub fn new_empty(t: XyType) -> Xy {
-        Xy { x:0.0, y:0.0, t:t }
-    }
-}
-
-impl Pts {
-    fn new() -> Pts { Pts { elements:vec![] } }
-}
-
 
 impl fmt::Display for Xy {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
@@ -461,13 +243,6 @@ impl IntoSexp for Pts {
     }
 }
 
-#[derive(Clone,Debug)]
-pub struct Drill {
-    shape:Option<String>,
-    drill:f64,
-    drill2:Option<f64>,
-}
-
 impl fmt::Display for Drill {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(write!(f,"(drill "));
@@ -497,23 +272,8 @@ impl IntoSexp for Drill {
     }
 }
 
-#[derive(Debug)]
-enum Part {
-    At(At),
-    Layer(Layer),
-    Hide,
-    Effects(Effects),
-    Layers(Layers),
-    Width(f64),
-    Xy(Xy),
-    Pts(Pts),
-    Thickness(f64),
-    Net(Net),
-    Drill(Drill),
-    SolderPasteMargin(f64),
-}
-
 // as parts are intermediate only Display doesn't really matter
+/*
 impl fmt::Display for Part {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
@@ -532,25 +292,7 @@ impl fmt::Display for Part {
             
         }
     }
-}
-
-#[derive(Debug,Clone)]
-pub enum PadType {
-    Smd,
-    Pth,
-    NpPth,
-}
-
-impl PadType {
-    fn from_string(s: String) -> Result<PadType> {
-        match &s[..] {
-            "smd" => Ok(PadType::Smd),
-            "thru_hole" => Ok(PadType::Pth),
-            "np_thru_hole" => Ok(PadType::NpPth),
-            x => str_error(format!("unknown PadType {}", x))
-        }
-    }
-}
+}*/
 
 impl fmt::Display for PadType {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
@@ -572,25 +314,6 @@ impl IntoSexp for PadType {
     }
 }
 
-#[derive(Debug,Clone)]
-pub enum PadShape {
-    Rect,
-    Circle,
-    Oval,
-    // TODO
-}
-
-impl PadShape {
-    fn from_string(s:&str) -> Result<PadShape> {
-        match s {
-            "rect" => Ok(PadShape::Rect),
-            "circle" => Ok(PadShape::Circle),
-            "oval" => Ok(PadShape::Oval),
-            x => str_error(format!("unknown PadShape: {}", x))
-        }
-    }
-}
-
 impl fmt::Display for PadShape {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
@@ -608,88 +331,6 @@ impl IntoSexp for PadShape {
             PadShape::Circle => "circle",
             PadShape::Oval => "oval",
         })
-    }
-}
-
-#[derive(Debug,Clone)]
-pub enum LayerSide {
-    Front,
-    Back,
-    Dwgs,
-    Cmts,
-    Eco1,
-    Eco2,
-    Edge,
-    Both,
-    In1,
-    In2,
-    None,
-}
-
-#[derive(Debug,Clone)]
-pub enum LayerType {
-    Cu,
-    Paste,
-    Mask,
-    SilkS,
-    User,
-    Adhes,
-    Cuts,
-    CrtYd,
-    Fab,
-    Margin,
-    Other(String),
-}
-
-#[derive(Debug,Clone)]
-pub struct Layer {
-    side: LayerSide,
-    t: LayerType,
-}
-
-impl Layer {
-
-    pub fn new() -> Layer {
-        Layer { side:LayerSide::Front, t:LayerType::Cu }
-    }
-    
-    pub fn from_string(s: String) -> Result<Layer> {
-        let sp:Vec<&str> = s.split('.').collect();
-        let mut side = LayerSide::None;
-        let mut s_t = sp[0];
-        if sp.len() == 2 {
-            side = match sp[0] {
-                "F" => LayerSide::Front,
-                "B" => LayerSide::Back,
-                "Dwgs" => LayerSide::Dwgs,
-                "Cmts" => LayerSide::Cmts,
-                "Eco1" => LayerSide::Eco1,
-                "Eco2" => LayerSide::Eco2,
-                "Edge" => LayerSide::Edge,
-                "In1" => LayerSide::In1,
-                "In2" => LayerSide::In2,
-                "*" => LayerSide::Both,
-                x => return str_error(format!("unknown layer side {}", x)),
-            };
-            s_t = sp[1];
-        }
-        let t = match s_t {
-            "Cu" => LayerType::Cu,
-            "Paste" => LayerType::Paste,
-            "Mask" => LayerType::Mask,
-            "SilkS" => LayerType::SilkS,
-            "User" => LayerType::User,
-            "Adhes" => LayerType::Adhes,
-            "Cuts" => LayerType::Cuts,
-            "CrtYd" => LayerType::CrtYd,
-            "Fab" => LayerType::Fab,
-            "Margin" => LayerType::Margin,
-            x => LayerType::Other(String::from(x)),
-        };
-        Ok(Layer { side:side, t:t, })
-    }
-    fn default() -> Layer {
-        Layer { side: LayerSide::Front, t: LayerType::Cu }
     }
 }
 
@@ -730,22 +371,6 @@ impl IntoSexp for Layer {
     }
 } 
 
-#[derive(Debug,Clone)]
-pub struct Layers {
-    layers: Vec<Layer>,
-}
-
-impl Layers {
-    fn new() -> Layers {
-        Layers {
-            layers: vec![]
-        }
-    }
-    fn append(&mut self, layer: &Layer) {
-        self.layers.push(layer.clone())
-    }
-}
-
 impl fmt::Display for Layers {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         let len = self.layers.len();
@@ -768,54 +393,6 @@ impl IntoSexp for Layers {
             v.push(layer.into_sexp())
         }
         Sexp::new_list(v)
-    }
-}
-
-
-#[derive(Debug,Clone)]
-pub struct Pad {
-    pub name: String,
-    pub t: PadType,
-    pub shape: PadShape,
-    pub size: Xy,
-    pub at: At,
-    pub layers: Layers,
-    pub net: Option<Net>,
-    pub drill: Option<Drill>,
-    pub solder_paste_margin: Option<f64>,
-}
-
-impl Pad {
-    fn new(name: String, t:PadType, shape: PadShape) -> Pad {
-        Pad {
-            name: name,
-            t: t,
-            shape: shape,
-            size: Xy::new_empty(XyType::Size),
-            at: At::new_empty(),
-            layers: Layers::new(),
-            net:None,
-            drill:None,
-            solder_paste_margin:None,
-        }
-    }
-
-    fn set_net(&mut self, net:&Net) {
-        self.net = Some(net.clone())
-    }
-    fn set_drill(&mut self, drill:&Drill) {
-        self.drill = Some(drill.clone())
-    }
-
-    pub fn bounding_box(&self) -> (f64,f64,f64,f64) {
-        let x = self.at.x;
-        let y = self.at.y;
-        let (dx, dy) = if self.at.rot < 0.1 {
-            (self.size.x, self.size.y)
-        } else {
-            (self.size.y, self.size.x)
-        };
-        (x-dx/2.0, y-dy/2.0, x+dx/2.0, y+dy/2.0)
     }
 }
 
@@ -860,33 +437,6 @@ impl IntoSexp for Pad {
     }
 }
 
-#[derive(Debug,Clone)]
-pub struct FpPoly {
-    pts:Pts,
-    width:f64,
-    layer:Layer,
-}
-
-impl FpPoly {
-    fn new() -> FpPoly {
-        FpPoly { pts:Pts::new(), width:0.0, layer:Layer::default() }
-    }
-
-    fn bounding_box(&self) -> (f64,f64,f64,f64) {
-        let mut x1 = 10000.0_f64;
-        let mut y1 = 10000.0_f64;
-        let mut x2 = 0.0_f64;
-        let mut y2 = 0.0_f64;
-        for p in &self.pts.elements {
-            x1 = x1.min(p.x);
-            y1 = y1.min(p.y);
-            x2 = x2.max(p.x);
-            y2 = y2.max(p.y);
-        }
-        (x1,y2,x2,y2)
-    }
-}
-
 impl fmt::Display for FpPoly {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         let l = self.pts.elements.len();
@@ -909,33 +459,6 @@ impl IntoSexp for FpPoly {
     }
 }
 
-#[derive(Debug,Clone)]
-pub struct FpLine {
-    start:Xy,
-    end:Xy,
-    layer:Layer,
-    width:f64,
-}
-
-impl FpLine {
-    fn new() -> FpLine {
-        FpLine { start:Xy::new_empty(XyType::Start), end:Xy::new_empty(XyType::End), layer:Layer::default(), width:0.0 }
-    }
-    
-    fn bounding_box(&self) -> (f64,f64,f64,f64) {
-        let mut x1 = 10000.0_f64;
-        let mut y1 = 10000.0_f64;
-        let mut x2 = 0.0_f64;
-        let mut y2 = 0.0_f64;
-        x1 = x1.min(self.start.x);
-        y1 = y1.min(self.start.y);
-        x2 = x2.max(self.end.x);
-        y2 = y2.max(self.end.y);
-        (x1,y1,x2,y2)
-    }
-}
-
-
 impl fmt::Display for FpLine {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "(fp_line {} {} (layer {}) (width {}))", self.start, self.end, self.layer, self.width)
@@ -952,36 +475,6 @@ impl IntoSexp for FpLine {
         v.push(Sexp::new_named("width", self.width));
         Sexp::new_list(v)
     }
-}
-
-
-impl FpCircle {
-    fn new() -> FpCircle {
-        FpCircle { center:Xy::new_empty(XyType::Center), end:Xy::new_empty(XyType::End), layer:Layer::default(), width:0.0 }
-    }
-    fn bounding_box(&self) -> (f64,f64,f64,f64) {
-        let mut x1 = 10000.0_f64;
-        let mut y1 = 10000.0_f64;
-        let mut x2 = 0.0_f64;
-        let mut y2 = 0.0_f64;
-        let dx = self.center.x - self.end.x;
-        let dy = self.center.y - self.end.y;
-        let d2 = dx*dx + dy*dy;
-        let d = d2.sqrt();
-        x1 = x1.min(self.center.x-d);
-        y1 = y1.min(self.center.y-d);
-        x2 = x2.max(self.center.x+d);
-        y2 = y2.max(self.center.y+d);
-        (x1,y1,x2,y2)
-    }
-}
-
-#[derive(Debug,Clone)]
-pub struct FpCircle {
-    center:Xy,
-    end:Xy,
-    layer:Layer,
-    width:f64,
 }
 
 impl fmt::Display for FpCircle {
@@ -1002,12 +495,6 @@ impl IntoSexp for FpCircle {
     }
 }
 
-#[derive(Debug,Clone)]
-pub struct Net {
-    pub num: i64,
-    pub name: String,
-}
-
 impl fmt::Display for Net {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "(net {} \"{}\")", self.num, self.name)
@@ -1022,15 +509,6 @@ impl IntoSexp for Net {
         v.push(Sexp::new_string(&self.name));
         Sexp::new_list(v)
     }
-}
-
-
-#[derive(Debug,Clone)]
-pub struct Model {
-    name: String,
-    at: Xyz,
-    scale: Xyz,
-    rotate: Xyz,
 }
 
 impl fmt::Display for Model {
@@ -1050,20 +528,6 @@ impl IntoSexp for Model {
         Sexp::new_list(v)
     }
 }
-
-#[derive(Debug,Clone)]
-pub struct Xyz {
-    x:f64,
-    y:f64,
-    z:f64,
-}
-
-impl Xyz {
-    fn new(x:f64, y:f64, z:f64) -> Xyz {
-        Xyz { x:x, y:y, z:z, }
-    }
-}
-
 
 impl fmt::Display for Xyz {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
@@ -1169,7 +633,7 @@ impl FromSexp for Result<Font> {
                     font.thickness = *t;
                     Ok(())
                 }
-                ref x => Err(format!("unknown element in font: {}", x))
+                ref x => Err(format!("unknown element in font: {:?}", x))
             })
         }
         Ok(font)
@@ -1346,7 +810,7 @@ impl FromSexp for Result<FpText> {
                     fp.set_effects(effects)
                 }
                 ref x => {
-                    return str_error(format!("fp_text: unknown {}", x))
+                    return str_error(format!("fp_text: unknown {:?}", x))
                 }
             }
         }
@@ -1362,7 +826,7 @@ impl FromSexp for Result<Pad> {
         }
         let name = try!(v[0].string()).clone();
         let t = try!(v[1].string());
-        let t = try!(PadType::from_string(t.clone()));
+        let t = try!(PadType::from_string(&t));
         let shape = try!(v[2].string());
         let shape = try!(PadShape::from_string(&shape));
         let mut pad = Pad::new(name, t, shape);
@@ -1376,7 +840,7 @@ impl FromSexp for Result<Pad> {
                 Part::Net(ref n) => pad.set_net(n),
                 Part::Drill(ref n) => pad.set_drill(n),
                 Part::SolderPasteMargin(n) => pad.solder_paste_margin = Some(n),
-                ref x => return str_error(format!("pad: unknown {}", x)),
+                ref x => return str_error(format!("pad: unknown {:?}", x)),
             }
         }
         Ok(pad)
@@ -1393,7 +857,7 @@ impl FromSexp for Result<FpPoly> {
                 Part::Pts(ref pts) => fp_poly.pts.clone_from(pts),
                 Part::Width(w) => fp_poly.width = w,
                 Part::Layer(ref layer) => fp_poly.layer.clone_from(layer),
-                ref x => println!("fp_poly: ignoring {}", x),
+                ref x => println!("fp_poly: ignoring {:?}", x),
             }
         } 
         Ok(fp_poly)
@@ -1411,7 +875,7 @@ impl FromSexp for Result<FpLine> {
                 Part::Xy(ref xy) if xy.t == XyType::End => fp_line.end.clone_from(xy),
                 Part::Layer(ref layer) => fp_line.layer.clone_from(layer),
                 Part::Width(w) => fp_line.width = w,
-                ref x => return str_error(format!("fp_line: unknown {}", x)),
+                ref x => return str_error(format!("fp_line: unknown {:?}", x)),
             }
         }
         Ok(fp_line)
@@ -1429,7 +893,7 @@ impl FromSexp for Result<FpCircle> {
                 Part::Xy(ref xy) if xy.t == XyType::End => fp_circle.end.clone_from(xy),
                 Part::Layer(ref layer) => fp_circle.layer.clone_from(layer),
                 Part::Width(w) => fp_circle.width = w,
-                ref x => return str_error(format!("fp_circle: unexpected {}", x)),
+                ref x => return str_error(format!("fp_circle: unexpected {:?}", x)),
             }
         }
         Ok(fp_circle)
@@ -1511,3 +975,5 @@ pub fn parse(s: &str) -> Result<Module> {
         Err(x) => str_error(format!("IOError: {:?}", x))
     }
 }
+
+mod data;
