@@ -237,10 +237,10 @@ impl IntoSexp for FpText {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
         v.push(Sexp::new_string("fp_text"));
-        v.push(Sexp::new_string(self.name));
-        v.push(Sexp::new_string(self.value));
+        v.push(Sexp::new_string(&self.name));
+        v.push(Sexp::new_string(&self.value));
         v.push(self.at.into_sexp());
-        v.push(Sexp::new_named("layer", self.layer));
+        v.push(Sexp::new_named("layer", &self.layer));
         if self.hide {
             v.push(Sexp::new_string("hide"));
         }
@@ -841,7 +841,7 @@ impl IntoSexp for Pad {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
         v.push(Sexp::new_string("pad"));
-        v.push(Sexp::new_string(self.name));
+        v.push(Sexp::new_string(&self.name));
         v.push(self.t.into_sexp());
         v.push(self.shape.into_sexp());
         v.push(self.size.into_sexp());
@@ -898,6 +898,17 @@ impl fmt::Display for FpPoly {
     }
 }
 
+impl IntoSexp for FpPoly {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("fp_poly"));
+        v.push(self.pts.into_sexp());
+        v.push(Sexp::new_named("layer", &self.layer));
+        v.push(Sexp::new_named("width", self.width));
+        Sexp::new_list(v)
+    }
+}
+
 #[derive(Debug,Clone)]
 pub struct FpLine {
     start:Xy,
@@ -930,6 +941,19 @@ impl fmt::Display for FpLine {
         write!(f, "(fp_line {} {} (layer {}) (width {}))", self.start, self.end, self.layer, self.width)
     }
 }
+
+impl IntoSexp for FpLine {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("fp_line"));
+        v.push(self.start.into_sexp());
+        v.push(self.end.into_sexp());
+        v.push(Sexp::new_named("layer", &self.layer));
+        v.push(Sexp::new_named("width", self.width));
+        Sexp::new_list(v)
+    }
+}
+
 
 impl FpCircle {
     fn new() -> FpCircle {
@@ -966,6 +990,18 @@ impl fmt::Display for FpCircle {
     }
 }
 
+impl IntoSexp for FpCircle {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("fp_circle"));
+        v.push(self.center.into_sexp());
+        v.push(self.end.into_sexp());
+        v.push(Sexp::new_named("layer", &self.layer));
+        v.push(Sexp::new_named("width", self.width));
+        Sexp::new_list(v)
+    }
+}
+
 #[derive(Debug,Clone)]
 pub struct Net {
     pub num: i64,
@@ -978,6 +1014,17 @@ impl fmt::Display for Net {
     }
 }
 
+impl IntoSexp for Net {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("net"));
+        v.push(Sexp::new_string(self.num));
+        v.push(Sexp::new_string(&self.name));
+        Sexp::new_list(v)
+    }
+}
+
+
 #[derive(Debug,Clone)]
 pub struct Model {
     name: String,
@@ -989,6 +1036,18 @@ pub struct Model {
 impl fmt::Display for Model {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "(model {} (at {}) (scale {}) (rotate {}))", self.name, self.at, self.scale, self.rotate)
+    }
+}
+
+impl IntoSexp for Model {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("model"));
+        v.push(Sexp::new_string(&self.name));
+        v.push(Sexp::new_named_sexp("at", &self.at));
+        v.push(Sexp::new_named_sexp("scale", &self.scale));
+        v.push(Sexp::new_named_sexp("rotate", &self.rotate));
+        Sexp::new_list(v)
     }
 }
 
@@ -1011,6 +1070,18 @@ impl fmt::Display for Xyz {
         write!(f, "(xyz {} {} {})", self.x, self.y, self.z)
     }
 }
+
+impl IntoSexp for Xyz {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("xyz"));
+        v.push(Sexp::new_string(self.x));
+        v.push(Sexp::new_string(self.y));
+        v.push(Sexp::new_string(self.z));
+        Sexp::new_list(v)
+    }
+}
+
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
 impl FromSexp for Result<At> {
