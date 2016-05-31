@@ -188,8 +188,8 @@ impl IntoSexp for Pad {
         v.push(Sexp::new_string(&self.name));
         v.push(self.t.into_sexp());
         v.push(self.shape.into_sexp());
-        v.push(self.size.into_sexp());
         v.push(self.at.into_sexp());
+        v.push(self.size.into_sexp());
         v.push(self.layers.into_sexp());
         if let Some(ref net) = self.net {
             v.push(net.into_sexp());
