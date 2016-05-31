@@ -3,15 +3,17 @@
 use Sexp;
 use symbolic_expressions::IntoSexp;
 use footprint::data::*;
+use symbolic_expressions::Rules;
 
 impl IntoSexp for Module {
     fn into_sexp(&self) -> Sexp {
-        let mut v = vec![];
-        v.push(Sexp::new_string("module"));
-        for e in &self.elements {
-            v.push(e.into_sexp())
-        }
-        Sexp::new_list(v)
+        Sexp::new_named_list(
+            "module",
+            |v| {
+                for e in &self.elements {
+                    v.push(e.into_sexp())
+                }
+            })
     }
 }
 
@@ -269,4 +271,19 @@ impl IntoSexp for Xyz {
         v.push(Sexp::new_string(self.z));
         Sexp::new_list(v)
     }
+}
+
+pub fn new_rules() -> Rules {
+    let mut rules = Rules::new();
+    rules.insert("descr", 1);
+    rules.insert("fp_text", 1);
+    rules.insert("effects", 2);
+    rules.insert("fp_line", 1);
+    rules.insert("fp_poly", 1);
+    rules.insert("fp_circle", 1);
+    rules.insert("fp_poly", 1);
+    rules.insert("xp", 2);
+    rules.insert("pad", 1);
+    rules.insert("model", 1);
+    rules
 }

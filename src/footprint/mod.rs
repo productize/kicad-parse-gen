@@ -9,27 +9,18 @@ use std::result;
 // get from parent
 use Result;
 use str_error;
-use Sexp;
 use symbolic_expressions;
 use symbolic_expressions::IntoSexp;
+use formatter::KicadFormatter;
 
+pub use footprint;
 pub use footprint::data::*;
-use footprint::ser::*;
 pub use footprint::de::FromSexp;
 pub use footprint::de::wrap;
 
-// TODO: get rid of it
-
-pub fn display_string(s:&str) -> String {
-    if s.contains('(') || s.contains(' ') || s.is_empty() {
-        format!("\"{}\"", s)
-    } else {
-        s.to_string()
-    }
-}
-
 pub fn module_to_string(module:&Module) -> Result<String> {
-    symbolic_expressions::ser::to_string(&module.into_sexp()).map_err(From::from)
+    let formatter = KicadFormatter::default();
+    symbolic_expressions::ser::to_string_with_formatter(&module.into_sexp(), formatter).map_err(From::from)
 }
 
 impl fmt::Display for Layer {

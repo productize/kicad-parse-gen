@@ -3,6 +3,7 @@
 extern crate rustykicad;
 
 fn main() {
-    let s = rustykicad::read_module("../examples/SILABS_EFM32_QFN24.kicad_mod").unwrap();
-    println!("{}", s);
+    let module = rustykicad::read_module("../examples/SOT-23.kicad_mod").unwrap();
+    let s = rustykicad::footprint::module_to_string(&module).unwrap();
+    println!("{}", s)
 }
