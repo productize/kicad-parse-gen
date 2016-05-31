@@ -170,19 +170,21 @@ pub struct Dimension {
     pub arrow2b:footprint::Pts,
 }
 
-impl Layout {
-    pub fn new() -> Layout {
+impl Default for Layout {
+    fn default() -> Layout {
         Layout {
             version:4,
-            host:Host::new(),
+            host:Host::default(),
             elements:vec![],
-            setup:Setup::new(),
-            general:General::new(),
+            setup:Setup::default(),
+            general:General::default(),
             page:String::from("A4"),
             layers:vec![],
         }
     }
+}
 
+impl Layout {
     pub fn nets(&self) -> Vec<&Net> {
         let mut v = vec![];
         for element in &self.elements {
@@ -257,18 +259,18 @@ impl Layout {
     }
 }
 
-impl Host {
-    pub fn new() -> Host {
+impl Default for Host {
+    fn default() -> Host {
         Host { tool:String::from("pcbnew"), build:String::from("custom") }
     }
 }
 
-impl General {
-    pub fn new() -> General {
+impl Default for General {
+    fn default() -> General {
         General {
             links:0,
             no_connects:0,
-            area:Area::new(),
+            area:Area::default(),
             thickness:1.6,
             drawings:0,
             tracks:0,
@@ -279,8 +281,8 @@ impl General {
     }
 }
 
-impl Area {
-    pub fn new() -> Area {
+impl Default for Area {
+    fn default() -> Area {
         Area {
             x1:0.0, y1:0.0,
             x2:0.0, y2:0.0,
@@ -308,10 +310,13 @@ impl NetClass {
     }
 }
 
-impl Setup {
-    pub fn new() -> Setup {
+impl Default for Setup {
+    fn default() -> Setup {
         Setup { elements:vec![], pcbplotparams:vec![] }
     }
+}
+    
+impl Setup {
     pub fn get(&self, s:&str) -> Option<&String> {
         for element in &self.elements {
             if &element.name[..] == &s[..] {

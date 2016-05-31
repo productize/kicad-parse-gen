@@ -126,7 +126,7 @@ impl FpText {
             value: value,
             at: At::new_empty(),
             layer: Layer::default(),
-            effects: Effects::new(),
+            effects: Effects::default(),
             hide: false
         }
     }
@@ -160,8 +160,8 @@ pub struct Font {
     pub thickness: f64,
 }
 
-impl Font {
-    pub fn new() -> Font {
+impl Default for Font {
+    fn default() -> Font {
         Font { size: Xy::new(0.0, 0.0, XyType::Size), thickness: 0.0 }
     }
 }
@@ -178,10 +178,13 @@ pub enum Justify {
     Mirror,
 }
 
-impl Effects {
-    pub fn new() -> Effects {
-        Effects { font: Font::new(), justify:None }
+impl Default for Effects {
+    fn default() -> Effects {
+        Effects { font: Font::default(), justify:None }
     }
+}
+
+impl Effects {
     pub fn from_font(font: Font, justify: Option<Justify>) -> Effects {
         Effects { font: font, justify:justify }
     }
@@ -216,8 +219,8 @@ impl Xy {
     }
 }
 
-impl Pts {
-    fn new() -> Pts { Pts { elements:vec![] } }
+impl Default for Pts {
+    fn default() -> Pts { Pts { elements:vec![] } }
 }
 
 #[derive(Clone,Debug)]
@@ -316,11 +319,14 @@ pub struct Layer {
     pub t: LayerType,
 }
 
-impl Layer {
+impl Default for Layer {
 
-    pub fn new() -> Layer {
+    fn default() -> Layer {
         Layer { side:LayerSide::Front, t:LayerType::Cu }
     }
+}
+    
+impl Layer {
     
     pub fn from_string(s: String) -> Result<Layer> {
         let sp:Vec<&str> = s.split('.').collect();
@@ -367,12 +373,15 @@ pub struct Layers {
     pub layers: Vec<Layer>,
 }
 
-impl Layers {
-    pub fn new() -> Layers {
+impl Default for Layers {
+    fn default() -> Layers {
         Layers {
             layers: vec![]
         }
     }
+}
+    
+impl Layers {
     pub fn append(&mut self, layer: &Layer) {
         self.layers.push(layer.clone())
     }
@@ -399,7 +408,7 @@ impl Pad {
             shape: shape,
             size: Xy::new_empty(XyType::Size),
             at: At::new_empty(),
-            layers: Layers::new(),
+            layers: Layers::default(),
             net:None,
             drill:None,
             solder_paste_margin:None,
@@ -433,11 +442,15 @@ pub struct FpPoly {
     pub layer:Layer,
 }
 
-impl FpPoly {
-    pub fn new() -> FpPoly {
-        FpPoly { pts:Pts::new(), width:0.0, layer:Layer::default() }
+impl Default for FpPoly {
+    
+    fn default() -> FpPoly {
+        FpPoly { pts:Pts::default(), width:0.0, layer:Layer::default() }
     }
+}
 
+impl FpPoly {
+    
     pub fn bounding_box(&self) -> (f64,f64,f64,f64) {
         let mut x1 = 10000.0_f64;
         let mut y1 = 10000.0_f64;
@@ -461,11 +474,13 @@ pub struct FpLine {
     pub width:f64,
 }
 
-impl FpLine {
-    pub fn new() -> FpLine {
+impl Default for FpLine {
+    fn default() -> FpLine {
         FpLine { start:Xy::new_empty(XyType::Start), end:Xy::new_empty(XyType::End), layer:Layer::default(), width:0.0 }
     }
+}
     
+impl FpLine {
     pub fn bounding_box(&self) -> (f64,f64,f64,f64) {
         let mut x1 = 10000.0_f64;
         let mut y1 = 10000.0_f64;
@@ -487,11 +502,13 @@ pub struct FpCircle {
     pub width:f64,
 }
 
-impl FpCircle {
-    pub fn new() -> FpCircle {
+impl Default for FpCircle {
+    fn default() -> FpCircle {
         FpCircle { center:Xy::new_empty(XyType::Center), end:Xy::new_empty(XyType::End), layer:Layer::default(), width:0.0 }
     }
+}
     
+impl FpCircle {
     pub fn bounding_box(&self) -> (f64,f64,f64,f64) {
         let mut x1 = 10000.0_f64;
         let mut y1 = 10000.0_f64;

@@ -18,8 +18,8 @@ pub use footprint::data::*;
 pub use footprint::de::FromSexp;
 pub use footprint::de::wrap;
 
-pub fn module_to_string(module:&Module) -> Result<String> {
-    let formatter = KicadFormatter::default();
+pub fn module_to_string(module:&Module, indent_level:i64) -> Result<String> {
+    let formatter = KicadFormatter::new(indent_level);
     symbolic_expressions::ser::to_string_with_formatter(&module.into_sexp(), formatter).map_err(From::from)
 }
 

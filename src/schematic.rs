@@ -24,17 +24,19 @@ pub struct Schematic {
     pub sheets:Vec<Sheet>,
 }
 
-impl Schematic {
-    fn new() -> Schematic {
+impl Default for Schematic {
+    fn default() -> Schematic {
         Schematic {
             filename:None,
             libraries:vec![],
-            description:Description::new(),
+            description:Description::default(),
             elements:vec![],
             sheets:vec![],
         }
     }
+}
 
+impl Schematic {
     fn add_library(&mut self, s:String) {
         self.libraries.push(s)
     }
@@ -218,8 +220,8 @@ pub struct Description {
     pub sheet_count:i64,
 }
 
-impl Description {
-    fn new() -> Description {
+impl Default for Description {
+    fn default() -> Description {
         Description {
             size:String::from(""),
             dimx:0,
@@ -283,8 +285,8 @@ pub struct Component {
     pub rotation:ComponentRotation,
 }
 
-impl Component {
-    fn new() -> Component {
+impl Default for Component {
+    fn default() -> Component {
         Component {
             name:String::from("DUMMY"),
             reference:String::from("U1"),
@@ -295,7 +297,9 @@ impl Component {
             rotation:ComponentRotation {a:0,b:0,c:0,d:0},
         }
     }
+}
 
+impl Component {
     fn set_name(&mut self, s:String) {
         self.name = s;
     }
@@ -562,8 +566,8 @@ pub struct Sheet {
     pub labels:Vec<SheetLabel>, // starting at F2
 }
 
-impl Sheet {
-    fn new() -> Sheet {
+impl Default for Sheet {
+    fn default() -> Sheet {
         Sheet { x:0, y:0, dimx:0, dimy:0, unique:String::from(""),
                 name:String::from("DUMMY"), name_size:60,
                 filename:String::from(""), filename_size:60,
@@ -601,8 +605,8 @@ pub struct SheetLabel {
     pub size:i64,
 }
 
-impl SheetLabel {
-    fn new() -> SheetLabel {
+impl Default for SheetLabel {
+    fn default() -> SheetLabel {
         SheetLabel { name:String::from(""), form:LabelForm::Input,
                      side:LabelSide::Left, x:0, y:0, size:60,
         }
@@ -779,7 +783,7 @@ fn word_and_qstring<F>(d:&mut Description, name:&'static str, s:&str, setter:F) 
     
     
 fn parse_description(p:&mut ParseState) -> Result<Description> {
-    let mut d = Description::new();
+    let mut d = Description::default();
     let v = try!(parse_split_quote_aware_n(4, &p.here()));
     d.size = v[1].clone();
     d.dimx = try!(i64_from_string(p, &v[2]));
@@ -858,7 +862,7 @@ fn parse_component_rotation(p:&mut ParseState, d:&mut Component) -> Result<()> {
 }
 
 fn parse_component(p:&mut ParseState) -> Result<Component> {
-    let mut d = Component::new();
+    let mut d = Component::default();
     p.next();
     loop {
         let s = p.here();
@@ -919,7 +923,7 @@ fn parse_label_side(s:&str) -> Result<LabelSide> {
 
 // F3 "P0.02/AIN0" I L 5250 2450 60 
 fn parse_sheet_label(p:&ParseState, s:&str) -> Result<SheetLabel> {
-    let mut l = SheetLabel::new();
+    let mut l = SheetLabel::default();
     let v = try!(parse_split_quote_aware_n(7, s));
     l.name = v[1].clone();
     l.form = try!(parse_label_form(&v[2]));
@@ -954,7 +958,7 @@ fn parse_sheet_f(p:&mut ParseState, s:&mut Sheet, f:&str) -> Result<()> {
 
 
 fn parse_sheet(p:&mut ParseState) -> Result<Sheet> {
-    let mut s = Sheet::new();
+    let mut s = Sheet::default();
     p.next();
     loop {
         let st = p.here();
@@ -980,7 +984,7 @@ fn parse_sheet(p:&mut ParseState) -> Result<Sheet> {
 
 
 pub fn parse(filename:Option<PathBuf>, s: &str) -> Result<Schematic> {
-    let mut sch = Schematic::new();
+    let mut sch = Schematic::default();
     sch.filename = filename;
     let v:Vec<&str> = s.lines().collect();
     let p = &mut ParseState::new(v);

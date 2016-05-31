@@ -221,10 +221,10 @@ impl FromSexp for Result<GrText> {
     fn from_sexp(s:&Sexp) -> Result<GrText> {
         let l = try!(s.slice_atom("gr_text"));
         let value = try!(l[0].string()).clone();
-        let mut layer = footprint::Layer::new();
+        let mut layer = footprint::Layer::default();
         let mut tstamp = String::from("");
         let mut at = footprint::At::new_empty();
-        let mut effects = footprint::Effects::new();
+        let mut effects = footprint::Effects::default();
         for x in &l[1..] {
             let elem = try!(Result::from_sexp(x));
             match elem {
@@ -275,7 +275,7 @@ impl FromSexp for Result<GrLine> {
         let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
         let mut angle = 0;
-        let mut layer = footprint::Layer::new();
+        let mut layer = footprint::Layer::default();
         let mut width = 0.0_f64;
         let mut tstamp = String::from("");
         for x in l {
@@ -300,7 +300,7 @@ impl FromSexp for Result<GrArc> {
         let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
         let mut angle = 0;
-        let mut layer = footprint::Layer::new();
+        let mut layer = footprint::Layer::default();
         let mut width = 0.0_f64;
         let mut tstamp = String::from("");
         for x in l {
@@ -343,7 +343,7 @@ impl FromSexp for Result<Dimension> {
 impl FromSexp for Result<Layout> {
     fn from_sexp(s:&Sexp) -> Result<Layout> {
         let l1 = try!(s.slice_atom("kicad_pcb"));
-        let mut layout = Layout::new();
+        let mut layout = Layout::default();
         for ref e in l1 {
             match &try!(e.list_name())[..] {
                 "version" => {

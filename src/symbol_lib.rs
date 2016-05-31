@@ -16,7 +16,7 @@ use parse_split_quote_aware;
 use schematic;
 use str_error;
 
-#[derive(Debug)]
+#[derive(Debug,Default)]
 pub struct SymbolLib {
     pub symbols:Vec<Symbol>,
 }
@@ -55,12 +55,6 @@ pub struct Field {
 }
 
 impl SymbolLib {
-    fn new() -> SymbolLib {
-        SymbolLib {
-            symbols:vec![]
-        }
-    }
-
     pub fn find<F>(&self, filter:F) -> Option<&Symbol>
         where F:Fn(&Symbol) -> bool
     {
@@ -136,8 +130,8 @@ impl fmt::Display for Symbol {
     }
 }
 
-impl Field {
-    pub fn new() -> Field {
+impl Default for Field {
+    fn default() -> Field {
         Field {
             i:0,
             value:String::from(""),
@@ -314,7 +308,7 @@ fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> Result<bool> {
 
 // F0 "L" 0 50 40 H V C CNN
 fn parse_field(p:&mut ParseState, line:&str) -> Result<Field> {
-    let mut f = Field::new();
+    let mut f = Field::default();
     let v = &parse_split_quote_aware(line);
     if v.len() != 9 && v.len() != 10 {
         return str_error(format!("unexpected elements in {}", line))
@@ -346,7 +340,7 @@ fn parse_field(p:&mut ParseState, line:&str) -> Result<Field> {
 }
     
 fn parse(s: &str) -> Result<SymbolLib> {
-    let mut lib = SymbolLib::new();
+    let mut lib = SymbolLib::default();
     let v:Vec<&str> = s.lines().collect();
     let p = &mut ParseState::new(v);
     assume_line!(p, "EESchema-LIBRARY Version 2.3");

@@ -4,6 +4,6 @@ extern crate rustykicad;
 
 fn main() {
     let module = rustykicad::read_module("../examples/SOT-23.kicad_mod").unwrap();
-    let s = rustykicad::footprint::module_to_string(&module).unwrap();
+    let s = rustykicad::footprint::module_to_string(&module, 0).unwrap();
     println!("{}", s)
 }

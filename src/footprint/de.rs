@@ -82,7 +82,7 @@ impl FromSexp for Result<Font> {
     fn from_sexp(s:&Sexp) -> Result<Font> {
         let v = try!(s.slice_atom("font"));
         let parts = try!(parse_parts(&v));
-        let mut font = Font::new();
+        let mut font = Font::default();
         for part in &parts[..] {
             //println!("part: {}", part);
             try!(match *part {
@@ -104,7 +104,7 @@ impl FromSexp for Result<Font> {
 
 impl FromSexp for Result<Layers> {
     fn from_sexp(s:&Sexp) -> Result<Layers> {
-        let mut l = Layers::new();
+        let mut l = Layers::default();
         let v = try!(s.slice_atom("layers"));
         for v1 in v {
             let x = try!(v1.string());
@@ -312,7 +312,7 @@ impl FromSexp for Result<Pad> {
 impl FromSexp for Result<FpPoly> {
     fn from_sexp(s:&Sexp) -> Result<FpPoly> {
         let v = try!(s.slice_atom("fp_poly"));
-        let mut fp_poly = FpPoly::new();
+        let mut fp_poly = FpPoly::default();
         let parts = try!(parse_parts(&v));
         for part in &parts[..] {
             match *part {
@@ -329,7 +329,7 @@ impl FromSexp for Result<FpPoly> {
 impl FromSexp for Result<FpLine> {
     fn from_sexp(s:&Sexp) -> Result<FpLine> {
         let v = try!(s.slice_atom("fp_line"));
-        let mut fp_line = FpLine::new();
+        let mut fp_line = FpLine::default();
         let parts = try!(parse_parts(&v));
         for part in &parts[..] {
             match *part {
@@ -347,7 +347,7 @@ impl FromSexp for Result<FpLine> {
 impl FromSexp for Result<FpCircle> {
     fn from_sexp(s:&Sexp) -> Result<FpCircle> {
         let v = try!(s.slice_atom("fp_circle"));
-        let mut fp_circle = FpCircle::new();
+        let mut fp_circle = FpCircle::default();
         let parts = try!(parse_parts(&v));
         for part in &parts[..] {
             match *part {
