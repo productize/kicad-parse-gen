@@ -7,13 +7,13 @@ use symbolic_expressions::Rules;
 
 impl IntoSexp for Module {
     fn into_sexp(&self) -> Sexp {
-        Sexp::new_named_list(
-            "module",
-            |v| {
-                for e in &self.elements {
-                    v.push(e.into_sexp())
-                }
-            })
+        let mut v = vec![];
+        v.push(Sexp::new_string("module"));
+        v.push(Sexp::new_string(&self.name));
+        for e in &self.elements {
+            v.push(e.into_sexp())
+        }
+        Sexp::new_list(v)
     }
 }
 
