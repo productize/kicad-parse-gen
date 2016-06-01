@@ -63,9 +63,50 @@ impl KicadFormatter {
         self.indent-=1;
         res
     }
+
+    fn want_indent(&self, value:&Sexp) -> bool {
+        let l = if let Sexp::List(ref l) = *value {
+            l
+        } else {
+            return false
+        };
+        if l.is_empty() {
+            return false
+        }
+        let first = &l[0];
+        if let Sexp::String(ref ele) = *first {
+            if self.parent_is("module") {
+                match &ele[..] {
+                    "at" | "descr" | "fp_text" |
+                    "fp_line" | "fp_poly" | "pad" |
+                    "model" => return true,
+                    _ => (),
+                }
+            } 
+            if self.parent_is("fp_text") {
+                match &ele[..] {
+                    "effects" => return true,
+                    _ => (),
+                }
+            }
+            if self.parent_is("pts") {
+                match &ele[..] {
+                    "xy" => {
+                        if self.poly_xy_count == 4 {
+                            return true
+                        }
+                    },
+                    _ => ()
+                }
+            }
+        }
+        false
+    }
+    
 }
 
 impl Formatter for KicadFormatter {
+    
     fn open<W>(&mut self, writer: &mut W, value:Option<&Sexp>) -> Result<()>
         where W: io::Write
     {
@@ -117,10 +158,17 @@ impl Formatter for KicadFormatter {
         }
         writer.write_all(b"(").map_err(From::from)
     }
-    fn element<W>(&mut self, writer: &mut W, _value:&Sexp) -> Result<()>
+    
+    fn element<W>(&mut self, writer: &mut W, value:&Sexp) -> Result<()>
         where W: io::Write
     {
-        writer.write_all(b" ").map_err(From::from)
+        // get rid of the space if we will be putting a newline next
+        if !self.want_indent(value) {
+            writer.write_all(b" ").map_err(From::from)
+        } else {
+            Ok(())
+        }
+        
     }
     
     fn close<W>(&mut self, writer: &mut W) -> Result<()>
