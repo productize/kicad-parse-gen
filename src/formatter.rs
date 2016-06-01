@@ -12,7 +12,7 @@ use symbolic_expressions::Formatter;
 pub struct KicadFormatter {
     initial_indent_level:i64,
     indent:i64,
-    stack:Vec<Option<String>>,
+    stack:Vec<Option<(String,bool)>>,
     ind:Vec<u8>,
     poly_xy_count:i64,
 }
@@ -30,19 +30,19 @@ impl KicadFormatter {
     }
 
     fn is(&self, what:&'static str) -> bool {
-        self.stack.iter().find(
-            |x:&&Option<String>| {
-                if let Some(ref y) = **x {
+        self.stack.iter().any(
+            |x:&Option<(String,bool)>| {
+                if let Some((ref y,_)) = *x {
                     y == what
                 } else {
                     false
                 }
-            }).is_some()
+            })
     }
     
     fn parent_is(&self, what:&'static str) -> bool {
         if let Some(s) = self.stack.last() {
-            if let Some(ref t) = *s {
+            if let Some((ref t,_)) = *s {
                 return t == what
             }
         } 
@@ -65,16 +65,17 @@ impl KicadFormatter {
     }
 
     fn want_indent(&self, value:&Sexp) -> bool {
-        let l = if let Sexp::List(ref l) = *value {
-            l
-        } else {
-            return false
+        let first = match *value {
+            Sexp::List(ref l) => {
+                if l.is_empty() {
+                    return false
+                }
+                (&l[0]).clone()
+            },
+            Sexp::Empty => return false,
+            Sexp::String(ref l) => Sexp::String(l.clone()),
         };
-        if l.is_empty() {
-            return false
-        }
-        let first = &l[0];
-        if let Sexp::String(ref ele) = *first {
+        if let Sexp::String(ref ele) = first {
             if self.parent_is("module") {
                 match &ele[..] {
                     "at" | "descr" | "fp_text" |
@@ -84,25 +85,28 @@ impl KicadFormatter {
                 }
             } 
             if self.parent_is("fp_text") {
-                match &ele[..] {
-                    "effects" => return true,
-                    _ => (),
+                if let "effects" = &ele[..] {
+                    return true
                 }
             }
             if self.parent_is("pts") {
+                if let "xy" = &ele[..] {
+                    if self.poly_xy_count == 4 {
+                        return true
+                    }
+                }
+            }
+            if self.parent_is("model") {
                 match &ele[..] {
-                    "xy" => {
-                        if self.poly_xy_count == 4 {
-                            return true
-                        }
+                    "at" | "scale" | "rotate" => {
+                        return true
                     },
-                    _ => ()
+                    _ => (),
                 }
             }
         }
         false
     }
-    
 }
 
 impl Formatter for KicadFormatter {
@@ -117,22 +121,16 @@ impl Formatter for KicadFormatter {
                 ele.push_str(s);
             }
         }
+        let exp = Sexp::String(ele.clone());
+        let want_indent = self.want_indent(&exp);
+        if want_indent {
+            self.indent += 1;
+            try!(self.indent(writer));
+        }
+        
+        // special handling for breaking after 4 elements of xy
+        // within fp_poly
         if self.parent_is("module") {
-            match &ele[..] {
-                "at" | "descr" | "fp_text" |
-                "fp_line" | "fp_poly" | "pad" |
-                "model"
-                    => {
-                        try!(self.indent_plus(writer));
-                    },
-                _ => ()
-            }
-            match &ele[..] {
-                "fp_text" | "fp_poly" | "model" => {
-                    self.indent += 1;
-                },
-                _ => ()
-            }
             if let "fp_poly" = &ele[..] {
                 self.poly_xy_count = 0;
             }
@@ -141,18 +139,13 @@ impl Formatter for KicadFormatter {
             if let "xy" = &ele[..] {
                 self.poly_xy_count += 1;
                 if self.poly_xy_count == 5 {
-                    try!(self.indent_plus(writer));
                     self.poly_xy_count = 1;
                 }
             }
         }
-        if self.is("fp_text") {
-            if let "effects" = &ele[..] {
-                try!(self.indent_plus(writer));
-            }
-        }
+        
         if !ele.is_empty() {
-            self.stack.push(Some(ele))
+            self.stack.push(Some((ele, want_indent)))
         } else {
             self.stack.push(None)
         }
@@ -174,14 +167,12 @@ impl Formatter for KicadFormatter {
     fn close<W>(&mut self, writer: &mut W) -> Result<()>
         where W: io::Write
     {
-        if let Some(Some(s)) = self.stack.pop() {
+        if let Some(Some((s, want_indent))) = self.stack.pop() {
+            if want_indent {
+                self.indent -= 1
+            }
+            // special handling to add another newline before ')'
             if self.is("module") {
-                match &s[..] {
-                    "fp_text" | "fp_poly" | "model" => {
-                        self.indent -= 1
-                    },
-                    _ => ()
-                }
                 match &s[..] {
                     "fp_text" | "model" => {
                         try!(self.indent_plus(writer));
