@@ -88,6 +88,7 @@ pub fn parse_split_quote_aware_n(n:usize, s:&str) -> Result<Vec<String>> {
     Ok(v)
 }
 
+#[derive(Debug)]
 pub enum KicadFile {
     Unknown(String),
     Module(footprint::Module),

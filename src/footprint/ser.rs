@@ -20,6 +20,7 @@ impl IntoSexp for Module {
 impl IntoSexp for Element {
     fn into_sexp(&self) -> Sexp {
         match *self {
+            Element::SolderMaskMargin(ref s) => Sexp::new_named("solder_mask_margin", s),
             Element::Layer(ref s) => Sexp::new_named("layer", s),
             Element::Descr(ref s) => Sexp::new_named("descr", s),
             Element::Tags(ref s) => Sexp::new_named("tags", s),
@@ -29,6 +30,7 @@ impl IntoSexp for Element {
             Element::FpPoly(ref p) => p.into_sexp(),
             Element::FpLine(ref p) => p.into_sexp(),
             Element::FpCircle(ref p) => p.into_sexp(),
+            Element::FpArc(ref p) => p.into_sexp(),
             Element::TEdit(ref p) => Sexp::new_named("tedit", p),
             Element::TStamp(ref p) => Sexp::new_named("tstamp", p),
             Element::Path(ref p) => Sexp::new_named("path", p),
@@ -111,6 +113,7 @@ impl IntoSexp for Xy {
             XyType::End => "end",
             XyType::Size => "size",
             XyType::Center => "center",
+            XyType::RectDelta => "rect_delta",
         }));
         v.push(Sexp::new_string(self.x));
         v.push(Sexp::new_string(self.y));
@@ -160,6 +163,7 @@ impl IntoSexp for PadShape {
             PadShape::Rect => "rect",
             PadShape::Circle => "circle",
             PadShape::Oval => "oval",
+            PadShape::Trapezoid => "trapezoid",
         })
     }
 }
@@ -190,6 +194,9 @@ impl IntoSexp for Pad {
         v.push(self.shape.into_sexp());
         v.push(self.at.into_sexp());
         v.push(self.size.into_sexp());
+        if let Some(ref rect_delta) = self.rect_delta {
+            v.push(rect_delta.into_sexp());
+        }
         v.push(self.layers.into_sexp());
         if let Some(ref net) = self.net {
             v.push(net.into_sexp());
@@ -199,6 +206,12 @@ impl IntoSexp for Pad {
         }
         if let Some(ref spm) = self.solder_paste_margin {
             v.push(Sexp::new_named("solder_paste_margin", spm));
+        }
+        if let Some(ref spm) = self.solder_mask_margin {
+            v.push(Sexp::new_named("solder_mask_margin", spm));
+        }
+        if let Some(ref spm) = self.clearance {
+            v.push(Sexp::new_named("clearance", spm));
         }
         Sexp::new_list(v)
     }
@@ -233,6 +246,19 @@ impl IntoSexp for FpCircle {
         v.push(Sexp::new_string("fp_circle"));
         v.push(self.center.into_sexp());
         v.push(self.end.into_sexp());
+        v.push(Sexp::new_named("layer", &self.layer));
+        v.push(Sexp::new_named("width", self.width));
+        Sexp::new_list(v)
+    }
+}
+
+impl IntoSexp for FpArc {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("fp_arc"));
+        v.push(self.start.into_sexp());
+        v.push(self.end.into_sexp());
+        v.push(Sexp::new_named("angle", self.angle));
         v.push(Sexp::new_named("layer", &self.layer));
         v.push(Sexp::new_named("width", self.width));
         Sexp::new_list(v)

@@ -147,6 +147,7 @@ impl FromSexp for Result<Xy> {
             "end" => Ok(XyType::End),
             "size" => Ok(XyType::Size),
             "center" => Ok(XyType::Center),
+            "rect_delta" => Ok(XyType::RectDelta),
             ref x => str_error(format!("unknown XyType {}", x)),
         });
         let v = try!(s.slice_atom_num(&name, 2));
@@ -221,12 +222,15 @@ impl FromSexp for Result<Part> {
                     "effects" => wrap(s, Result::from_sexp, Part::Effects),
                     "layers" => wrap(s, Result::from_sexp, Part::Layers),
                     "width" => parse_part_float(s, Part::Width),
-                    "start" | "end" | "size" | "center" => wrap(s, Result::from_sexp, Part::Xy),
+                    "angle" => parse_part_float(s, Part::Angle),
+                    "start" | "end" | "size" | "center" | "rect_delta" => wrap(s, Result::from_sexp, Part::Xy),
                     "pts" => wrap(s, Result::from_sexp, Part::Pts),
                     "thickness" => parse_part_float(s, Part::Thickness),
                     "net" => wrap(s, Result::from_sexp, Part::Net),
                     "drill" => wrap(s, Result::from_sexp, Part::Drill),
                     "solder_paste_margin" => parse_part_float(s, Part::SolderPasteMargin),
+                    "solder_mask_margin" => parse_part_float(s, Part::SolderMaskMargin),
+                    "clearance" => parse_part_float(s, Part::Clearance),
                     x => str_error(format!("unknown part {}", x))
                 }
             }
@@ -248,6 +252,13 @@ fn parse_string_element(s:&Sexp) -> Result<String> {
     let v = try!(s.slice_atom_num(&name, 1));
     let s = try!(v[0].string());
     Ok(s.clone())
+}
+
+fn parse_float_element(s:&Sexp) -> Result<f64> {
+    let name = try!(s.list_name());
+    let v = try!(s.slice_atom_num(&name, 1));
+    let f = try!(v[0].f());
+    Ok(f)
 }
 
 impl FromSexp for Result<FpText> {
@@ -298,10 +309,13 @@ impl FromSexp for Result<Pad> {
             match *part {
                 Part::At(ref at) => pad.at.clone_from(at),
                 Part::Xy(ref xy) if xy.t == XyType::Size => pad.size.clone_from(xy),
+                Part::Xy(ref xy) if xy.t == XyType::RectDelta => pad.rect_delta = Some(xy.clone()),
                 Part::Layers(ref l) => pad.layers.clone_from(l),
                 Part::Net(ref n) => pad.set_net(n),
                 Part::Drill(ref n) => pad.set_drill(n),
                 Part::SolderPasteMargin(n) => pad.solder_paste_margin = Some(n),
+                Part::SolderMaskMargin(n) => pad.solder_mask_margin = Some(n),
+                Part::Clearance(n) => pad.clearance = Some(n),
                 ref x => return str_error(format!("pad: unknown {:?}", x)),
             }
         }
@@ -362,6 +376,26 @@ impl FromSexp for Result<FpCircle> {
     }
 }
 
+impl FromSexp for Result<FpArc> {
+    fn from_sexp(s:&Sexp) -> Result<FpArc> {
+        let v = try!(s.slice_atom("fp_arc"));
+        let mut fp_arc = FpArc::default();
+        let parts = try!(parse_parts(&v));
+        for part in &parts[..] {
+            match *part {
+                Part::Xy(ref xy) if xy.t == XyType::Start => fp_arc.start.clone_from(xy),
+                Part::Xy(ref xy) if xy.t == XyType::End => fp_arc.end.clone_from(xy),
+                Part::Angle(w) => fp_arc.angle = w,
+                Part::Layer(ref layer) => fp_arc.layer.clone_from(layer),
+                Part::Width(w) => fp_arc.width = w,
+                ref x => return str_error(format!("fp_arc: unexpected {:?}", x)),
+            }
+        }
+        Ok(fp_arc)
+    }
+}
+
+
 fn parse_sublist<X>(s:&Sexp, name:&'static str) -> Result<X>
     where Result<X>:FromSexp {
     let x = &try!(s.slice_atom_num(name, 1))[0];
@@ -393,6 +427,7 @@ impl FromSexp for Result<Element> {
             Sexp::List(_) => {
                 let name = try!(s.list_name());
                 match &name[..] {
+                    "solder_mask_margin" => wrap(s, parse_float_element, Element::SolderMaskMargin),
                     "layer" => wrap(s, parse_string_element, Element::Layer),
                     "descr" => wrap(s, parse_string_element, Element::Descr),
                     "tags" => wrap(s, parse_string_element, Element::Tags),
@@ -402,6 +437,7 @@ impl FromSexp for Result<Element> {
                     "fp_poly" => wrap(s, Result::from_sexp, Element::FpPoly),
                     "fp_line" => wrap(s, Result::from_sexp, Element::FpLine),
                     "fp_circle" => wrap(s, Result::from_sexp, Element::FpCircle),
+                    "fp_arc" => wrap(s, Result::from_sexp, Element::FpArc),
                     "tedit" => wrap(s, parse_string_element, Element::TEdit),
                     "tstamp" => wrap(s, parse_string_element, Element::TStamp),
                     "path" => wrap(s, parse_string_element, Element::Path),

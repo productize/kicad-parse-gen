@@ -80,6 +80,7 @@ impl Module {
 
 #[derive(Debug,Clone)]
 pub enum Element {
+    SolderMaskMargin(f64),
     Layer(String), // TODO: use Layer type
     Descr(String),
     Tags(String),
@@ -89,6 +90,7 @@ pub enum Element {
     FpPoly(FpPoly),
     FpLine(FpLine),
     FpCircle(FpCircle),
+    FpArc(FpArc),
     TEdit(String),
     TStamp(String),
     Path(String),
@@ -196,6 +198,7 @@ pub enum XyType {
     End,
     Size,
     Center,
+    RectDelta,
 }
 
 #[derive(Debug,Clone)]
@@ -238,12 +241,15 @@ pub enum Part {
     Effects(Effects),
     Layers(Layers),
     Width(f64),
+    Angle(f64),
     Xy(Xy),
     Pts(Pts),
     Thickness(f64),
     Net(Net),
     Drill(Drill),
     SolderPasteMargin(f64),
+    SolderMaskMargin(f64),
+    Clearance(f64),
 }
 
 #[derive(Debug,Clone)]
@@ -269,6 +275,7 @@ pub enum PadShape {
     Rect,
     Circle,
     Oval,
+    Trapezoid,
     // TODO
 }
 
@@ -278,6 +285,7 @@ impl PadShape {
             "rect" => Ok(PadShape::Rect),
             "circle" => Ok(PadShape::Circle),
             "oval" => Ok(PadShape::Oval),
+            "trapezoid" => Ok(PadShape::Trapezoid),
             x => str_error(format!("unknown PadShape: {}", x))
         }
     }
@@ -393,11 +401,14 @@ pub struct Pad {
     pub t: PadType,
     pub shape: PadShape,
     pub size: Xy,
+    pub rect_delta: Option<Xy>,
     pub at: At,
     pub layers: Layers,
     pub net: Option<Net>,
     pub drill: Option<Drill>,
     pub solder_paste_margin: Option<f64>,
+    pub solder_mask_margin: Option<f64>,
+    pub clearance: Option<f64>,
 }
 
 impl Pad {
@@ -407,11 +418,14 @@ impl Pad {
             t: t,
             shape: shape,
             size: Xy::new_empty(XyType::Size),
+            rect_delta:None,
             at: At::new_empty(),
             layers: Layers::default(),
             net:None,
             drill:None,
             solder_paste_margin:None,
+            solder_mask_margin:None,
+            clearance:None,
         }
     }
 
@@ -523,6 +537,21 @@ impl FpCircle {
         x2 = x2.max(self.center.x+d);
         y2 = y2.max(self.center.y+d);
         (x1,y1,x2,y2)
+    }
+}
+
+#[derive(Debug,Clone)]
+pub struct FpArc {
+    pub start:Xy,
+    pub end:Xy,
+    pub angle:f64,
+    pub layer:Layer,
+    pub width:f64,
+}
+
+impl Default for FpArc {
+    fn default() -> FpArc {
+        FpArc { start:Xy::new_empty(XyType::Start), end:Xy::new_empty(XyType::End), angle:0.0, layer:Layer::default(), width:0.0 }
     }
 }
 

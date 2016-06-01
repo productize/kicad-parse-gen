@@ -11,6 +11,7 @@ use footprint::wrap;
 use Sexp;
 use symbolic_expressions;
 
+#[derive(Debug)]
 pub struct Layout {
     pub version:i64,
     pub host:Host,
@@ -21,7 +22,7 @@ pub struct Layout {
     pub elements:Vec<Element>,
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub enum Element {
     Module(footprint::Module),
     Net(Net),
@@ -30,13 +31,13 @@ pub enum Element {
     Other(Sexp),
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct Host {
     pub tool:String,
     pub build:String,
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct General {
     pub links:i64,
     pub no_connects:i64,
@@ -49,13 +50,13 @@ pub struct General {
     pub nets:i64,
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct Area {
     pub x1:f64, pub y1:f64,
     pub x2:f64, pub y2:f64,
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct Layer {
     pub num:i64,
     pub layer:footprint::Layer,
@@ -63,19 +64,19 @@ pub struct Layer {
     pub hide:bool,
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub enum LayerType {
     Signal,
     User,
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct Setup {
     pub elements:Vec<SetupElement>,
     pub pcbplotparams:Vec<SetupElement>,
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct SetupElement {
     pub name:String,
     pub value1:String,
@@ -83,13 +84,13 @@ pub struct SetupElement {
 }
 
 
-#[derive(Clone,PartialEq)]
+#[derive(Clone,PartialEq,Debug)]
 pub struct Net {
     pub num:i64,
     pub name:String,
 }
 
-#[derive(Clone,PartialEq)]
+#[derive(Clone,PartialEq,Debug)]
 pub struct NetClass {
     pub name:String,
     pub desc:String,
@@ -103,7 +104,7 @@ pub struct NetClass {
 }
 
 // TODO: support tstamp in graphics elements
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub enum Graphics {
     GrText(GrText),
     GrLine(GrLine),
@@ -114,7 +115,7 @@ pub enum Graphics {
     FilledPolygon,
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct GrText {
     pub value:String,
     pub at:footprint::At,
@@ -135,7 +136,7 @@ pub enum GrElement {
     Effects(footprint::Effects),
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct GrLine {
     pub start:footprint::Xy,
     pub end:footprint::Xy,
@@ -145,7 +146,7 @@ pub struct GrLine {
     pub tstamp:String,
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct GrArc {
     pub start:footprint::Xy,
     pub end:footprint::Xy,
@@ -155,7 +156,7 @@ pub struct GrArc {
     pub tstamp:String,
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct Dimension {
     pub name:String,
     pub width:f64,
