@@ -28,7 +28,6 @@ impl IntoSexp for Layout {
         
         v.push(Sexp::new_named("page", self.page.clone()));   
         
-        v.push(self.setup.into_sexp());
         
         let mut v2 = vec![];
         v2.push(Sexp::new_string("layers"));
@@ -36,6 +35,8 @@ impl IntoSexp for Layout {
             v2.push(layer.into_sexp());
         }
         v.push(Sexp::new_list(v2));
+        
+        v.push(self.setup.into_sexp());
         
         for element in &self.elements {
             v.push(element.into_sexp());

@@ -12,16 +12,18 @@ use symbolic_expressions::Formatter;
 #[derive(PartialEq)]
 enum Indent {
     Not,
-    BeforeOnly,
+    Before,
     BeforeAfter,
-    BeforeAfterDouble,
+    BeforeDouble,
+    BeforeDoubleAfter,
+    BeforeDoubleAfterDouble,
 }
 
 pub struct KicadFormatter {
     indent:i64,
     stack:Vec<Option<(String,Indent)>>,
     ind:Vec<u8>,
-    poly_xy_count:i64,
+    pts_xy_count:i64,
 }
 
 impl KicadFormatter {
@@ -31,7 +33,7 @@ impl KicadFormatter {
             indent:initial_indent_level,
             stack:vec![],
             ind:vec![b' ',b' '], // two spaces
-            poly_xy_count:0,
+            pts_xy_count:0,
         }
     }
 
@@ -76,27 +78,27 @@ impl KicadFormatter {
         if self.parent_is("module") {
             match ele {
                 "at" | "descr" | "fp_line" | "fp_poly" |
-                "pad" => return Indent::BeforeOnly,
+                "pad" => return Indent::Before,
                 "model" | "fp_text" => return Indent::BeforeAfter,
                 _ => (),
             }
         } 
-        if self.parent_is("fp_text") {
+        if self.parent_is("fp_text") | self.parent_is("gr_text") {
             if let "effects" = ele {
-                return Indent::BeforeOnly
+                return Indent::Before
             }
         }
         if self.parent_is("pts") {
             if let "xy" = ele {
-                if self.poly_xy_count == 4 {
-                    return Indent::BeforeOnly
+                if self.pts_xy_count > 0 && self.pts_xy_count % 4 == 0 {
+                    return Indent::Before
                 }
             }
         }
         if self.parent_is("model") {
             match ele {
                 "at" | "scale" | "rotate" => {
-                    return Indent::BeforeOnly
+                    return Indent::Before
                 },
                 _ => (),
             }
@@ -104,20 +106,64 @@ impl KicadFormatter {
         Indent::Not
     }
     
-    fn want_indent_layout(&self, ele:&str) -> Indent {
+    fn want_indent_layout(&self, ele:&str, e:&Sexp) -> Indent {
+        if !self.is("kicad_pcb") {
+            return Indent::Not
+        }
         if self.parent_is("kicad_pcb") {
             match ele {
-                "general" | "page" |
-                "setup" | "net" | "net_class" |
-                "module" | "gr_text" | "gr_line" |
+                "page" |
+                "module" |
                 "gr_arc"  | "gr_circle" |
-                "dimension" | "segment" | "via" |
                 "zone"
-                    => return Indent::BeforeAfterDouble,
-                "layers"
+                    => return Indent::BeforeDouble,
+                "net" | "gr_line" | "segment" | "via"
+                    => return Indent::Before,
+                "layers" | "gr_text" | "dimension"
                     => return Indent::BeforeAfter,
+                "setup"
+                    => return Indent::BeforeDoubleAfterDouble,
+                "general" | "net_class"
+                    => return Indent::BeforeDoubleAfter,
                 _ => (),
             }
+        }
+        if self.parent_is("general") {
+            return Indent::Before
+        }
+        if self.parent_is("layers") {
+            return Indent::Before
+        }
+        if self.parent_is("setup") {
+            return Indent::Before
+        }
+        if self.parent_is("pcbplotparams") {
+            return Indent::Before
+        }
+        if self.parent_is("net_class") {
+            return Indent::Before
+        }
+        if self.parent_is("dimension") {
+            match ele {
+                "gr_text" | "feature1" |
+                "feature2" | "crossbar" |
+                "arrow1a" | "arrow1b" |
+                "arrow2a" | "arrow2b" => {
+                    return Indent::Before
+                },
+                _ => (),
+            }
+        }
+        if self.parent_is("zone") {
+            match ele {
+                "connect_pads" | "min_thickness" | "fill" |
+                "polygon" | "filled_polygon"
+                    => return Indent::Before,
+                _ => (),
+            }
+        }
+        if self.parent_is("polygon") | self.parent_is("filled_polygon") {
+            return Indent::Before
         }
         Indent::Not
     }
@@ -138,7 +184,7 @@ impl KicadFormatter {
             if i != Indent::Not {
                 return i
             }
-            let i = self.want_indent_layout(ele);
+            let i = self.want_indent_layout(ele, value);
             if i != Indent::Not {
                 return i
             }
@@ -163,21 +209,24 @@ impl Formatter for KicadFormatter {
         let want_indent = self.want_indent(&exp);
         if want_indent != Indent::Not {
             self.indent += 1;
-            try!(self.indent(writer, 1));
+            if want_indent == Indent::BeforeDouble
+            || want_indent == Indent::BeforeDoubleAfterDouble
+            || want_indent == Indent::BeforeDoubleAfter {
+                try!(self.indent(writer, 2));
+            } else {
+                try!(self.indent(writer, 1));
+            }
         }
         
         // special handling for breaking after 4 elements of xy
-        // within fp_poly
-        if self.parent_is("module") {
-            if let "fp_poly" = &ele[..] {
-                self.poly_xy_count = 0;
-            }
+        if let "pts" = &ele[..] {
+            self.pts_xy_count = 0;
         }
-        if self.is("fp_poly") {
+        if self.parent_is("pts") {
             if let "xy" = &ele[..] {
-                self.poly_xy_count += 1;
-                if self.poly_xy_count == 5 {
-                    self.poly_xy_count = 1;
+                self.pts_xy_count += 1;
+                if self.pts_xy_count == 5 {
+                    self.pts_xy_count = 1;
                 }
             }
         }
@@ -193,12 +242,19 @@ impl Formatter for KicadFormatter {
     fn element<W>(&mut self, writer: &mut W, value:&Sexp) -> Result<()>
         where W: io::Write
     {
+        let mut ele = String::new();
+        // if first element is string
+        if let Sexp::String(ref s) = *value {
+            ele.push_str(s);
+        }
+        //if self.parent_is(pts) BUSY
         // get rid of the space if we will be putting a newline next
         if self.want_indent(value) == Indent::Not {
-            writer.write_all(b" ").map_err(From::from)
-        } else {
-            Ok(())
+            try!(writer.write_all(b" "));
+        } else if let Sexp::String(_) = *value {
+            try!(writer.write_all(b" "));
         }
+        Ok(())
         
     }
     
@@ -210,29 +266,28 @@ impl Formatter for KicadFormatter {
                 self.indent -= 1
             }
             match want_indent {
-                Indent::Not | Indent::BeforeOnly => (),
-                Indent::BeforeAfter => {
+                Indent::Not |
+                Indent::Before |
+                Indent::BeforeDouble => (),
+                Indent::BeforeDoubleAfter |
+                Indent::BeforeAfter |
+                Indent::BeforeDoubleAfterDouble
+                    => {
                     try!(self.indent_plus(writer, 1));
                 }
-                Indent::BeforeAfterDouble => {
-                    try!(self.indent_plus(writer, 2));
-                }
-                // special handling to add another newline before ')'
             }
-            /*
-            if self.is("module") {
-                match &s[..] {
-                    "fp_text" | "model" => {
-                        try!(self.indent_plus(writer, want_indent));
-                    },
-                    _ => (),
-                }
-            }
+            // TODO: remove
             if let "module" = &s[..] {
                 try!(self.indent(writer, 1));
-            }*/
+            }
+            try!(writer.write_all(b")"));
+            if want_indent == Indent::BeforeDoubleAfterDouble {
+                try!(writer.write_all(b"\n"));
+            }
+        } else {
+            try!(writer.write_all(b")"));
         }
-        writer.write_all(b")").map_err(From::from)
+        Ok(())
     }
 }
 
