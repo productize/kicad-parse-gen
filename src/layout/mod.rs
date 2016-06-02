@@ -5,7 +5,6 @@
 
 // from parent
 use Result;
-use str_error as err;
 use symbolic_expressions;
 use symbolic_expressions::IntoSexp;
 use str_error;

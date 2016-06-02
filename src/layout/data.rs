@@ -1,15 +1,10 @@
 // (c) 2016 Productize SPRL <joost@productize.be>
 
-use std::result;
-
 // from parent
 use Result;
 use str_error;
 use footprint;
-//use footprint::FromSexp;
-use footprint::wrap;
 use Sexp;
-use symbolic_expressions;
 
 #[derive(Debug)]
 pub struct Layout {

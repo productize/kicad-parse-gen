@@ -7,14 +7,8 @@ use std::fmt;
 use std::result;
 
 // from parent
-use Result;
-use str_error as err;
-use footprint;
-//use footprint::FromSexp;
-use footprint::wrap;
 use Sexp;
 use symbolic_expressions::IntoSexp;
-use str_error;
 use layout::data::*;
 
 impl IntoSexp for Layout {

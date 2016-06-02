@@ -3,16 +3,12 @@
 // extension: .kicad_pcb
 // format: new-style
 
-use std::fmt;
-use std::result;
-
 // from parent
 use Result;
 use str_error as err;
 use footprint;
 use footprint::wrap;
 use Sexp;
-use symbolic_expressions;
 use str_error;
 use FromSexp;
 
