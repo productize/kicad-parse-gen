@@ -6,7 +6,7 @@ use std::result;
 use Result;
 use str_error;
 use footprint;
-use footprint::FromSexp;
+//use footprint::FromSexp;
 use footprint::wrap;
 use Sexp;
 use symbolic_expressions;

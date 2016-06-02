@@ -4,10 +4,7 @@ use Sexp;
 use str_error;
 use Result;
 use footprint::data::*;
-
-pub trait FromSexp {
-    fn from_sexp(&Sexp) -> Self;
-}
+use FromSexp;
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
 impl FromSexp for Result<At> {

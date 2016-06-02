@@ -10,11 +10,11 @@ use std::result;
 use Result;
 use str_error as err;
 use footprint;
-use footprint::FromSexp;
 use footprint::wrap;
 use Sexp;
 use symbolic_expressions;
 use str_error;
+use FromSexp;
 
 use layout::data::*;
 

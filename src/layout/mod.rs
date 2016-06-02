@@ -3,20 +3,21 @@
 // extension: .kicad_pcb
 // format: new-style
 
-use std::fmt;
-use std::result;
-
 // from parent
 use Result;
 use str_error as err;
-use footprint;
-use footprint::FromSexp;
-use footprint::wrap;
-use Sexp;
 use symbolic_expressions;
+use symbolic_expressions::IntoSexp;
 use str_error;
+use formatter::KicadFormatter;
+use FromSexp;
 
-pub use layout::data::Layout;
+pub use layout::data::*;
+
+pub fn layout_to_string(layout:&Layout, indent_level:i64) -> Result<String> {
+    let formatter = KicadFormatter::new(indent_level);
+    symbolic_expressions::ser::to_string_with_formatter(&layout.into_sexp(), formatter).map_err(From::from)
+}
 
 pub fn parse(s: &str) -> Result<Layout> {
     match symbolic_expressions::parser::parse_str(s) {
@@ -27,3 +28,4 @@ pub fn parse(s: &str) -> Result<Layout> {
 
 mod data;
 mod de;
+mod ser;

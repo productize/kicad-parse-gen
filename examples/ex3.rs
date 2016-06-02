@@ -3,6 +3,7 @@
 extern crate rustykicad;
 
 fn main() {
-    let s = rustykicad::read_layout("../examples/usbser.kicad_pcb").unwrap();
+    let layout = rustykicad::read_layout("../examples/usbser.kicad_pcb").unwrap();
+    let s = rustykicad::layout::layout_to_string(&layout, 0).unwrap();
     println!("{}", s);
 }

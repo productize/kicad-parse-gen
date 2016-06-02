@@ -10,7 +10,6 @@ use symbolic_expressions::Formatter;
 // kicad compatible
 
 pub struct KicadFormatter {
-    initial_indent_level:i64,
     indent:i64,
     stack:Vec<Option<(String,bool)>>,
     ind:Vec<u8>,
@@ -21,7 +20,6 @@ impl KicadFormatter {
     
     pub fn new(initial_indent_level:i64) -> KicadFormatter {
         KicadFormatter {
-            initial_indent_level:initial_indent_level,
             indent:initial_indent_level,
             stack:vec![],
             ind:vec![b' ',b' '], // two spaces

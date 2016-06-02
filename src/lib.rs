@@ -11,6 +11,10 @@ use std::fmt;
 pub use symbolic_expressions::Sexp;
 pub use error::*;
 
+pub trait FromSexp {
+    fn from_sexp(&Sexp) -> Self;
+}
+
 use util::read_file;
 
 pub fn parse_split_quote_aware(s:&str) -> Vec<String> {
