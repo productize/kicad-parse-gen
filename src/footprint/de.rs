@@ -191,19 +191,36 @@ impl FromSexp for Result<Net> {
 
 impl FromSexp for Result<Drill> {
     fn from_sexp(s: &Sexp) -> Result<Drill> {
+        let mut drill = Drill::default();
         let v = try!(s.slice_atom("drill"));
-        if v.len() == 1 {
-            let drill = try!(v[0].f());
-            Ok(Drill { shape:None, drill:drill, drill2:None })
-                
-        } else if v.len() == 3 {
-            let shape = try!(v[0].string());
-            let drill = try!(v[1].f());
-            let drill2 = try!(v[2].f());
-            Ok(Drill { shape:Some(shape.clone()), drill:drill, drill2:Some(drill2) })
-        } else {
-            str_error("unknown drill format".to_string())
+        let mut i = 0;
+        let len = v.len();
+        // optional a shape, which can only be "oval"
+        let shape = try!(v[i].string());
+        if let "oval" = &shape[..] {
+            drill.shape = Some(shape.clone());
+            i+=1;
         }
+        // always at least one drill
+        let drill1 = try!(v[i].f());
+        i+=1;
+        drill.width = drill1;
+        drill.height = drill1;
+        if i == len {
+            return Ok(drill)
+        }
+        match v[i] {
+            Sexp::String(_) => {
+                drill.height = try!(v[i].f());
+            },
+            Sexp::Empty => (),
+            Sexp::List(_) => {
+                let v2 = try!(v[i].slice_atom("offset"));
+                drill.offset_x = try!(v2[0].f());
+                drill.offset_y = try!(v2[1].f());
+            }
+        }
+        Ok(drill)
     }
 }
 

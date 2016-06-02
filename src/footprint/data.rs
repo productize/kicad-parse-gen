@@ -226,11 +226,13 @@ impl Default for Pts {
     fn default() -> Pts { Pts { elements:vec![] } }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Clone,Debug,Default)]
 pub struct Drill {
     pub shape:Option<String>,
-    pub drill:f64,
-    pub drill2:Option<f64>,
+    pub width:f64,
+    pub height:f64,
+    pub offset_x:f64,
+    pub offset_y:f64,
 }
 
 #[derive(Debug)]

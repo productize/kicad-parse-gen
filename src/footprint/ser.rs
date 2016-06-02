@@ -3,7 +3,7 @@
 use Sexp;
 use symbolic_expressions::IntoSexp;
 use footprint::data::*;
-use symbolic_expressions::Rules;
+use std::f64;
 
 impl IntoSexp for Module {
     fn into_sexp(&self) -> Sexp {
@@ -132,6 +132,7 @@ impl IntoSexp for Pts {
     }
 }
 
+// TODO: kicad doesn't output drill section at all when all is zero?
 impl IntoSexp for Drill {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
@@ -139,9 +140,18 @@ impl IntoSexp for Drill {
         if let Some(ref s) = self.shape {
             v.push(Sexp::new_string(s))
         }
-        v.push(Sexp::new_string(self.drill));
-        if let Some(ref s) = self.drill2 {
-            v.push(Sexp::new_string(s))
+        if self.width > 0.0 {
+            v.push(Sexp::new_string(self.width));
+        }
+        if self.height > 0.0 && (self.height - self.width).abs() < f64::EPSILON {
+            v.push(Sexp::new_string(self.height));
+        }
+        if self.offset_x != 0.0 || self.offset_y != 0.0 {
+            let mut v2 = vec![];
+            v2.push(Sexp::new_string("offset"));
+            v2.push(Sexp::new_string(self.offset_x));
+            v2.push(Sexp::new_string(self.offset_y));
+            v.push(Sexp::new_list(v2));
         }
         Sexp::new_list(v)
     }
@@ -297,19 +307,4 @@ impl IntoSexp for Xyz {
         v.push(Sexp::new_string(self.z));
         Sexp::new_list(v)
     }
-}
-
-pub fn new_rules() -> Rules {
-    let mut rules = Rules::new();
-    rules.insert("descr", 1);
-    rules.insert("fp_text", 1);
-    rules.insert("effects", 2);
-    rules.insert("fp_line", 1);
-    rules.insert("fp_poly", 1);
-    rules.insert("fp_circle", 1);
-    rules.insert("fp_poly", 1);
-    rules.insert("xp", 2);
-    rules.insert("pad", 1);
-    rules.insert("model", 1);
-    rules
 }
