@@ -75,6 +75,9 @@ impl KicadFormatter {
     }
 
     fn want_indent_module(&self, ele:&str) -> Indent {
+        if !self.is("module") {
+            return Indent::Not
+        }
         if self.parent_is("module") {
             match ele {
                 "at" | "descr" | "fp_line" | "fp_poly" |
@@ -114,12 +117,11 @@ impl KicadFormatter {
             match ele {
                 "page" |
                 "module" |
-                "gr_arc"  | "gr_circle" |
-                "zone"
+                "gr_arc"  | "gr_circle"
                     => return Indent::BeforeDouble,
                 "net" | "gr_line" | "segment" | "via"
                     => return Indent::Before,
-                "layers" | "gr_text" | "dimension"
+                "layers" | "gr_text" | "dimension" | "zone"
                     => return Indent::BeforeAfter,
                 "setup"
                     => return Indent::BeforeDoubleAfterDouble,
@@ -242,12 +244,6 @@ impl Formatter for KicadFormatter {
     fn element<W>(&mut self, writer: &mut W, value:&Sexp) -> Result<()>
         where W: io::Write
     {
-        let mut ele = String::new();
-        // if first element is string
-        if let Sexp::String(ref s) = *value {
-            ele.push_str(s);
-        }
-        //if self.parent_is(pts) BUSY
         // get rid of the space if we will be putting a newline next
         if self.want_indent(value) == Indent::Not {
             try!(writer.write_all(b" "));
