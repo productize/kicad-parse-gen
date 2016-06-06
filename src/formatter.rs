@@ -9,19 +9,54 @@ use symbolic_expressions::Formatter;
 // custom symbolic_expressions formatter that aims to be
 // kicad compatible
 
-#[derive(PartialEq)]
-enum Indent {
-    Not,
-    Before,
-    BeforeAfter,
-    BeforeDouble,
-    BeforeDoubleAfter,
-    BeforeDoubleAfterDouble,
+struct Indent2 {
+    newline_before:i64,
+    closing_on_newline:bool,
+    newline_after:i64,
 }
+
+impl Indent2 {
+    fn before() -> Indent2 {
+        Indent2 {
+            newline_before:1,
+            closing_on_newline:false,
+            newline_after:0,
+        }
+    }
+    fn before_after() -> Indent2 {
+        Indent2 {
+            newline_before:1,
+            closing_on_newline:true,
+            newline_after:0,
+        }
+    }
+    fn before_double() -> Indent2 {
+        Indent2 {
+            newline_before:2,
+            closing_on_newline:false,
+            newline_after:0,
+        }
+    }
+    fn before_double_after() -> Indent2 {
+        Indent2 {
+            newline_before:2,
+            closing_on_newline:true,
+            newline_after:0,
+        }
+    }
+    fn before_double_after_double() -> Indent2 {
+        Indent2 {
+            newline_before:2,
+            closing_on_newline:true,
+            newline_after:1,
+        }
+    }
+}
+
 
 pub struct KicadFormatter {
     indent:i64,
-    stack:Vec<Option<(String,Indent)>>,
+    stack:Vec<Option<(String,Option<Indent2>)>>,
     ind:Vec<u8>,
     pts_xy_count:i64,
 }
@@ -38,14 +73,14 @@ impl KicadFormatter {
     }
 
     fn is(&self, what:&'static str) -> bool {
-        self.stack.iter().any(
-            |x:&Option<(String,Indent)>| {
-                if let Some((ref y,_)) = *x {
-                    y == what
-                } else {
-                    false
+        for x in &self.stack {
+            if let Some((ref name,_)) = *x {
+                if name == what {
+                    return true
                 }
-            })
+            }
+        }
+        false
     }
     
     fn parent_is(&self, what:&'static str) -> bool {
@@ -74,76 +109,76 @@ impl KicadFormatter {
         res
     }
 
-    fn want_indent_module(&self, ele:&str) -> Indent {
-        if !self.is("module") {
-            return Indent::Not
-        }
+    fn want_indent_module(&self, ele:&str) -> Option<Indent2> {
+        //if !self.is("module") {
+        //    return None
+        //}
         if self.parent_is("module") {
             match ele {
                 "at" | "descr" | "fp_line" | "fp_poly" |
-                "pad" => return Indent::Before,
-                "model" | "fp_text" => return Indent::BeforeAfter,
+                "pad" => return Some(Indent2::before()),
+                "model" | "fp_text" => return Some(Indent2::before_after()),
                 _ => (),
             }
         } 
         if self.parent_is("fp_text") | self.parent_is("gr_text") {
             if let "effects" = ele {
-                return Indent::Before
+                return Some(Indent2::before())
             }
         }
         if self.parent_is("pts") {
             if let "xy" = ele {
                 if self.pts_xy_count > 0 && self.pts_xy_count % 4 == 0 {
-                    return Indent::Before
+                    return Some(Indent2::before())
                 }
             }
         }
         if self.parent_is("model") {
             match ele {
                 "at" | "scale" | "rotate" => {
-                    return Indent::Before
+                    return Some(Indent2::before())
                 },
                 _ => (),
             }
         }
-        Indent::Not
+        None
     }
     
-    fn want_indent_layout(&self, ele:&str, e:&Sexp) -> Indent {
+    fn want_indent_layout(&self, ele:&str, e:&Sexp) -> Option<Indent2> {
         if !self.is("kicad_pcb") {
-            return Indent::Not
+            return None
         }
         if self.parent_is("kicad_pcb") {
             match ele {
                 "page" |
                 "module" |
                 "gr_arc"  | "gr_circle"
-                    => return Indent::BeforeDouble,
+                    => return Some(Indent2::before_double()),
                 "net" | "gr_line" | "segment" | "via"
-                    => return Indent::Before,
+                    => return Some(Indent2::before()),
                 "layers" | "gr_text" | "dimension" | "zone"
-                    => return Indent::BeforeAfter,
+                    => return Some(Indent2::before_after()),
                 "setup"
-                    => return Indent::BeforeDoubleAfterDouble,
+                    => return Some(Indent2::before_double_after_double()),
                 "general" | "net_class"
-                    => return Indent::BeforeDoubleAfter,
+                    => return Some(Indent2::before_double_after()),
                 _ => (),
             }
         }
         if self.parent_is("general") {
-            return Indent::Before
+            return Some(Indent2::before())
         }
         if self.parent_is("layers") {
-            return Indent::Before
+            return Some(Indent2::before())
         }
         if self.parent_is("setup") {
-            return Indent::Before
+            return Some(Indent2::before())
         }
         if self.parent_is("pcbplotparams") {
-            return Indent::Before
+            return Some(Indent2::before())
         }
         if self.parent_is("net_class") {
-            return Indent::Before
+            return Some(Indent2::before())
         }
         if self.parent_is("dimension") {
             match ele {
@@ -151,7 +186,7 @@ impl KicadFormatter {
                 "feature2" | "crossbar" |
                 "arrow1a" | "arrow1b" |
                 "arrow2a" | "arrow2b" => {
-                    return Indent::Before
+                    return Some(Indent2::before())
                 },
                 _ => (),
             }
@@ -160,38 +195,38 @@ impl KicadFormatter {
             match ele {
                 "connect_pads" | "min_thickness" | "fill" |
                 "polygon" | "filled_polygon"
-                    => return Indent::Before,
+                    => return Some(Indent2::before()),
                 _ => (),
             }
         }
         if self.parent_is("polygon") | self.parent_is("filled_polygon") {
-            return Indent::Before
+            return Some(Indent2::before())
         }
-        Indent::Not
+        None
     }
     
-    fn want_indent(&self, value:&Sexp) -> Indent {
+    fn want_indent(&self, value:&Sexp) -> Option<Indent2> {
         let first = match *value {
             Sexp::List(ref l) => {
                 if l.is_empty() {
-                    return Indent::Not
+                    return None
                 }
                 (&l[0]).clone()
             },
-            Sexp::Empty => return Indent::Not,
+            Sexp::Empty => return None,
             Sexp::String(ref l) => Sexp::String(l.clone()),
         };
         if let Sexp::String(ref ele) = first {
             let i = self.want_indent_module(ele);
-            if i != Indent::Not {
+            if i.is_some() {
                 return i
             }
             let i = self.want_indent_layout(ele, value);
-            if i != Indent::Not {
+            if i.is_some() {
                 return i
             }
         }
-        Indent::Not
+        None
     }
 }
 
@@ -209,14 +244,10 @@ impl Formatter for KicadFormatter {
         }
         let exp = Sexp::String(ele.clone());
         let want_indent = self.want_indent(&exp);
-        if want_indent != Indent::Not {
+        if let Some(ref want_indent) = want_indent {
             self.indent += 1;
-            if want_indent == Indent::BeforeDouble
-            || want_indent == Indent::BeforeDoubleAfterDouble
-            || want_indent == Indent::BeforeDoubleAfter {
-                try!(self.indent(writer, 2));
-            } else {
-                try!(self.indent(writer, 1));
+            if want_indent.newline_before > 0 {
+                try!(self.indent(writer, want_indent.newline_before));
             }
         }
         
@@ -245,7 +276,7 @@ impl Formatter for KicadFormatter {
         where W: io::Write
     {
         // get rid of the space if we will be putting a newline next
-        if self.want_indent(value) == Indent::Not {
+        if self.want_indent(value).is_none() {
             try!(writer.write_all(b" "));
         } else if let Sexp::String(_) = *value {
             try!(writer.write_all(b" "));
@@ -258,31 +289,28 @@ impl Formatter for KicadFormatter {
         where W: io::Write
     {
         if let Some(Some((s, want_indent))) = self.stack.pop() {
-            if want_indent != Indent::Not {
-                self.indent -= 1
-            }
-            match want_indent {
-                Indent::Not |
-                Indent::Before |
-                Indent::BeforeDouble => (),
-                Indent::BeforeDoubleAfter |
-                Indent::BeforeAfter |
-                Indent::BeforeDoubleAfterDouble
-                    => {
+            if let Some(indent) = want_indent {
+                self.indent -= 1;
+                if indent.closing_on_newline {
                     try!(self.indent_plus(writer, 1));
                 }
+                // special handling of toplevel module...
+                // which doesn't work, because it is not indented
+                if &s == "module" && self.stack.is_empty() {
+                    try!(writer.write_all(b"\n"));
+                }
+                try!(writer.write_all(b")"));
+                for _ in 0..indent.newline_after {
+                    try!(writer.write_all(b"\n"));
+                }
+                return Ok(())
+            } else {
+                if self.stack.is_empty() && &s == "module" {
+                    try!(writer.write_all(b"\n"));
+                }
             }
-            // TODO: remove
-            if let "module" = &s[..] {
-                try!(self.indent(writer, 1));
-            }
-            try!(writer.write_all(b")"));
-            if want_indent == Indent::BeforeDoubleAfterDouble {
-                try!(writer.write_all(b"\n"));
-            }
-        } else {
-            try!(writer.write_all(b")"));
         }
+        try!(writer.write_all(b")"));
         Ok(())
     }
 }
