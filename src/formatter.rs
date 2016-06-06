@@ -16,6 +16,7 @@ struct Indent {
 }
 
 impl Indent {
+    
     fn before() -> Indent {
         Indent {
             newline_before:1,
@@ -23,6 +24,7 @@ impl Indent {
             newline_after:0,
         }
     }
+    
     fn before_after() -> Indent {
         Indent {
             newline_before:1,
@@ -30,6 +32,7 @@ impl Indent {
             newline_after:0,
         }
     }
+    
     fn before_double() -> Indent {
         Indent {
             newline_before:2,
@@ -37,6 +40,7 @@ impl Indent {
             newline_after:0,
         }
     }
+    
     fn before_double_after() -> Indent {
         Indent {
             newline_before:2,
@@ -44,6 +48,7 @@ impl Indent {
             newline_after:0,
         }
     }
+    
     fn before_double_after_double() -> Indent {
         Indent {
             newline_before:2,
