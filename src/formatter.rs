@@ -9,43 +9,43 @@ use symbolic_expressions::Formatter;
 // custom symbolic_expressions formatter that aims to be
 // kicad compatible
 
-struct Indent2 {
+struct Indent {
     newline_before:i64,
     closing_on_newline:bool,
     newline_after:i64,
 }
 
-impl Indent2 {
-    fn before() -> Indent2 {
-        Indent2 {
+impl Indent {
+    fn before() -> Indent {
+        Indent {
             newline_before:1,
             closing_on_newline:false,
             newline_after:0,
         }
     }
-    fn before_after() -> Indent2 {
-        Indent2 {
+    fn before_after() -> Indent {
+        Indent {
             newline_before:1,
             closing_on_newline:true,
             newline_after:0,
         }
     }
-    fn before_double() -> Indent2 {
-        Indent2 {
+    fn before_double() -> Indent {
+        Indent {
             newline_before:2,
             closing_on_newline:false,
             newline_after:0,
         }
     }
-    fn before_double_after() -> Indent2 {
-        Indent2 {
+    fn before_double_after() -> Indent {
+        Indent {
             newline_before:2,
             closing_on_newline:true,
             newline_after:0,
         }
     }
-    fn before_double_after_double() -> Indent2 {
-        Indent2 {
+    fn before_double_after_double() -> Indent {
+        Indent {
             newline_before:2,
             closing_on_newline:true,
             newline_after:1,
@@ -56,7 +56,7 @@ impl Indent2 {
 
 pub struct KicadFormatter {
     indent:i64,
-    stack:Vec<Option<(String,Option<Indent2>)>>,
+    stack:Vec<Option<(String,Option<Indent>)>>,
     ind:Vec<u8>,
     pts_xy_count:i64,
 }
@@ -109,34 +109,34 @@ impl KicadFormatter {
         res
     }
 
-    fn want_indent_module(&self, ele:&str) -> Option<Indent2> {
+    fn want_indent_module(&self, ele:&str) -> Option<Indent> {
         //if !self.is("module") {
         //    return None
         //}
         if self.parent_is("module") {
             match ele {
                 "at" | "descr" | "fp_line" | "fp_poly" |
-                "pad" => return Some(Indent2::before()),
-                "model" | "fp_text" => return Some(Indent2::before_after()),
+                "pad" => return Some(Indent::before()),
+                "model" | "fp_text" => return Some(Indent::before_after()),
                 _ => (),
             }
         } 
         if self.parent_is("fp_text") | self.parent_is("gr_text") {
             if let "effects" = ele {
-                return Some(Indent2::before())
+                return Some(Indent::before())
             }
         }
         if self.parent_is("pts") {
             if let "xy" = ele {
                 if self.pts_xy_count > 0 && self.pts_xy_count % 4 == 0 {
-                    return Some(Indent2::before())
+                    return Some(Indent::before())
                 }
             }
         }
         if self.parent_is("model") {
             match ele {
                 "at" | "scale" | "rotate" => {
-                    return Some(Indent2::before())
+                    return Some(Indent::before())
                 },
                 _ => (),
             }
@@ -144,7 +144,7 @@ impl KicadFormatter {
         None
     }
     
-    fn want_indent_layout(&self, ele:&str, e:&Sexp) -> Option<Indent2> {
+    fn want_indent_layout(&self, ele:&str) -> Option<Indent> {
         if !self.is("kicad_pcb") {
             return None
         }
@@ -153,32 +153,32 @@ impl KicadFormatter {
                 "page" |
                 "module" |
                 "gr_arc"  | "gr_circle"
-                    => return Some(Indent2::before_double()),
+                    => return Some(Indent::before_double()),
                 "net" | "gr_line" | "segment" | "via"
-                    => return Some(Indent2::before()),
+                    => return Some(Indent::before()),
                 "layers" | "gr_text" | "dimension" | "zone"
-                    => return Some(Indent2::before_after()),
+                    => return Some(Indent::before_after()),
                 "setup"
-                    => return Some(Indent2::before_double_after_double()),
+                    => return Some(Indent::before_double_after_double()),
                 "general" | "net_class"
-                    => return Some(Indent2::before_double_after()),
+                    => return Some(Indent::before_double_after()),
                 _ => (),
             }
         }
         if self.parent_is("general") {
-            return Some(Indent2::before())
+            return Some(Indent::before())
         }
         if self.parent_is("layers") {
-            return Some(Indent2::before())
+            return Some(Indent::before())
         }
         if self.parent_is("setup") {
-            return Some(Indent2::before())
+            return Some(Indent::before())
         }
         if self.parent_is("pcbplotparams") {
-            return Some(Indent2::before())
+            return Some(Indent::before())
         }
         if self.parent_is("net_class") {
-            return Some(Indent2::before())
+            return Some(Indent::before())
         }
         if self.parent_is("dimension") {
             match ele {
@@ -186,7 +186,7 @@ impl KicadFormatter {
                 "feature2" | "crossbar" |
                 "arrow1a" | "arrow1b" |
                 "arrow2a" | "arrow2b" => {
-                    return Some(Indent2::before())
+                    return Some(Indent::before())
                 },
                 _ => (),
             }
@@ -195,17 +195,17 @@ impl KicadFormatter {
             match ele {
                 "connect_pads" | "min_thickness" | "fill" |
                 "polygon" | "filled_polygon"
-                    => return Some(Indent2::before()),
+                    => return Some(Indent::before()),
                 _ => (),
             }
         }
         if self.parent_is("polygon") | self.parent_is("filled_polygon") {
-            return Some(Indent2::before())
+            return Some(Indent::before())
         }
         None
     }
     
-    fn want_indent(&self, value:&Sexp) -> Option<Indent2> {
+    fn want_indent(&self, value:&Sexp) -> Option<Indent> {
         let first = match *value {
             Sexp::List(ref l) => {
                 if l.is_empty() {
@@ -221,7 +221,7 @@ impl KicadFormatter {
             if i.is_some() {
                 return i
             }
-            let i = self.want_indent_layout(ele, value);
+            let i = self.want_indent_layout(ele);
             if i.is_some() {
                 return i
             }
