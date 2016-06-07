@@ -16,6 +16,7 @@ pub trait FromSexp {
 }
 
 pub use util::read_file;
+pub use util::write_file;
 
 pub fn parse_split_quote_aware(s:&str) -> Vec<String> {
     let mut v:Vec<String> = vec![];
