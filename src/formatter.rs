@@ -150,15 +150,20 @@ impl KicadFormatter {
         if self.parent_is("kicad_pcb") {
             match ele {
                 "page" |
-                "module" |
                 "gr_arc"  | "gr_circle"
                     => {
                         indent.before_double();
                         return Some(indent)
                     },
+                "module"
+                    => {
+                        indent.before_double();
+                        indent.close_on_new_line();
+                        return Some(indent)
+                    },
                 "net" | "gr_line" | "segment" | "via"
                     => return Some(indent),
-                "layers" | "gr_text" | "dimension" | "zone"
+                "layers" | "gr_text" | "dimension"
                     => {
                         indent.close_on_new_line();
                         return Some(indent)
@@ -170,7 +175,7 @@ impl KicadFormatter {
                         indent.newline_after_closing();
                         return Some(indent)
                     },
-                "general" | "net_class"
+                "general" | "net_class" | "zone"
                     => {
                         indent.before_double();
                         indent.close_on_new_line();
@@ -207,9 +212,13 @@ impl KicadFormatter {
         }
         if self.parent_is("zone") {
             match ele {
-                "connect_pads" | "min_thickness" | "fill" |
-                "polygon" | "filled_polygon"
+                "connect_pads" | "min_thickness" | "fill"
                     => return Some(indent),
+                "polygon" | "filled_polygon"
+                    => {
+                        indent.close_on_new_line();
+                        return Some(indent)
+                    },
                 _ => (),
             }
         }
@@ -319,7 +328,7 @@ impl Formatter for KicadFormatter {
                 }
                 return Ok(())
             } else {
-                if self.stack.is_empty() && &s == "module" {
+                if self.stack.is_empty() && (&s == "module" || &s == "kicad_pcb") {
                     try!(writer.write_all(b"\n"));
                 }
             }

@@ -50,6 +50,7 @@ impl IntoSexp for General {
         let mut v = vec![];
         v.push(Sexp::new_string("general"));
         v.push(Sexp::new_named("links", self.links));
+        v.push(Sexp::new_named("no_connects", self.no_connects));
         v.push(self.area.into_sexp());
         v.push(Sexp::new_named("thickness", self.thickness));
         v.push(Sexp::new_named("drawings", self.drawings));
