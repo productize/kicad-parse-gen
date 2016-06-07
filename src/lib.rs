@@ -176,6 +176,11 @@ pub fn read_layout(name: &str) -> Result<layout::Layout> {
     }
 }
 
+pub fn write_layout(layout:&layout::Layout, name:&str) -> Result<()> {
+    let s = try!(layout::layout_to_string(layout, 0));
+    write_file(name, &s)
+}
+
 pub fn read_symbol_lib(name: &str) -> Result<symbol_lib::SymbolLib> {
     match try!(read_kicad_file(name, Expected::SymbolLib)) {
         KicadFile::SymbolLib(mo) => Ok(mo),
