@@ -11,50 +11,37 @@ use symbolic_expressions::Formatter;
 
 struct Indent {
     newline_before:i64,
-    closing_on_newline:bool,
+    closing_on_new_line:bool,
     newline_after:i64,
 }
 
+impl Default for Indent {
+    fn default() -> Indent {
+        Indent {
+            newline_before:0,
+            closing_on_new_line:false,
+            newline_after:0,
+        }
+    }
+}
+
+
 impl Indent {
     
-    fn before() -> Indent {
-        Indent {
-            newline_before:1,
-            closing_on_newline:false,
-            newline_after:0,
-        }
+    fn before(&mut self) {
+        self.newline_before = 1;
     }
     
-    fn before_after() -> Indent {
-        Indent {
-            newline_before:1,
-            closing_on_newline:true,
-            newline_after:0,
-        }
+    fn close_on_new_line(&mut self) {
+        self.closing_on_new_line = true;
     }
     
-    fn before_double() -> Indent {
-        Indent {
-            newline_before:2,
-            closing_on_newline:false,
-            newline_after:0,
-        }
+    fn before_double(&mut self) {
+        self.newline_before = 2;
     }
-    
-    fn before_double_after() -> Indent {
-        Indent {
-            newline_before:2,
-            closing_on_newline:true,
-            newline_after:0,
-        }
-    }
-    
-    fn before_double_after_double() -> Indent {
-        Indent {
-            newline_before:2,
-            closing_on_newline:true,
-            newline_after:1,
-        }
+
+    fn newline_after_closing(&mut self) {
+        self.newline_after = 1;
     }
 }
 
@@ -118,30 +105,35 @@ impl KicadFormatter {
         //if !self.is("module") {
         //    return None
         //}
+        let mut indent = Indent::default();
+        indent.before();
         if self.parent_is("module") {
             match ele {
                 "at" | "descr" | "fp_line" | "fp_poly" |
-                "pad" => return Some(Indent::before()),
-                "model" | "fp_text" => return Some(Indent::before_after()),
+                "pad" => return Some(indent),
+                "model" | "fp_text" => {
+                    indent.close_on_new_line();
+                    return Some(indent)
+                },
                 _ => (),
             }
         } 
         if self.parent_is("fp_text") | self.parent_is("gr_text") {
             if let "effects" = ele {
-                return Some(Indent::before())
+                return Some(indent)
             }
         }
         if self.parent_is("pts") {
             if let "xy" = ele {
                 if self.pts_xy_count > 0 && self.pts_xy_count % 4 == 0 {
-                    return Some(Indent::before())
+                    return Some(indent)
                 }
             }
         }
         if self.parent_is("model") {
             match ele {
                 "at" | "scale" | "rotate" => {
-                    return Some(Indent::before())
+                    return Some(indent)
                 },
                 _ => (),
             }
@@ -153,37 +145,54 @@ impl KicadFormatter {
         if !self.is("kicad_pcb") {
             return None
         }
+        let mut indent = Indent::default();
+        indent.before();
         if self.parent_is("kicad_pcb") {
             match ele {
                 "page" |
                 "module" |
                 "gr_arc"  | "gr_circle"
-                    => return Some(Indent::before_double()),
+                    => {
+                        indent.before_double();
+                        return Some(indent)
+                    },
                 "net" | "gr_line" | "segment" | "via"
-                    => return Some(Indent::before()),
+                    => return Some(indent),
                 "layers" | "gr_text" | "dimension" | "zone"
-                    => return Some(Indent::before_after()),
+                    => {
+                        indent.close_on_new_line();
+                        return Some(indent)
+                    },
                 "setup"
-                    => return Some(Indent::before_double_after_double()),
+                    => {
+                        indent.before_double();
+                        indent.close_on_new_line();
+                        indent.newline_after_closing();
+                        return Some(indent)
+                    },
                 "general" | "net_class"
-                    => return Some(Indent::before_double_after()),
+                    => {
+                        indent.before_double();
+                        indent.close_on_new_line();
+                        return Some(indent)
+                    },
                 _ => (),
             }
         }
         if self.parent_is("general") {
-            return Some(Indent::before())
+            return Some(indent)
         }
         if self.parent_is("layers") {
-            return Some(Indent::before())
+            return Some(indent)
         }
         if self.parent_is("setup") {
-            return Some(Indent::before())
+            return Some(indent)
         }
         if self.parent_is("pcbplotparams") {
-            return Some(Indent::before())
+            return Some(indent)
         }
         if self.parent_is("net_class") {
-            return Some(Indent::before())
+            return Some(indent)
         }
         if self.parent_is("dimension") {
             match ele {
@@ -191,7 +200,7 @@ impl KicadFormatter {
                 "feature2" | "crossbar" |
                 "arrow1a" | "arrow1b" |
                 "arrow2a" | "arrow2b" => {
-                    return Some(Indent::before())
+                    return Some(indent)
                 },
                 _ => (),
             }
@@ -200,12 +209,12 @@ impl KicadFormatter {
             match ele {
                 "connect_pads" | "min_thickness" | "fill" |
                 "polygon" | "filled_polygon"
-                    => return Some(Indent::before()),
+                    => return Some(indent),
                 _ => (),
             }
         }
         if self.parent_is("polygon") | self.parent_is("filled_polygon") {
-            return Some(Indent::before())
+            return Some(indent)
         }
         None
     }
@@ -296,7 +305,7 @@ impl Formatter for KicadFormatter {
         if let Some(Some((s, want_indent))) = self.stack.pop() {
             if let Some(indent) = want_indent {
                 self.indent -= 1;
-                if indent.closing_on_newline {
+                if indent.closing_on_new_line {
                     try!(self.indent_plus(writer, 1));
                 }
                 // special handling of toplevel module...
