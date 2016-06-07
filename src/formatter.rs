@@ -110,7 +110,8 @@ impl KicadFormatter {
         if self.parent_is("module") {
             match ele {
                 "at" | "descr" | "fp_line" | "fp_poly" |
-                "pad" => return Some(indent),
+                "pad" | "path" | "fp_circle"
+                    => return Some(indent),
                 "model" | "fp_text" => {
                     indent.close_on_new_line();
                     return Some(indent)
@@ -127,6 +128,8 @@ impl KicadFormatter {
             if let "xy" = ele {
                 if self.pts_xy_count > 0 && self.pts_xy_count % 4 == 0 {
                     return Some(indent)
+                } else if self.pts_xy_count == 0 && (self.is("polygon") || self.is("filled_polygon") ) {
+                    return Some(indent)
                 }
             }
         }
@@ -136,6 +139,11 @@ impl KicadFormatter {
                     return Some(indent)
                 },
                 _ => (),
+            }
+        }
+        if self.parent_is("pad") {
+            if let "net" = ele {
+                return Some(indent)
             }
         }
         None
@@ -149,8 +157,7 @@ impl KicadFormatter {
         indent.before();
         if self.parent_is("kicad_pcb") {
             match ele {
-                "page" |
-                "gr_arc"  | "gr_circle"
+                "page" | "gr_circle"
                     => {
                         indent.before_double();
                         return Some(indent)
@@ -161,7 +168,7 @@ impl KicadFormatter {
                         indent.close_on_new_line();
                         return Some(indent)
                     },
-                "net" | "gr_line" | "segment" | "via"
+                "net" | "gr_line" | "gr_arc" | "segment" | "via"
                     => return Some(indent),
                 "layers" | "gr_text" | "dimension"
                     => {

@@ -121,7 +121,9 @@ impl IntoSexp for Layer {
         v.push(Sexp::new_string(self.num));
         v.push(Sexp::new_string(self.layer.clone()));
         v.push(Sexp::new_string(self.layer_type.clone()));
-        v.push(Sexp::new_string("hide"));
+        if self.hide {
+            v.push(Sexp::new_string("hide"));
+        }
         Sexp::new_list(v)
     }
 }
@@ -204,7 +206,7 @@ impl IntoSexp for GrLine {
 impl IntoSexp for GrArc {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("gr_line"));
+        v.push(Sexp::new_string("gr_arc"));
         v.push(self.start.into_sexp());
         v.push(self.end.into_sexp());
         v.push(Sexp::new_named("angle", self.angle));

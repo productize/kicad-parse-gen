@@ -74,11 +74,13 @@ impl IntoSexp for Font {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
         v.push(Sexp::new_string("font"));
-        let mut v1 = vec![];
-        v1.push(Sexp::new_string("size"));
-        v1.push(Sexp::new_string(self.size.x));
-        v1.push(Sexp::new_string(self.size.y));
-        v.push(Sexp::new_list(v1));
+        if self.size.x > 0.0 || self.size.y > 0.0 {
+            let mut v1 = vec![];
+            v1.push(Sexp::new_string("size"));
+            v1.push(Sexp::new_string(self.size.x));
+            v1.push(Sexp::new_string(self.size.y));
+            v.push(Sexp::new_list(v1));
+        }
         v.push(Sexp::new_named("thickness", self.thickness));
         Sexp::new_list(v)
     }
@@ -143,7 +145,7 @@ impl IntoSexp for Drill {
         if self.width > 0.0 {
             v.push(Sexp::new_string(self.width));
         }
-        if self.height > 0.0 && (self.height - self.width).abs() < f64::EPSILON {
+        if self.height > 0.0 && (self.height - self.width).abs() > f64::EPSILON {
             v.push(Sexp::new_string(self.height));
         }
         if self.offset_x != 0.0 || self.offset_y != 0.0 {
@@ -204,15 +206,15 @@ impl IntoSexp for Pad {
         v.push(self.shape.into_sexp());
         v.push(self.at.into_sexp());
         v.push(self.size.into_sexp());
+        if let Some(ref drill) = self.drill {
+            v.push(drill.into_sexp());
+        }
         if let Some(ref rect_delta) = self.rect_delta {
             v.push(rect_delta.into_sexp());
         }
         v.push(self.layers.into_sexp());
         if let Some(ref net) = self.net {
             v.push(net.into_sexp());
-        }
-        if let Some(ref drill) = self.drill {
-            v.push(drill.into_sexp());
         }
         if let Some(ref spm) = self.solder_paste_margin {
             v.push(Sexp::new_named("solder_paste_margin", spm));
