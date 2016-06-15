@@ -279,8 +279,9 @@ pub struct Component {
     pub name:String,
     pub reference:String,
     pub u:String, // TODO
-    pub x:i64,
-    pub y:i64,
+    pub x:i64, // P
+    pub y:i64, // P
+    pub ar_path:Vec<String>,
     pub fields:Vec<ComponentField>,
     pub rotation:ComponentRotation,
 }
@@ -293,6 +294,7 @@ impl Default for Component {
             u:String::from(""),
             x:0,
             y:0,
+            ar_path:vec![],
             fields:vec![],
             rotation:ComponentRotation {a:0,b:0,c:0,d:0},
         }
@@ -389,6 +391,9 @@ impl fmt::Display for Component {
         try!(writeln!(f, "L {} {}", self.name, self.reference));
         try!(writeln!(f, "{}", self.u));
         try!(writeln!(f, "P {} {}", self.x, self.y));
+        for x in &self.ar_path {
+            try!(writeln!(f, "{}", x))
+        }
         for x in &self.fields[..] {
             try!(writeln!(f, "{}", x))
         }
@@ -826,6 +831,11 @@ fn parse_component_u(p:&mut ParseState, d:&mut Component) -> Result<()> {
     d.u = p.here();
     Ok(())
 }
+        
+fn parse_component_ar(p:&mut ParseState, d:&mut Component) -> Result<()> {
+    d.ar_path.push(p.here());
+    Ok(())
+}
 
 fn parse_component_p(p:&mut ParseState, d:&mut Component) -> Result<()> {
     let v = try!(parse_split_quote_aware_n(3, &p.here()));
@@ -875,6 +885,7 @@ fn parse_component(p:&mut ParseState) -> Result<Component> {
             Some("P") => try!(parse_component_p(p, &mut d)),
             Some("F") => try!(parse_component_f(p, &mut d)),
             Some("1") | Some("0") => try!(parse_component_rotation(p, &mut d)),
+            Some("AR") => try!(parse_component_ar(p, &mut d)),
             _ => println!("skipping unknown component line {}", s)
         }
         p.next()
