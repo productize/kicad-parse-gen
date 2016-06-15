@@ -324,15 +324,21 @@ impl FromSexp for Result<Dimension> {
             try!(l2[0].f())
         };
         let layer    = try!(Result::from_sexp(&l[2]));
-        let text     = try!(Result::from_sexp(&l[3]));
-        let feature1 = try!(Result::from_sexp(try!(l[4].named_value("feature1"))));
-        let feature2 = try!(Result::from_sexp(try!(l[5].named_value("feature2"))));
-        let crossbar = try!(Result::from_sexp(try!(l[6].named_value("crossbar"))));
-        let arrow1a = try!(Result::from_sexp(try!(l[7].named_value("arrow1a"))));
-        let arrow1b = try!(Result::from_sexp(try!(l[8].named_value("arrow1b"))));
-        let arrow2a = try!(Result::from_sexp(try!(l[9].named_value("arrow2a"))));
-        let arrow2b = try!(Result::from_sexp(try!(l[10].named_value("arrow2b"))));
-        Ok(Dimension { name:name, width:width, layer:layer, text:text, feature1:feature1, feature2:feature2, crossbar:crossbar, arrow1a:arrow1a, arrow1b:arrow1b, arrow2a:arrow2a, arrow2b:arrow2b })
+        let (i, tstamp) = match l[3].named_value_string("tstamp") {
+            Ok(s) => {
+                (4, Some(s.clone()))
+            },
+            _ => (3, None),
+        };
+        let text     = try!(Result::from_sexp(&l[i]));
+        let feature1 = try!(Result::from_sexp(try!(l[i+1].named_value("feature1"))));
+        let feature2 = try!(Result::from_sexp(try!(l[i+2].named_value("feature2"))));
+        let crossbar = try!(Result::from_sexp(try!(l[i+3].named_value("crossbar"))));
+        let arrow1a = try!(Result::from_sexp(try!(l[i+4].named_value("arrow1a"))));
+        let arrow1b = try!(Result::from_sexp(try!(l[i+5].named_value("arrow1b"))));
+        let arrow2a = try!(Result::from_sexp(try!(l[i+6].named_value("arrow2a"))));
+        let arrow2b = try!(Result::from_sexp(try!(l[i+7].named_value("arrow2b"))));
+        Ok(Dimension { name:name, width:width, layer:layer, tstamp:tstamp, text:text, feature1:feature1, feature2:feature2, crossbar:crossbar, arrow1a:arrow1a, arrow1b:arrow1b, arrow2a:arrow2a, arrow2b:arrow2b })
     }
 }
 

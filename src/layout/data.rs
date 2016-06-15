@@ -156,6 +156,7 @@ pub struct Dimension {
     pub name:String,
     pub width:f64,
     pub layer:footprint::Layer,
+    pub tstamp:Option<String>,
     pub text:GrText,
     pub feature1:footprint::Pts,
     pub feature2:footprint::Pts,

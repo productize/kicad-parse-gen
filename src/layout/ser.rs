@@ -223,6 +223,12 @@ impl IntoSexp for Dimension {
         v.push(Sexp::new_string(self.name.clone()));
         v.push(Sexp::new_named("width", self.width));
         v.push(Sexp::new_named_sexp("layer", &self.layer));
+        match self.tstamp {
+            None => (),
+            Some(ref tstamp) => {
+                v.push(Sexp::new_named("tstamp", tstamp));
+            }
+        }
         v.push(self.text.into_sexp());
         v.push(Sexp::new_named_sexp("feature1", &self.feature1));
         v.push(Sexp::new_named_sexp("feature2", &self.feature2));
