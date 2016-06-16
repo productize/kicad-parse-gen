@@ -94,14 +94,14 @@ impl Symbol {
             draw:vec![],
         }
     }
-    pub fn set_name(&mut self, name:String) {
+    pub fn set_name(&mut self, name:&str) {
         if char_at(&self.name, 0) == '~' {
             self.name = format!("~{}", name)
         } else {
-            self.name = name.clone()
+            self.name = name.to_string()
         }
         let mut field = &mut self.fields[1];
-        field.value = name
+        field.value = name.to_string()
     }
 }
 
