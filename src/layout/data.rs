@@ -195,6 +195,17 @@ impl Layout {
         v
     }
 
+    pub fn change_net_name(&mut self, i:i64, new_name:&str) {
+        for element in &mut self.elements {
+            if let Element::Net(ref mut net) = *element {
+                if net.num == i {
+                    net.name.clear();
+                    net.name.push_str(new_name);
+                }
+            }
+        }
+    }
+
     pub fn netclasses(&self) -> Vec<&NetClass> {
         let mut v = vec![];
         for element in &self.elements {
@@ -229,7 +240,7 @@ impl Layout {
     pub fn modify_module<F>(&mut self, reference:&str, fun:F) -> Result<()> 
         where F:Fn(&mut footprint::Module) -> ()
     {
-        for ref mut x in &mut self.elements[..] {
+        for ref mut x in &mut self.elements {
             match **x {
                 Element::Module(ref mut m) => {
                     if m.is_reference(reference) {
