@@ -22,8 +22,23 @@ pub enum Element {
     Module(footprint::Module),
     Net(Net),
     NetClass(NetClass),
-    Graphics(Graphics),
+    
+    GrText(GrText),
+    GrLine(GrLine),
+    GrArc(GrArc),
+    Dimension(Dimension),
+    //Segment,
+    //Via,
+    //FilledPolygon,
+    Zone(Zone),
     Other(Sexp),
+}
+
+#[derive(Clone,Debug)]
+pub struct Zone {
+    pub net:i64,
+    pub net_name:String,
+    pub other:Vec<Sexp>,
 }
 
 #[derive(Clone,Debug)]
@@ -96,18 +111,6 @@ pub struct NetClass {
     pub uvia_dia:f64,
     pub uvia_drill:f64,
     pub nets:Vec<String>,
-}
-
-// TODO: support tstamp in graphics elements
-#[derive(Clone,Debug)]
-pub enum Graphics {
-    GrText(GrText),
-    GrLine(GrLine),
-    GrArc(GrArc),
-    Dimension(Dimension),
-    Segment,
-    Via,
-    FilledPolygon,
 }
 
 #[derive(Clone,Debug)]
@@ -212,8 +215,12 @@ impl Layout {
                 },
                 Element::Net(_) |
                 Element::NetClass(_) |
-                Element::Other(_) |
-                Element::Graphics(_) => (),
+                Element::GrText(_) |
+                Element::GrLine(_) |
+                Element::GrArc(_) |
+                Element::Dimension(_) |
+                Element::Zone(_) |
+                Element::Other(_) => (),
             }
         }
         None
@@ -231,8 +238,12 @@ impl Layout {
                 },
                 Element::Net(_) |
                 Element::NetClass(_) |
-                Element::Other(_) |
-                Element::Graphics(_) => (),
+                Element::GrText(_) |
+                Element::GrLine(_) |
+                Element::GrArc(_) |
+                Element::Dimension(_) |
+                Element::Zone(_) |
+                Element::Other(_) => (),
             }
         }
         str_error(format!("did not find module with reference {}", reference))

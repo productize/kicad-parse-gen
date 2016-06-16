@@ -81,8 +81,25 @@ impl IntoSexp for Element {
             Element::Module(ref s) => s.into_sexp(),
             Element::Net(ref s) => s.into_sexp(),
             Element::NetClass(ref s) => s.into_sexp(),
-            Element::Graphics(ref s) => s.into_sexp(),
+            Element::GrText(ref s) => s.into_sexp(),
+            Element::GrLine(ref s) => s.into_sexp(),
+            Element::GrArc(ref s) => s.into_sexp(),
+            Element::Dimension(ref s) => s.into_sexp(),
+            Element::Zone(ref s) => s.into_sexp(),
         }
+    }
+}
+
+impl IntoSexp for Zone {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = vec![];
+        v.push(Sexp::new_string("zone"));
+        v.push(Sexp::new_named("net", self.net));
+        v.push(Sexp::new_named("net_name", &self.net_name));
+        for o in &self.other {
+            v.push(o.clone());
+        }
+        Sexp::new_list(v)
     }
 }
 
@@ -167,17 +184,6 @@ impl IntoSexp for Setup {
     }
 }
 
-impl IntoSexp for Graphics {
-    fn into_sexp(&self) -> Sexp {
-        match *self {
-            Graphics::GrText(ref x) => x.into_sexp(),
-            Graphics::GrLine(ref x) => x.into_sexp(),
-            Graphics::GrArc(ref x) => x.into_sexp(),
-            Graphics::Dimension(ref x) => x.into_sexp(),
-            _ => panic!("Unimplemented {:?}", *self),
-        }
-    }
-}
 impl IntoSexp for GrText {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];

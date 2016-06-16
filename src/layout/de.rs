@@ -342,6 +342,22 @@ impl FromSexp for Result<Dimension> {
     }
 }
 
+impl FromSexp for Result<Zone> {
+    fn from_sexp(s:&Sexp) -> Result<Zone> {
+        let l = try!(s.slice_atom("zone"));
+        if l.len() < 3 {
+            return str_error(format!("expecting more elements in zone {}", s))
+        }
+        let net = try!(l[0].named_value_i("net"));
+        let net_name = try!(l[1].named_value_string("net_name")).clone();
+        let mut other = vec![];
+        for x in &l[2..] {
+            other.push(x.clone())
+        }
+        Ok(Zone { net:net, net_name:net_name, other:other })
+    }
+}
+
 impl FromSexp for Result<Layout> {
     fn from_sexp(s:&Sexp) -> Result<Layout> {
         let l1 = try!(s.slice_atom("kicad_pcb"));
@@ -376,20 +392,24 @@ impl FromSexp for Result<Layout> {
                     layout.elements.push(nc)
                 },
                 "gr_text" => {
-                    let g = try!(wrap(e, Result::from_sexp, Graphics::GrText));
-                    layout.elements.push(Element::Graphics(g))
+                    let g = try!(wrap(e, Result::from_sexp, Element::GrText));
+                    layout.elements.push(g)
                 },
                 "gr_line" => {
-                    let g = try!(wrap(e, Result::from_sexp, Graphics::GrLine));
-                    layout.elements.push(Element::Graphics(g))
+                    let g = try!(wrap(e, Result::from_sexp, Element::GrLine));
+                    layout.elements.push(g)
                 },
                 "gr_arc" => {
-                    let g = try!(wrap(e, Result::from_sexp, Graphics::GrArc));
-                    layout.elements.push(Element::Graphics(g))
+                    let g = try!(wrap(e, Result::from_sexp, Element::GrArc));
+                    layout.elements.push(g)
                 },
                 "dimension" => {
-                    let g = try!(wrap(e, Result::from_sexp, Graphics::Dimension));
-                    layout.elements.push(Element::Graphics(g))
+                    let g = try!(wrap(e, Result::from_sexp, Element::Dimension));
+                    layout.elements.push(g)
+                },
+                "zone" => {
+                    let g = try!(wrap(e, Result::from_sexp, Element::Zone));
+                    layout.elements.push(g)
                 },
                 "setup" => {
                     layout.setup = try!(Result::from_sexp(&e))
