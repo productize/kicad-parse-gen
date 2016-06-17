@@ -195,12 +195,37 @@ impl Layout {
         v
     }
 
-    pub fn change_net_name(&mut self, i:i64, new_name:&str) {
+    pub fn change_net_name(&mut self, old_name:&str, new_name:&str) {
+        // 1. change name in list of nets
+        let mut found = false;
         for element in &mut self.elements {
             if let Element::Net(ref mut net) = *element {
-                if net.num == i {
+                if &net.name == old_name {
+                    found = true;
                     net.name.clear();
                     net.name.push_str(new_name);
+                }
+            }
+        }
+        if !found { return }
+        for element in &mut self.elements {
+            // 2. change net name in net_class (add_net)
+            if let Element::NetClass(ref mut net_class) = *element {
+                let mut not_old:Vec<String> = net_class.nets.iter().filter(|&x| &x[..] != old_name).cloned().collect();
+                if not_old.len() < net_class.nets.len() {
+                    // net was in the net list of the net_class
+                    not_old.push(new_name.to_string());
+                    net_class.nets = not_old;
+                }
+            }
+            // 3. change net name in pads in modules
+            else if let Element::Module(ref mut module) = *element {
+                module.rename_net(old_name, new_name)
+            }
+            // 4. change net name in zones (net_name)
+            else if let Element::Zone(ref mut zone) = *element {
+                if &zone.net_name == old_name {
+                    zone.net_name = new_name.to_string()
                 }
             }
         }

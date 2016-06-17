@@ -76,6 +76,14 @@ impl Module {
         let (y1, y2) = if y1 < y2 { (y1, y2) } else { (y2, y1) };
         (x1, y1, x2, y2)
     }
+
+    pub fn rename_net(&mut self, old_name:&str, new_name:&str) {
+        for element in &mut self.elements[..] {
+            if let Element::Pad(ref mut pad) = *element {
+                pad.rename_net(old_name, new_name)
+            }
+        }
+    }
 }
 
 #[derive(Debug,Clone)]
@@ -429,6 +437,17 @@ impl Pad {
             solder_mask_margin:None,
             clearance:None,
         }
+    }
+
+    pub fn rename_net(&mut self, old_name:&str, new_name:&str) {
+        let new_net = if let Some(ref net) = self.net {
+            if &net.name == old_name {
+                Some(Net { name:new_name.to_string(), .. *net })
+            } else {
+                Some(net.clone())
+            }
+        } else { None } ;
+        self.net = new_net
     }
 
     pub fn set_net(&mut self, net:&Net) {
