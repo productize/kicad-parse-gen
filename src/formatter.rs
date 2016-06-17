@@ -110,7 +110,7 @@ impl KicadFormatter {
         if self.parent_is("module") {
             match ele {
                 "at" | "descr" | "fp_line" | "fp_poly" |
-                "pad" | "path" | "fp_circle"
+                "pad" | "path" | "fp_circle" | "attr"
                     => return Some(indent),
                 "model" | "fp_text" => {
                     indent.close_on_new_line();
@@ -220,6 +220,7 @@ impl KicadFormatter {
         if self.parent_is("zone") {
             match ele {
                 "connect_pads" | "min_thickness" | "fill"
+                    | "keepout" | "priority"
                     => return Some(indent),
                 "polygon" | "filled_polygon"
                     => {
