@@ -126,7 +126,8 @@ impl KicadFormatter {
         }
         if self.parent_is("pts") {
             if let "xy" = ele {
-                if self.pts_xy_count > 0 && self.pts_xy_count % 4 == 0 {
+                let wrap = if self.is("fp_poly") { 4 } else { 5 };
+                if self.pts_xy_count > 0 && self.pts_xy_count % wrap == 0 {
                     return Some(indent)
                 } else if self.pts_xy_count == 0 && (self.is("polygon") || self.is("filled_polygon") ) {
                     return Some(indent)
@@ -231,6 +232,7 @@ impl KicadFormatter {
             }
         }
         if self.parent_is("polygon") | self.parent_is("filled_polygon") {
+            indent.close_on_new_line();
             return Some(indent)
         }
         None
@@ -282,16 +284,16 @@ impl Formatter for KicadFormatter {
             }
         }
         
-        // special handling for breaking after 4 elements of xy
+        // special handling for breaking of xy elements
         if let "pts" = &ele[..] {
             self.pts_xy_count = 0;
         }
         if self.parent_is("pts") {
             if let "xy" = &ele[..] {
                 self.pts_xy_count += 1;
-                if self.pts_xy_count == 5 {
-                    self.pts_xy_count = 1;
-                }
+                //if self.pts_xy_count == 5 {
+                //    self.pts_xy_count = 1;
+                //}
             }
         }
         
