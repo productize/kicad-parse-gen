@@ -337,10 +337,8 @@ impl Formatter for KicadFormatter {
                     try!(writer.write_all(b"\n"));
                 }
                 return Ok(())
-            } else {
-                if self.stack.is_empty() && (&s == "module" || &s == "kicad_pcb") {
-                    try!(writer.write_all(b"\n"));
-                }
+            } else if self.stack.is_empty() && (&s == "module" || &s == "kicad_pcb") {
+                try!(writer.write_all(b"\n"));
             }
         }
         try!(writer.write_all(b")"));

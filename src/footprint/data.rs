@@ -349,8 +349,7 @@ impl Layer {
     pub fn from_string(s: String) -> Result<Layer> {
         let sp:Vec<&str> = s.split('.').collect();
         let mut side = LayerSide::None;
-        let mut s_t = sp[0];
-        if sp.len() == 2 {
+        let s_t = if sp.len() == 2 {
             side = match sp[0] {
                 "F" => LayerSide::Front,
                 "B" => LayerSide::Back,
@@ -364,8 +363,11 @@ impl Layer {
                 "*" => LayerSide::Both,
                 x => return str_error(format!("unknown layer side {}", x)),
             };
-            s_t = sp[1];
-        }
+            sp[1]
+        } else {
+            sp[0]
+        };
+        
         let t = match s_t {
             "Cu" => LayerType::Cu,
             "Paste" => LayerType::Paste,
