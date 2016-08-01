@@ -517,8 +517,8 @@ impl ComponentField {
             visible:try!(bool_from_string(&v[7],"0000","0001")),
             hjustify:try!(Justify::new(char_at(&v[8], 0))),
             vjustify:try!(Justify::new(char_at(&v[9], 0))),
-            italic:try!(bool_from(char_at(&v[10], 1), 'I', 'N')),
-            bold:try!(bool_from(char_at(&v[11], 1), 'B', 'N')),
+            italic:try!(bool_from(char_at(&v[9], 1), 'I', 'N')),
+            bold:try!(bool_from(char_at(&v[9], 2), 'B', 'N')),
             name:name,
         };
         Ok(c)
