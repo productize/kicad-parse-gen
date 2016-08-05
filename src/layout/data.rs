@@ -6,79 +6,126 @@ use str_error;
 use footprint;
 use Sexp;
 
+/// a Kicad layout
 #[derive(Debug)]
 pub struct Layout {
+    /// version of file
     pub version: i64,
+    /// build-host
     pub host: Host,
+    /// general information
     pub general: General,
+    /// page size
     pub page: String,
+    /// setup information
     pub setup: Setup,
+    /// layers
     pub layers: Vec<Layer>,
+    /// layout elements
     pub elements: Vec<Element>,
 }
 
+/// layout elements
 #[derive(Clone,Debug)]
 pub enum Element {
+    /// module
     Module(footprint::Module),
+    /// net
     Net(Net),
+    /// netclass
     NetClass(NetClass),
-
+    ///  text
     GrText(GrText),
+    /// line
     GrLine(GrLine),
+    /// arc
     GrArc(GrArc),
+    /// dimension
     Dimension(Dimension),
     // Segment,
     // Via,
     // FilledPolygon,
+    /// zone
     Zone(Zone),
+    /// other (uninterpreted symbolic-expression)
     Other(Sexp),
 }
 
+/// a zone region
 #[derive(Clone,Debug)]
 pub struct Zone {
+    /// net number of the zone
     pub net: i64,
+    /// net name of the zone
     pub net_name: String,
+    /// other (uninterpreted symbolic-expressions)
     pub other: Vec<Sexp>,
 }
 
+/// build host info
 #[derive(Clone,Debug)]
 pub struct Host {
+    /// tool name
     pub tool: String,
+    /// tool version
     pub build: String,
 }
 
+/// general information
 #[derive(Clone,Debug)]
 pub struct General {
+    /// number of links
     pub links: i64,
+    /// number of no-connect
     pub no_connects: i64,
+    /// area of layout
     pub area: Area,
+    /// thickness
     pub thickness: f64,
+    /// number of drawings
     pub drawings: i64,
+    /// number of tracks
     pub tracks: i64,
+    /// number of zones
     pub zones: i64,
+    /// number of moduls
     pub modules: i64,
+    /// number of nets
     pub nets: i64,
 }
 
+/// area
 #[derive(Clone,Debug,Default)]
 pub struct Area {
+    // X1 coordinate
     pub x1: f64,
+    // Y1 coordinate
     pub y1: f64,
+    // X2 coordinate
     pub x2: f64,
+    // Y2 coordinate
     pub y2: f64,
 }
 
+/// layer
 #[derive(Clone,Debug)]
 pub struct Layer {
+    /// layer number
     pub num: i64,
+    /// layer
     pub layer: footprint::Layer,
+    /// layer type
     pub layer_type: LayerType,
+    /// if the layer is shown
     pub hide: bool,
 }
 
+/// layer type
 #[derive(Clone,Debug)]
 pub enum LayerType {
+    /// signal layer
     Signal,
+    /// user layer
     User,
 }
 
