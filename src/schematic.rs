@@ -53,6 +53,7 @@ impl Schematic {
         self.elements.push(Element::Other(c))
     }
 
+    /// modify the component by name
     pub fn modify_component<F>(&mut self, reference:&str, fun:F)
         where F:Fn(&mut Component) -> ()
     {
@@ -67,7 +68,8 @@ impl Schematic {
             }
         }
     }
-    
+
+    /// modify all components
     pub fn modify_components<F>(&mut self, fun:F)
         where F:Fn(&mut Component) -> ()
     {
@@ -80,7 +82,8 @@ impl Schematic {
             }
         }
     }
-    
+
+    /// collect all components in a list
     pub fn collect_components(&self, v:&mut Vec<Component>) {
         for x in &self.elements {
             match *x {
@@ -89,7 +92,8 @@ impl Schematic {
             }
         }
     }
-    
+
+    /// return all components in a new list (redundant?)
     pub fn components(&self) -> Vec<Component> {
         let mut v = vec![];
         for x in &self.elements {
@@ -101,6 +105,7 @@ impl Schematic {
         v
     }
 
+    /// get a component by reference
     pub fn component_by_reference(&self, reference:&str) -> Result<Component> {
         for x in &self.elements {
             match *x {
@@ -121,6 +126,7 @@ impl Schematic {
         str_error(format!("could not find component {} in schematic", reference))
     }
 
+    /// increment the sheet counter of the schematic
     pub fn increment_sheet_count(&mut self) {
         self.description.sheet_count += 1
     }
@@ -198,21 +204,35 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDesc
-*/
+ */
+/// description of a schematic
 #[derive(Debug,Clone)]
 pub struct Description {
+    /// size
     pub size:String,
+    /// dimension in X
     pub dimx:i64,
+    /// dimension in Y
     pub dimy:i64,
+    /// title
     pub title:String,
+    /// date
     pub date:String,
+    /// revision
     pub rev:String,
+    /// computer reference
     pub comp:String,
+    /// comment1
     pub comment1:String,
+    /// comment2
     pub comment2:String,
+    /// comment3
     pub comment3:String,
+    /// comment4
     pub comment4:String,
+    /// sheet number
     pub sheet:i64,
+    /// number of sheets in total
     pub sheet_count:i64,
 }
 
@@ -253,9 +273,12 @@ impl fmt::Display for Description {
     }
 }
 
+/// a schematic element is either a component or another unparsed element
 #[derive(Debug)]
 pub enum Element {
+    /// a component element
     Component(Component),
+    /// an unparsed other element
     Other(String),
 }
 
@@ -270,15 +293,24 @@ impl fmt::Display for Element {
 
 // component fields: 
 // reference = 0. Value = 1. FootPrint = 2. UserDocLink = 3.
+/// a schematic component
 #[derive(Debug, RustcEncodable, RustcDecodable, Clone)]
 pub struct Component {
+    /// name
     pub name:String,
+    /// reference
     pub reference:String,
+    /// u
     pub u:String, // TODO
+    /// X coordinate
     pub x:i64, // P
+    /// Y coordinate
     pub y:i64, // P
+    /// ARPath
     pub ar_path:Vec<String>,
+    /// component fields
     pub fields:Vec<ComponentField>,
+    /// rotation
     pub rotation:ComponentRotation,
 }
 
@@ -298,16 +330,20 @@ impl Default for Component {
 }
 
 impl Component {
+    /// set the name
     fn set_name(&mut self, s:String) {
         self.name = s;
     }
+    /// set the reference
     fn set_reference(&mut self, s:String) {
         self.reference = s;
     }
+    /// add a component field
     fn add_field(&mut self, f:ComponentField) {
         self.fields.push(f)
     }
 
+    /// get a component field value by name
     pub fn get_field_value(&self, name:&str) -> Option<String> {
         for field in &self.fields[..] {
             if field.name == *name {
@@ -316,6 +352,7 @@ impl Component {
         }
         None
     }
+    /// get a component field by name
     pub fn get_field(&self, name:&str) -> Option<ComponentField> {
         for field in &self.fields[..] {
             if field.name == *name {
@@ -324,6 +361,7 @@ impl Component {
         }
         None
     }
+    /// get the first free component field number
     pub fn get_available_field_num(&self) -> i64 {
         let mut i:i64 = 0;
         for field in &self.fields[..] {
@@ -333,7 +371,8 @@ impl Component {
         }
         i+1
     }
-    
+
+    /// get the component fields as a hashmap
     pub fn fields_hash(&self) -> HashMap<String,String> {
         let mut h = HashMap::new();
         for field in &self.fields[..] {
@@ -342,6 +381,7 @@ impl Component {
         h
     }
 
+    /// update the reference of a component
     pub fn update_reference(&mut self, r:String) {
         self.reference = r;
         for field in &mut self.fields[..] {
@@ -350,7 +390,8 @@ impl Component {
             }
         }
     }
-    
+
+    /// update the name of a component
     pub fn update_name(&mut self, n:String) {
         self.name = n;
         for field in &mut self.fields[..] {
@@ -360,6 +401,7 @@ impl Component {
         }
     }
 
+    /// update name and value of a component field
     pub fn update_field(&mut self, name:&str, value:&str) {
         for field in &mut self.fields {
             if field.name == *name {
@@ -372,6 +414,8 @@ impl Component {
         }
     }
 
+    /// add a new component field based on an existing one but
+    /// with a new name and value
     pub fn add_new_field(&mut self, template:&ComponentField, name:&str, value:&str) {
         let i = self.get_available_field_num();
         let mut c = ComponentField::new_from(i, name.to_string(), value.to_string(), template.x, template.y);
@@ -399,6 +443,7 @@ impl fmt::Display for Component {
     }
 }
 
+/// a component rotation
 #[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub struct ComponentRotation  {
     a:i64,
@@ -407,6 +452,7 @@ pub struct ComponentRotation  {
     d:i64
 }
 
+/// a component orientation
 #[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub enum Orientation {
     Horizontal,
@@ -414,6 +460,7 @@ pub enum Orientation {
 }
 
 impl Orientation {
+    /// create a new component orientation from a char
     pub fn new(c:char) -> Result<Orientation> {
         match c {
             'H' => Ok(Orientation::Horizontal),
@@ -434,16 +481,23 @@ impl fmt::Display for Orientation {
 }
 
 
+/// a text justification on a component
 #[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub enum Justify {
+    /// left justification
     Left,
+    /// right justification
     Right,
+    /// center justification
     Center,
+    /// bottom justification
     Bottom,
+    /// top justification
     Top,
 }
 
 impl Justify {
+    /// create a justification based on a char
     pub fn new(c: char) -> Result<Justify> {
         match c {
             'C' => Ok(Justify::Center),
@@ -469,7 +523,7 @@ impl fmt::Display for Justify {
 }
 
 
-
+/// a component field
 #[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub struct ComponentField {
     pub i:i64,
