@@ -11,6 +11,7 @@ use wrap;
 use Sexp;
 use str_error;
 use FromSexp;
+use GrElement;
 
 use layout::data::*;
 

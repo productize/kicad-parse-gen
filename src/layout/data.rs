@@ -97,13 +97,13 @@ pub struct General {
 /// area
 #[derive(Clone,Debug,Default)]
 pub struct Area {
-    // X1 coordinate
+    /// X1 coordinate
     pub x1: f64,
-    // Y1 coordinate
+    /// Y1 coordinate
     pub y1: f64,
-    // X2 coordinate
+    /// X2 coordinate
     pub x2: f64,
-    // Y2 coordinate
+    /// Y2 coordinate
     pub y2: f64,
 }
 
@@ -150,79 +150,113 @@ pub struct SetupElement {
 }
 
 
+/// a net
 #[derive(Clone,PartialEq,Debug)]
 pub struct Net {
+    /// net number
     pub num: i64,
+    /// net name
     pub name: String,
 }
 
+/// a net class
 #[derive(Clone,PartialEq,Debug)]
 pub struct NetClass {
+    /// name
     pub name: String,
+    /// description
     pub desc: String,
+    /// clearance
     pub clearance: f64,
+    /// trace width
     pub trace_width: f64,
+    /// via diameter
     pub via_dia: f64,
+    /// via drill
     pub via_drill: f64,
+    /// micro via diameter
     pub uvia_dia: f64,
+    /// micro via drill
     pub uvia_drill: f64,
+    /// associated nets
     pub nets: Vec<String>,
 }
 
+/// text
 #[derive(Clone,Debug)]
 pub struct GrText {
+    /// text
     pub value: String,
+    /// location
     pub at: footprint::At,
+    /// layer
     pub layer: footprint::Layer,
+    /// text effects
     pub effects: footprint::Effects,
+    /// timestamp
     pub tstamp: String,
 }
 
-// only used internally
-pub enum GrElement {
-    Start(footprint::Xy),
-    End(footprint::Xy),
-    Angle(i64),
-    Layer(footprint::Layer),
-    Width(f64),
-    TStamp(String),
-    At(footprint::At),
-    Effects(footprint::Effects),
-}
-
+/// line
 #[derive(Clone,Debug)]
 pub struct GrLine {
+    /// start point
     pub start: footprint::Xy,
+    /// end point
     pub end: footprint::Xy,
+    /// angle
     pub angle: i64,
+    /// layer
     pub layer: footprint::Layer,
+    /// width
     pub width: f64,
+    /// time stamp
     pub tstamp: String,
 }
 
+/// arc
 #[derive(Clone,Debug)]
 pub struct GrArc {
+    /// start point
     pub start: footprint::Xy,
+    /// end point
     pub end: footprint::Xy,
+    /// angle
     pub angle: i64,
+    /// layer 
     pub layer: footprint::Layer,
+    /// width
     pub width: f64,
+    /// timestamp
     pub tstamp: String,
 }
 
+/// dimension
 #[derive(Clone,Debug)]
 pub struct Dimension {
+    /// name
     pub name: String,
+    /// width
     pub width: f64,
+    /// layer
     pub layer: footprint::Layer,
+    /// time stamp
     pub tstamp: Option<String>,
+    /// text
     pub text: GrText,
+    /// feature1
     pub feature1: footprint::Pts,
+    /// feature2
     pub feature2: footprint::Pts,
+    /// crossbar
     pub crossbar: footprint::Pts,
+    /// arrow1a
     pub arrow1a: footprint::Pts,
+    /// arrow1b
     pub arrow1b: footprint::Pts,
+    /// arrow2a
     pub arrow2a: footprint::Pts,
+    /// arrow2b
     pub arrow2b: footprint::Pts,
 }
 
@@ -241,6 +275,7 @@ impl Default for Layout {
 }
 
 impl Layout {
+    /// get lists of nets
     pub fn nets(&self) -> Vec<&Net> {
         let mut v = vec![];
         for element in &self.elements {
@@ -251,6 +286,7 @@ impl Layout {
         v
     }
 
+    /// change net name
     pub fn change_net_name(&mut self, old_name: &str, new_name: &str) {
         // 1. change name in list of nets
         let mut found = false;
@@ -290,6 +326,7 @@ impl Layout {
         }
     }
 
+    /// get list of netclasses
     pub fn netclasses(&self) -> Vec<&NetClass> {
         let mut v = vec![];
         for element in &self.elements {
@@ -300,6 +337,7 @@ impl Layout {
         v
     }
 
+    /// get module
     pub fn get_module(&self, reference: &str) -> Option<&footprint::Module> {
         for ref x in &self.elements[..] {
             match **x {
@@ -321,6 +359,7 @@ impl Layout {
         None
     }
 
+    /// modify a module
     pub fn modify_module<F>(&mut self, reference: &str, fun: F) -> Result<()>
         where F: Fn(&mut footprint::Module) -> ()
     {
@@ -344,12 +383,15 @@ impl Layout {
         str_error(format!("did not find module with reference {}", reference))
     }
 
+    /// add a net
     pub fn add_net(&mut self, num: i64, name: &'static str) {
         self.elements.push(Element::Net(Net {
             num: num,
             name: String::from(name),
         }));
     }
+    
+    /// add a net class
     pub fn add_netclass(&mut self,
                         name: &'static str,
                         desc: &'static str,
@@ -400,6 +442,8 @@ impl Default for General {
 }
 
 impl NetClass {
+
+    /// check if two netclasses are equal not looking at the nets
     pub fn equal_no_net(&self, other: &NetClass) -> bool {
         let mut s1 = self.clone();
         s1.nets = vec![];
@@ -407,6 +451,8 @@ impl NetClass {
         s2.nets = vec![];
         s1 == s2
     }
+
+    /// check if a netclass has a net
     pub fn has_net(&self, name: &'static str) -> bool {
         for net in &self.nets {
             if &net[..] == name {
@@ -418,6 +464,8 @@ impl NetClass {
 }
 
 impl Setup {
+
+    /// get a setup element
     pub fn get(&self, s: &str) -> Option<&String> {
         for element in &self.elements {
             if &element.name[..] == &s[..] {
@@ -427,6 +475,7 @@ impl Setup {
         None
     }
 
+    /// update a setup element
     pub fn update_element(&mut self, name: &'static str, value: String) {
         for element in &mut self.elements {
             if &element.name[..] == name {

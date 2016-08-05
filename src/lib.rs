@@ -262,6 +262,18 @@ enum Part {
     Clearance(f64),
 }
 
+// put here so it is accessible to all subfiles privately
+enum GrElement {
+    Start(footprint::Xy),
+    End(footprint::Xy),
+    Angle(i64),
+    Layer(footprint::Layer),
+    Width(f64),
+    TStamp(String),
+    At(footprint::At),
+    Effects(footprint::Effects),
+}
+    
 trait BoundingBox {
     fn bounding_box(&self) -> (f64, f64, f64, f64);
 }
