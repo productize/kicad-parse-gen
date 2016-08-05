@@ -273,8 +273,10 @@ enum GrElement {
     At(footprint::At),
     Effects(footprint::Effects),
 }
-    
-trait BoundingBox {
+
+/// calculate the bounding box of an item
+pub trait BoundingBox {
+    /// calculate the bounding box of an item
     fn bounding_box(&self) -> (f64, f64, f64, f64);
 }
 
