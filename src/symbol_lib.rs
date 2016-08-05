@@ -16,45 +16,73 @@ use parse_split_quote_aware;
 use schematic;
 use str_error;
 
+/// a Kicad symbolic file
 #[derive(Debug,Default)]
 pub struct SymbolLib {
+    /// the symbols
     pub symbols: Vec<Symbol>,
 }
 
 // DEF name reference unused text_offset draw_pinnumber draw_pinname unit_count units_locked option_flag
+/// a symbol
 #[derive(Debug,Clone)]
 pub struct Symbol {
+    /// name
     pub name: String,
+    /// reference
     pub reference: String,
+    /// text offset
     pub text_offset: f64,
+    /// draw pinnumber
     pub draw_pinnumber: bool,
+    /// draw pinname
     pub draw_pinname: bool,
+    /// unit count
     pub unit_count: i64,
+    /// is the unit locked
     pub unit_locked: bool,
+    /// is it a power symbol
     pub is_power: bool,
+    /// fields
     pub fields: Vec<Field>,
+    /// draw
     pub draw: Vec<String>, // TODO parse draw
 }
 // F n “text” posx posy dimension orientation visibility hjustify vjustify/italic/bold “name”
 // F0 "#PWR" 0 0 30 H I C CNN
 
+/// a field
 #[derive(Debug,Clone)]
 pub struct Field {
+    /// field number
     pub i: i64,
+    /// value
     pub value: String,
+    /// X coordinate
     pub x: f64,
+    /// Y coordinate
     pub y: f64,
+    /// dimension
     pub dimension: i64,
+    /// orientation
     pub orientation: schematic::Orientation,
+    /// if the field is visible
     pub visible: bool,
+    /// horizontal justification
     pub hjustify: schematic::Justify,
+    /// vertical justification
     pub vjustify: schematic::Justify,
+    /// italic
     pub italic: bool,
+    /// bold
     pub bold: bool,
+    /// name of the field
     pub name: String,
 }
 
 impl SymbolLib {
+
+    /// find a symbol in a symbol lib
     pub fn find<F>(&self, filter: F) -> Option<&Symbol>
         where F: Fn(&Symbol) -> bool
     {
@@ -80,6 +108,7 @@ impl fmt::Display for SymbolLib {
 }
 
 impl Symbol {
+    /// create a new symbol
     pub fn new(name: String, reference: String) -> Symbol {
         Symbol {
             name: name,
@@ -94,6 +123,8 @@ impl Symbol {
             draw: vec![],
         }
     }
+
+    /// set the name of the symbol
     pub fn set_name(&mut self, name: &str) {
         if char_at(&self.name, 0) == '~' {
             self.name = format!("~{}", name)
@@ -358,11 +389,12 @@ fn parse(s: &str) -> Result<SymbolLib> {
     Ok(lib)
 }
 
-
+/// parse a &str to a symbol lib
 pub fn parse_str(s: &str) -> Result<SymbolLib> {
     parse(s)
 }
 
+/// parse a file to a symbol lib
 pub fn parse_file(filename: &PathBuf) -> Result<SymbolLib> {
     let name = filename.to_str().unwrap();
     let s = try!(read_file(name));

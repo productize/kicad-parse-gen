@@ -6,6 +6,7 @@ use std::io::Write;
 
 use Result;
 
+/// read a file
 pub fn read_file(name: &str) -> Result<String> {
     let mut f = try!(File::open(name));
     let mut s = String::new();
@@ -13,6 +14,7 @@ pub fn read_file(name: &str) -> Result<String> {
     Ok(s)
 }
 
+/// write a file
 pub fn write_file(name: &str, data: &str) -> Result<()> {
     let mut f = try!(match File::create(name) {
         Ok(f) => Ok(f),
