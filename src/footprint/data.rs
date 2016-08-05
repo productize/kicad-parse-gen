@@ -98,28 +98,47 @@ impl Module {
     }
 }
 
+/// elements that can be found in a Module
 #[derive(Debug,Clone)]
 pub enum Element {
+    /// solder mask margin
     SolderMaskMargin(f64),
+    /// layer name
     Layer(String), // TODO: use Layer type
+    /// description
     Descr(String),
+    /// Tags element
     Tags(String),
+    /// Attr element
     Attr(String),
+    /// text
     FpText(FpText),
+    /// pad
     Pad(Pad),
+    /// polygon
     FpPoly(FpPoly),
+    /// line
     FpLine(FpLine),
+    /// circle
     FpCircle(FpCircle),
+    /// arc
     FpArc(FpArc),
+    /// edited time stamp
     TEdit(String),
+    /// time stamp
     TStamp(String),
+    /// Path element
     Path(String),
+    /// location of module in layout
     At(At),
+    /// 3D model information
     Model(Model),
+    /// is the module locked
     Locked,
 }
 
 impl Element {
+    /// return the bounding box of an element if applicable
     pub fn bounding_box(&self) -> Option<(f64, f64, f64, f64)> {
         match *self {
             Element::Pad(ref x) => Some(x.bounding_box()),
@@ -131,100 +150,141 @@ impl Element {
     }
 }
 
+/// text element
 #[derive(Debug,Clone)]
 pub struct FpText {
+    /// name
     pub name: String,
+    /// text
     pub value: String,
+    /// location
     pub at: At,
+    /// layer
     pub layer: Layer,
+    /// text effects
     pub effects: Effects,
+    /// is it a hidden text
     pub hide: bool,
 }
 
 impl FpText {
+    /// create a text with given name and value
     pub fn new(name: String, value: String) -> FpText {
         FpText {
             name: name,
             value: value,
-            at: At::new_empty(),
+            at: At::default(),
             layer: Layer::default(),
             effects: Effects::default(),
             hide: false
         }
     }
+    /// set the text effects of the text
     pub fn set_effects(&mut self, effects: &Effects) {
         self.effects.clone_from(effects)
     }
+    /// set the layer of the text
     pub fn set_layer(&mut self, layer: &Layer) {
         self.layer.clone_from(layer)
     }
 }
 
+/// a location and rotation in a layout
 #[derive(Debug,Clone)]
 pub struct At {
+    /// x coordinate
     pub x: f64,
+    /// y coordinate
     pub y: f64,
+    /// rotation
     pub rot: f64
 }
 
 impl At {
+    /// create a location
     pub fn new(x:f64 ,y:f64, rot:f64) -> At {
         At { x:x, y:y, rot:rot }
     }
-    pub fn new_empty() -> At {
+}
+
+impl Default for At {
+    /// create a default location
+    fn default() -> At {
         At { x:0.0, y:0.0, rot:0.0 }
     }
 }
 
+/// font attributes for text
 #[derive(Debug,Clone)]
 pub struct Font {
+    /// size of the font
     pub size: Xy,
+    /// thickness of the font
     pub thickness: f64,
 }
 
 impl Default for Font {
+    /// create a default font
     fn default() -> Font {
         Font { size: Xy::new(0.0, 0.0, XyType::Size), thickness: 0.0 }
     }
 }
 
+/// text effects
 #[derive(Debug,Clone)]
 pub struct Effects {
+    /// the font used
     pub font: Font,
+    /// the text justification
     pub justify:Option<Justify>,
 }
 
-
-#[derive(Debug,Clone)]
-pub enum Justify {
-    Mirror,
-}
-
 impl Default for Effects {
+    /// create a default text effects
     fn default() -> Effects {
         Effects { font: Font::default(), justify:None }
     }
 }
 
 impl Effects {
+    /// create a text effects element from font and justification
     pub fn from_font(font: Font, justify: Option<Justify>) -> Effects {
         Effects { font: font, justify:justify }
     }
 }
+
+/// text justification
+#[derive(Debug,Clone)]
+pub enum Justify {
+    /// the text is mirrored
+    Mirror,
+}
+
+/// the type of X-Y element
 #[derive(Debug,Clone,PartialEq)]
 pub enum XyType {
+    /// regular
     Xy,
+    /// starting point
     Start,
+    /// ending point
     End,
+    /// size
     Size,
+    /// center point
     Center,
+    /// rectangular delta
     RectDelta,
 }
 
+/// X-Y element
 #[derive(Debug,Clone)]
 pub struct Xy {
+    /// x coordinate
     pub x: f64,
+    /// y coorginate
     pub y: f64,
+    /// the type of X-Y
     pub t: XyType,
 }
 
@@ -443,7 +503,7 @@ impl Pad {
             shape: shape,
             size: Xy::new_empty(XyType::Size),
             rect_delta:None,
-            at: At::new_empty(),
+            at: At::default(),
             layers: Layers::default(),
             net:None,
             drill:None,

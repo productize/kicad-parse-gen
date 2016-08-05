@@ -219,7 +219,7 @@ impl FromSexp for Result<GrText> {
         let value = try!(l[0].string()).clone();
         let mut layer = footprint::Layer::default();
         let mut tstamp = String::from("");
-        let mut at = footprint::At::new_empty();
+        let mut at = footprint::At::default();
         let mut effects = footprint::Effects::default();
         for x in &l[1..] {
             let elem = try!(Result::from_sexp(x));
