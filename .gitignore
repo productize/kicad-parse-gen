@@ -13,3 +13,6 @@ Cargo.lock
 
 # emacs
 *~
+
+# kicad
+*.kicad_pcb
