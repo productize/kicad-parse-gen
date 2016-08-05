@@ -241,6 +241,16 @@ enum Part {
     Clearance(f64),
 }
 
+trait BoundingBox {
+    fn bounding_box(&self) -> (f64,f64,f64,f64);
+}
+
+fn wrap<X,Y,F,G>(s:&Sexp, make:F, wrapper:G) -> Result<Y>
+    where F:Fn(&Sexp) -> Result<X>, G:Fn(X) -> Y
+{
+    Ok(wrapper(try!(make(s))))
+}
+
 /// Kicad error handling code and types
 pub mod error;
 /// Kicad footprint format handling

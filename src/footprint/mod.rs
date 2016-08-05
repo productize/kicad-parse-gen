@@ -16,7 +16,6 @@ use FromSexp;
 
 //pub use footprint;
 pub use footprint::data::*;
-pub use footprint::de::wrap;
 
 /// convert a Kicad Module (footprint) to a String
 pub fn module_to_string(module:&Module, indent_level:i64) -> Result<String> {

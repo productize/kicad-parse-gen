@@ -6,6 +6,7 @@ use Result;
 use footprint::data::*;
 use FromSexp;
 use Part;
+use wrap;
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
 impl FromSexp for Result<At> {
@@ -27,13 +28,6 @@ impl FromSexp for Result<At> {
         }
     }
 }
-
-pub fn wrap<X,Y,F,G>(s:&Sexp, make:F, wrapper:G) -> Result<Y>
-    where F:Fn(&Sexp) -> Result<X>, G:Fn(X) -> Y
-{
-    Ok(wrapper(try!(make(s))))
-}
-
 
 impl FromSexp for Result<Layer> {
     fn from_sexp(s:&Sexp) -> Result<Layer> {
@@ -320,14 +314,14 @@ impl FromSexp for Result<Pad> {
         let mut pad = Pad::new(name, t, shape);
         //println!("{}", pad);
         let parts = try!(parse_parts(&v[3..]));
-        for part in &parts[..] {
-            match *part {
+        for part in parts.into_iter() {
+            match part {
                 Part::At(ref at) => pad.at.clone_from(at),
                 Part::Xy(ref xy) if xy.t == XyType::Size => pad.size.clone_from(xy),
                 Part::Xy(ref xy) if xy.t == XyType::RectDelta => pad.rect_delta = Some(xy.clone()),
                 Part::Layers(ref l) => pad.layers.clone_from(l),
-                Part::Net(ref n) => pad.set_net(n),
-                Part::Drill(ref n) => pad.set_drill(n),
+                Part::Net(n) => pad.set_net(n),
+                Part::Drill(n) => pad.set_drill(n),
                 Part::SolderPasteMargin(n) => pad.solder_paste_margin = Some(n),
                 Part::SolderMaskMargin(n) => pad.solder_mask_margin = Some(n),
                 Part::Clearance(n) => pad.clearance = Some(n),

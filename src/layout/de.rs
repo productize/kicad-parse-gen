@@ -7,7 +7,7 @@
 use Result;
 use str_error as err;
 use footprint;
-use footprint::wrap;
+use wrap;
 use Sexp;
 use str_error;
 use FromSexp;

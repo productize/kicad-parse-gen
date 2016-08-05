@@ -17,25 +17,19 @@ use str_error;
 use parse_split_quote_aware;
 use parse_split_quote_aware_n;
 
-#[derive(Debug)]
+/// a Kicad schematic
+#[derive(Debug,Default)]
 pub struct Schematic {
+    /// filename of the schematic
     pub filename:Option<PathBuf>,
+    /// list of libraries referenced
     pub libraries:Vec<String>,
+    /// description
     pub description:Description,
+    /// elements contained in the schematic
     pub elements:Vec<Element>,
+    /// nested sheets contained in the schematic
     pub sheets:Vec<Sheet>,
-}
-
-impl Default for Schematic {
-    fn default() -> Schematic {
-        Schematic {
-            filename:None,
-            libraries:vec![],
-            description:Description::default(),
-            elements:vec![],
-            sheets:vec![],
-        }
-    }
 }
 
 impl Schematic {

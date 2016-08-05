@@ -2,6 +2,7 @@
 
 use str_error;
 use Result;
+use BoundingBox;
 
 /// a Kicad module, with a name and a list of elements
 #[derive(Debug,Clone)]
@@ -65,29 +66,6 @@ impl Module {
         true
     }
 
-    /// calculate the bounding box of the module
-    pub fn bounding_box(&self) -> (f64, f64, f64, f64) {
-        let mut x1 = 10000.0_f64;
-        let mut y1 = 10000.0_f64;
-        let mut x2 = 0.0_f64;
-        let mut y2 = 0.0_f64;
-        let (x,y) = self.at();
-        for element in &self.elements {
-            match element.bounding_box() {
-                None => (),
-                Some((x1a, y1a, x2a, y2a)) => {
-                    x1 = x1.min(x+x1a);
-                    y1 = y1.min(y+y1a);
-                    x2 = x2.max(x+x2a);
-                    y2 = y2.max(y+y2a);
-                }
-            }
-        }
-        let (x1, x2) = if x1 < x2 { (x1, x2) } else { (x2, x1) };
-        let (y1, y2) = if y1 < y2 { (y1, y2) } else { (y2, y1) };
-        (x1, y1, x2, y2)
-    }
-
     /// rename a net
     pub fn rename_net(&mut self, old_name:&str, new_name:&str) {
         for element in &mut self.elements[..] {
@@ -95,6 +73,26 @@ impl Module {
                 pad.rename_net(old_name, new_name)
             }
         }
+    }
+}
+
+impl BoundingBox for Module {
+    fn bounding_box(&self) -> (f64, f64, f64, f64) {
+        let mut x1 = 10000.0_f64;
+        let mut y1 = 10000.0_f64;
+        let mut x2 = 0.0_f64;
+        let mut y2 = 0.0_f64;
+        let (x,y) = self.at();
+        for element in &self.elements {
+            let (x1a, y1a, x2a, y2a) = element.bounding_box();
+            x1 = x1.min(x+x1a);
+            y1 = y1.min(y+y1a);
+            x2 = x2.max(x+x2a);
+            y2 = y2.max(y+y2a);
+        }
+        let (x1, x2) = if x1 < x2 { (x1, x2) } else { (x2, x1) };
+        let (y1, y2) = if y1 < y2 { (y1, y2) } else { (y2, y1) };
+        (x1, y1, x2, y2)
     }
 }
 
@@ -137,15 +135,15 @@ pub enum Element {
     Locked,
 }
 
-impl Element {
-    /// return the bounding box of an element if applicable
-    pub fn bounding_box(&self) -> Option<(f64, f64, f64, f64)> {
+impl BoundingBox for Element {
+    
+    fn bounding_box(&self) -> (f64, f64, f64, f64) {
         match *self {
-            Element::Pad(ref x) => Some(x.bounding_box()),
-            Element::FpPoly(ref x) => Some(x.bounding_box()),
-            Element::FpLine(ref x) => Some(x.bounding_box()),
-            Element::FpCircle(ref x) => Some(x.bounding_box()),
-            _ => None,
+            Element::Pad(ref x) => x.bounding_box(),
+            Element::FpPoly(ref x) => x.bounding_box(),
+            Element::FpLine(ref x) => x.bounding_box(),
+            Element::FpCircle(ref x) => x.bounding_box(),
+            _ => (0.0,0.0,0.0,0.0),
         }
     }
 }
@@ -306,7 +304,7 @@ pub struct Drill {
     pub offset_y:f64,
 }
 
-// type of a Pad
+/// type of a Pad
 #[derive(Debug,Clone)]
 pub enum PadType {
     /// surface mount
@@ -423,14 +421,16 @@ impl Default for LayerType {
     }
 }
 
+/// a pcb layer, with a side and a type
 #[derive(Debug,Clone,Default)]
 pub struct Layer {
+    /// side of the layer
     pub side: LayerSide,
+    /// type of the layer
     pub t: LayerType,
 }
 
 impl Layer {
-
     /// create a layer from a String
     pub fn from_string(s: String) -> Result<Layer> {
         let sp:Vec<&str> = s.split('.').collect();
@@ -485,23 +485,37 @@ impl Layers {
     }
 }
 
+/// a pad
 #[derive(Debug,Clone)]
 pub struct Pad {
+    /// name
     pub name: String,
+    /// type
     pub t: PadType,
+    /// shape
     pub shape: PadShape,
+    /// size
     pub size: Xy,
+    /// offset 
     pub rect_delta: Option<Xy>,
+    /// location
     pub at: At,
+    /// layers
     pub layers: Layers,
+    /// associated net
     pub net: Option<Net>,
+    /// drill
     pub drill: Option<Drill>,
+    /// solder paste margin
     pub solder_paste_margin: Option<f64>,
+    /// solder mask margin
     pub solder_mask_margin: Option<f64>,
+    /// clearance
     pub clearance: Option<f64>,
 }
 
 impl Pad {
+    /// create a pad with a name, type and shape
     pub fn new(name: String, t:PadType, shape: PadShape) -> Pad {
         Pad {
             name: name,
@@ -519,6 +533,7 @@ impl Pad {
         }
     }
 
+    /// rename the net of a pad
     pub fn rename_net(&mut self, old_name:&str, new_name:&str) {
         let new_net = if let Some(ref net) = self.net {
             if &net.name == old_name {
@@ -530,15 +545,19 @@ impl Pad {
         self.net = new_net
     }
 
-    pub fn set_net(&mut self, net:&Net) {
-        self.net = Some(net.clone())
-    }
-    
-    pub fn set_drill(&mut self, drill:&Drill) {
-        self.drill = Some(drill.clone())
+    /// set the net of a pad
+    pub fn set_net(&mut self, net:Net) {
+        self.net = Some(net)
     }
 
-    pub fn bounding_box(&self) -> (f64,f64,f64,f64) {
+    /// set the drill of a pad
+    pub fn set_drill(&mut self, drill:Drill) {
+        self.drill = Some(drill)
+    }
+}
+
+impl BoundingBox for Pad {
+    fn bounding_box(&self) -> (f64,f64,f64,f64) {
         let x = self.at.x;
         let y = self.at.y;
         let (dx, dy) = if self.at.rot < 0.1 {
@@ -550,15 +569,19 @@ impl Pad {
     }
 }
 
+/// a polygon
 #[derive(Debug,Clone,Default)]
 pub struct FpPoly {
+    /// points
     pub pts:Pts,
+    /// width
     pub width:f64,
+    /// layer
     pub layer:Layer,
 }
 
 impl FpPoly {
-    
+    /// bounding box of a polygon
     pub fn bounding_box(&self) -> (f64,f64,f64,f64) {
         let mut x1 = 10000.0_f64;
         let mut y1 = 10000.0_f64;
@@ -574,11 +597,16 @@ impl FpPoly {
     }
 }
 
+/// a line
 #[derive(Debug,Clone)]
 pub struct FpLine {
+    /// start point
     pub start:Xy,
+    /// end point
     pub end:Xy,
+    /// layer
     pub layer:Layer,
+    /// width
     pub width:f64,
 }
 
@@ -588,8 +616,9 @@ impl Default for FpLine {
     }
 }
     
-impl FpLine {
-    pub fn bounding_box(&self) -> (f64,f64,f64,f64) {
+impl BoundingBox for FpLine {
+ 
+    fn bounding_box(&self) -> (f64,f64,f64,f64) {
         let mut x1 = 10000.0_f64;
         let mut y1 = 10000.0_f64;
         let mut x2 = 0.0_f64;
@@ -602,11 +631,16 @@ impl FpLine {
     }
 }
 
+/// a circle
 #[derive(Debug,Clone)]
 pub struct FpCircle {
+    /// center point
     pub center:Xy,
+    /// end point
     pub end:Xy,
+    /// layer
     pub layer:Layer,
+    /// width
     pub width:f64,
 }
 
@@ -616,8 +650,8 @@ impl Default for FpCircle {
     }
 }
     
-impl FpCircle {
-    pub fn bounding_box(&self) -> (f64,f64,f64,f64) {
+impl BoundingBox for FpCircle {
+    fn bounding_box(&self) -> (f64,f64,f64,f64) {
         let mut x1 = 10000.0_f64;
         let mut y1 = 10000.0_f64;
         let mut x2 = 0.0_f64;
@@ -634,12 +668,18 @@ impl FpCircle {
     }
 }
 
+/// an arc
 #[derive(Debug,Clone)]
 pub struct FpArc {
+    /// start point
     pub start:Xy,
+    /// end point
     pub end:Xy,
+    /// angle
     pub angle:f64,
+    /// layer
     pub layer:Layer,
+    /// width
     pub width:f64,
 }
 
@@ -649,28 +689,41 @@ impl Default for FpArc {
     }
 }
 
+/// a net
 #[derive(Debug,Clone)]
 pub struct Net {
+    /// net number
     pub num: i64,
+    /// net name
     pub name: String,
 }
 
+/// a 3D model
 #[derive(Debug,Clone)]
 pub struct Model {
+    /// name
     pub name: String,
+    /// location
     pub at: Xyz,
+    /// scale
     pub scale: Xyz,
+    /// rotation
     pub rotate: Xyz,
 }
 
+/// a 3D X-Y-Z coordinate
 #[derive(Debug,Clone)]
 pub struct Xyz {
+    /// X coordinate
     pub x:f64,
+    /// Y coordinate
     pub y:f64,
+    /// Z coordinate
     pub z:f64,
 }
 
 impl Xyz {
+    /// create a X-Y-Z coordinate
     pub fn new(x:f64, y:f64, z:f64) -> Xyz {
         Xyz { x:x, y:y, z:z, }
     }
