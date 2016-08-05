@@ -274,9 +274,11 @@ pub struct Xy {
 }
 
 impl Xy {
+    /// create a new X-Y coordinate
     pub fn new(x: f64, y: f64, t: XyType) -> Xy {
         Xy { x:x, y:y, t:t }
     }
+    /// create a new default X-Y coordinate of a certain type
     pub fn new_empty(t:XyType) -> Xy {
         Xy { x:0.0, y:0.0, t:t }
     }
@@ -289,42 +291,35 @@ pub struct Pts {
     pub elements: Vec<Xy>
 }
 
+/// a drill
 #[derive(Clone,Debug,Default)]
 pub struct Drill {
+    /// shape of the drill
     pub shape:Option<String>,
+    /// width of the drill
     pub width:f64,
+    /// height of the drill
     pub height:f64,
+    /// x-offset of the drill
     pub offset_x:f64,
+    /// y-offset of the drill
     pub offset_y:f64,
 }
 
-#[derive(Debug)]
-pub enum Part {
-    At(At),
-    Layer(Layer),
-    Hide,
-    Effects(Effects),
-    Layers(Layers),
-    Width(f64),
-    Angle(f64),
-    Xy(Xy),
-    Pts(Pts),
-    Thickness(f64),
-    Net(Net),
-    Drill(Drill),
-    SolderPasteMargin(f64),
-    SolderMaskMargin(f64),
-    Clearance(f64),
-}
-
+// type of a Pad
 #[derive(Debug,Clone)]
 pub enum PadType {
+    /// surface mount
     Smd,
+    /// through-hole
     Pth,
+    /// non-plated through-hole
     NpPth,
 }
 
 impl PadType {
+
+    /// convert a &str to a pad type
     pub fn from_string(s:&str) -> Result<PadType> {
         match s {
             "smd" => Ok(PadType::Smd),
@@ -335,16 +330,22 @@ impl PadType {
     }
 }
 
+/// shape of a pad
 #[derive(Debug,Clone)]
 pub enum PadShape {
+    /// rectangular
     Rect,
+    /// circular
     Circle,
+    /// oval
     Oval,
+    /// trapezoid
     Trapezoid,
     // TODO
 }
 
 impl PadShape {
+    /// convert a &str to a pad shape
     pub fn from_string(s:&str) -> Result<PadShape> {
         match s {
             "rect" => Ok(PadShape::Rect),
@@ -356,18 +357,30 @@ impl PadShape {
     }
 }
 
+/// side of a layer
 #[derive(Debug,Clone)]
 pub enum LayerSide {
+    /// front side
     Front,
+    /// back side
     Back,
+    /// Dwgs side
     Dwgs,
+    /// Cmts side
     Cmts,
+    /// Eco1 side
     Eco1,
+    /// Eco2 side
     Eco2,
+    /// edge of the board
     Edge,
+    /// both sides
     Both,
+    /// Inner layer 1
     In1,
+    /// Inner layer 2
     In2,
+    /// no side
     None,
 }
 
@@ -377,18 +390,30 @@ impl Default for LayerSide {
     }
 }
 
+/// type of a layer
 #[derive(Debug,Clone)]
 pub enum LayerType {
+    /// copper layer
     Cu,
+    /// paste layer
     Paste,
+    /// solder mask layer
     Mask,
+    /// silk screen layer
     SilkS,
+    /// user layer
     User,
+    /// adhesive layer
     Adhes,
+    /// cuts layer
     Cuts,
+    /// CrtYd layer
     CrtYd,
+    /// fabrication layer
     Fab,
+    /// margin layer
     Margin,
+    /// an other custom named layer
     Other(String),
 }
 
@@ -405,7 +430,8 @@ pub struct Layer {
 }
 
 impl Layer {
-    
+
+    /// create a layer from a String
     pub fn from_string(s: String) -> Result<Layer> {
         let sp:Vec<&str> = s.split('.').collect();
         let mut side = LayerSide::None;
@@ -443,19 +469,19 @@ impl Layer {
         };
         Ok(Layer { side:side, t:t, })
     }
-    fn default() -> Layer {
-        Layer { side: LayerSide::Front, t: LayerType::Cu }
-    }
 }
 
+/// a list of layers
 #[derive(Debug,Clone,Default)]
 pub struct Layers {
+    /// a list of layers
     pub layers: Vec<Layer>,
 }
 
 impl Layers {
-    pub fn append(&mut self, layer: &Layer) {
-        self.layers.push(layer.clone())
+    /// append a layer to a list of layers
+    pub fn append(&mut self, layer: Layer) {
+        self.layers.push(layer)
     }
 }
 

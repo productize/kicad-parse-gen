@@ -221,6 +221,26 @@ pub fn read_project(name: &str) -> Result<project::Project> {
     }
 }
 
+// put here so it is accessible to all subfiles privately
+#[derive(Debug)]
+enum Part {
+    At(footprint::At),
+    Layer(footprint::Layer),
+    Hide,
+    Effects(footprint::Effects),
+    Layers(footprint::Layers),
+    Width(f64),
+    Angle(f64),
+    Xy(footprint::Xy),
+    Pts(footprint::Pts),
+    Thickness(f64),
+    Net(footprint::Net),
+    Drill(footprint::Drill),
+    SolderPasteMargin(f64),
+    SolderMaskMargin(f64),
+    Clearance(f64),
+}
+
 /// Kicad error handling code and types
 pub mod error;
 /// Kicad footprint format handling

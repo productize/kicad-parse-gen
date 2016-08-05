@@ -5,6 +5,7 @@ use str_error;
 use Result;
 use footprint::data::*;
 use FromSexp;
+use Part;
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
 impl FromSexp for Result<At> {
@@ -106,7 +107,7 @@ impl FromSexp for Result<Layers> {
         for v1 in v {
             let x = try!(v1.string());
             let layer = try!(Layer::from_string(x.clone()));
-            l.append(&layer)
+            l.append(layer)
         }
         Ok(l)
     }
