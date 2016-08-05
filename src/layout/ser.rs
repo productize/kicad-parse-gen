@@ -15,29 +15,29 @@ impl IntoSexp for Layout {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
         v.push(Sexp::new_string("kicad_pcb"));
-        
-        v.push(Sexp::new_named("version", self.version));   
-        
+
+        v.push(Sexp::new_named("version", self.version));
+
         let mut v2 = vec![];
         v2.push(Sexp::new_string("host"));
         v2.push(Sexp::new_string(self.host.tool.clone()));
         v2.push(Sexp::new_string(self.host.build.clone()));
         v.push(Sexp::new_list(v2));
-        
+
         v.push(self.general.into_sexp());
-        
-        v.push(Sexp::new_named("page", self.page.clone()));   
-        
-        
+
+        v.push(Sexp::new_named("page", self.page.clone()));
+
+
         let mut v2 = vec![];
         v2.push(Sexp::new_string("layers"));
         for layer in &self.layers {
             v2.push(layer.into_sexp());
         }
         v.push(Sexp::new_list(v2));
-        
+
         v.push(self.setup.into_sexp());
-        
+
         for element in &self.elements {
             v.push(element.into_sexp());
         }

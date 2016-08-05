@@ -101,7 +101,7 @@ impl IntoSexp for Effects {
 impl IntoSexp for Justify {
     fn into_sexp(&self) -> Sexp {
         match *self {
-            Justify::Mirror => Sexp::new_named("justify","mirror"),
+            Justify::Mirror => Sexp::new_named("justify", "mirror"),
         }
     }
 }
@@ -184,7 +184,7 @@ impl IntoSexp for Layer {
     fn into_sexp(&self) -> Sexp {
         Sexp::new_string(&self)
     }
-} 
+}
 
 impl IntoSexp for Layers {
     fn into_sexp(&self) -> Sexp {

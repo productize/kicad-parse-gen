@@ -13,16 +13,16 @@ pub fn read_file(name: &str) -> Result<String> {
     Ok(s)
 }
 
-pub fn write_file(name:&str, data:&str) -> Result<()> {
+pub fn write_file(name: &str, data: &str) -> Result<()> {
     let mut f = try!(match File::create(name) {
         Ok(f) => Ok(f),
-        Err(err) => Err(format!("create error in file '{}': {}", name, err))
+        Err(err) => Err(format!("create error in file '{}': {}", name, err)),
     });
     try!(match write!(&mut f, "{}", data) {
         Ok(f) => Ok(f),
-        Err(err) => Err(format!("write error in file '{}': {}", name, err))
+        Err(err) => Err(format!("write error in file '{}': {}", name, err)),
     });
-         
+
     Ok(())
-    
+
 }

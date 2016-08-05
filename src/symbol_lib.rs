@@ -18,49 +18,49 @@ use str_error;
 
 #[derive(Debug,Default)]
 pub struct SymbolLib {
-    pub symbols:Vec<Symbol>,
+    pub symbols: Vec<Symbol>,
 }
 
 // DEF name reference unused text_offset draw_pinnumber draw_pinname unit_count units_locked option_flag
 #[derive(Debug,Clone)]
 pub struct Symbol {
-    pub name:String,
-    pub reference:String,
-    pub text_offset:f64,
+    pub name: String,
+    pub reference: String,
+    pub text_offset: f64,
     pub draw_pinnumber: bool,
     pub draw_pinname: bool,
     pub unit_count: i64,
     pub unit_locked: bool,
     pub is_power: bool,
-    pub fields:Vec<Field>,
-    pub draw:Vec<String>, // TODO parse draw
+    pub fields: Vec<Field>,
+    pub draw: Vec<String>, // TODO parse draw
 }
 // F n “text” posx posy dimension orientation visibility hjustify vjustify/italic/bold “name”
 // F0 "#PWR" 0 0 30 H I C CNN
 
 #[derive(Debug,Clone)]
 pub struct Field {
-    pub i:i64,
-    pub value:String,
-    pub x:f64,
-    pub y:f64,
-    pub dimension:i64,
-    pub orientation:schematic::Orientation,
-    pub visible:bool,
-    pub hjustify:schematic::Justify,
-    pub vjustify:schematic::Justify,
-    pub italic:bool,
-    pub bold:bool,
-    pub name:String,
+    pub i: i64,
+    pub value: String,
+    pub x: f64,
+    pub y: f64,
+    pub dimension: i64,
+    pub orientation: schematic::Orientation,
+    pub visible: bool,
+    pub hjustify: schematic::Justify,
+    pub vjustify: schematic::Justify,
+    pub italic: bool,
+    pub bold: bool,
+    pub name: String,
 }
 
 impl SymbolLib {
-    pub fn find<F>(&self, filter:F) -> Option<&Symbol>
-        where F:Fn(&Symbol) -> bool
+    pub fn find<F>(&self, filter: F) -> Option<&Symbol>
+        where F: Fn(&Symbol) -> bool
     {
         for symbol in &self.symbols {
             if filter(symbol) {
-                return Some(symbol)
+                return Some(symbol);
             }
         }
         None
@@ -74,27 +74,27 @@ impl fmt::Display for SymbolLib {
         try!(writeln!(f, "#"));
         for i in &self.symbols {
             try!(write!(f, "{}", i))
-        };
+        }
         writeln!(f, "#End Library")
     }
 }
 
 impl Symbol {
-    pub fn new(name:String, reference:String) -> Symbol {
+    pub fn new(name: String, reference: String) -> Symbol {
         Symbol {
-            name:name,
-            reference:reference,
-            text_offset:0.0,
-            draw_pinnumber:false,
-            draw_pinname:false,
-            unit_count:1,
-            unit_locked:false,
-            is_power:false,
-            fields:vec![],
-            draw:vec![],
+            name: name,
+            reference: reference,
+            text_offset: 0.0,
+            draw_pinnumber: false,
+            draw_pinname: false,
+            unit_count: 1,
+            unit_locked: false,
+            is_power: false,
+            fields: vec![],
+            draw: vec![],
         }
     }
-    pub fn set_name(&mut self, name:&str) {
+    pub fn set_name(&mut self, name: &str) {
         if char_at(&self.name, 0) == '~' {
             self.name = format!("~{}", name)
         } else {
@@ -119,11 +119,11 @@ impl fmt::Display for Symbol {
                      ));
         for field in &self.fields {
             try!(writeln!(f, "{}", field))
-        };
+        }
         try!(writeln!(f, "DRAW"));
         for draw in &self.draw {
             try!(writeln!(f, "{}", draw))
-        };
+        }
         try!(writeln!(f, "ENDDRAW"));
         try!(writeln!(f, "ENDDEF"));
         writeln!(f, "#")
@@ -133,18 +133,18 @@ impl fmt::Display for Symbol {
 impl Default for Field {
     fn default() -> Field {
         Field {
-            i:0,
-            value:String::from(""),
-            x:0.0,
-            y:0.0,
-            dimension:0,
-            orientation:schematic::Orientation::Horizontal,
-            visible:false,
-            hjustify:schematic::Justify::Center,
-            vjustify:schematic::Justify::Center,
-            italic:false,
-            bold:false,
-            name:String::from(""),
+            i: 0,
+            value: String::from(""),
+            x: 0.0,
+            y: 0.0,
+            dimension: 0,
+            orientation: schematic::Orientation::Horizontal,
+            visible: false,
+            hjustify: schematic::Justify::Center,
+            vjustify: schematic::Justify::Center,
+            italic: false,
+            bold: false,
+            name: String::from(""),
         }
     }
 }
@@ -180,18 +180,18 @@ macro_rules! assume_line {
 
 #[derive(Debug)]
 struct ParseState {
-    i:usize,
-    v:Vec<String>,
+    i: usize,
+    v: Vec<String>,
 }
 
 impl ParseState {
-    fn new(v2:Vec<&str>) -> ParseState {
+    fn new(v2: Vec<&str>) -> ParseState {
         ParseState {
-            i:0,
-            v:v2.iter().map(|x| String::from(*x)).collect(),
+            i: 0,
+            v: v2.iter().map(|x| String::from(*x)).collect(),
         }
     }
-    
+
     fn here(&self) -> String {
         (self.v[self.i]).clone()
     }
@@ -205,49 +205,49 @@ impl ParseState {
     }
 }
 
-fn assume_string(e:&'static str, s:&str) -> Result<()> {
+fn assume_string(e: &'static str, s: &str) -> Result<()> {
     if *e != *s {
-        return str_error(format!("expecting: {}, actually: {}", e, s))
+        return str_error(format!("expecting: {}, actually: {}", e, s));
     }
     Ok(())
 }
 
-fn i64_from_string(p:&ParseState, s:&str) -> Result<i64> {
+fn i64_from_string(p: &ParseState, s: &str) -> Result<i64> {
     match i64::from_str(s) {
         Ok(i) => Ok(i),
-        _ => str_error(format!("int parse error in {}; line: {}", s, p.here()))
+        _ => str_error(format!("int parse error in {}; line: {}", s, p.here())),
     }
 }
 
-fn f64_from_string(p:&ParseState, s:&str) -> Result<f64> {
+fn f64_from_string(p: &ParseState, s: &str) -> Result<f64> {
     match f64::from_str(s) {
         Ok(i) => Ok(i),
-        _ => str_error(format!("float parse error in {}; line: {}", s, p.here()))
+        _ => str_error(format!("float parse error in {}; line: {}", s, p.here())),
     }
 }
 
-fn bool_from_string(s:&str, t:&'static str, f:&'static str) -> Result<bool> {
+fn bool_from_string(s: &str, t: &'static str, f: &'static str) -> Result<bool> {
     if &s[..] == t {
-        return Ok(true)
+        return Ok(true);
     }
     if &s[..] == f {
-        return Ok(false)
+        return Ok(false);
     }
     str_error(format!("unknown boolean {}, expected {} or {}", s, t, f))
 }
 
-fn char_at(s:&str, p:usize) -> char {
-    let v:Vec<char> = s.chars().collect();
+fn char_at(s: &str, p: usize) -> char {
+    let v: Vec<char> = s.chars().collect();
     v[..][p]
 }
 
-fn parse_symbol(p:&mut ParseState) -> Result<Symbol> {
+fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
     p.next(); // skip line like # name
-    assume_line!(p,"#");
+    assume_line!(p, "#");
     let s = p.here();
     let v = &parse_split_quote_aware(&s);
     if v.len() != 10 {
-        return str_error(format!("unexpected elements in {}", s))
+        return str_error(format!("unexpected elements in {}", s));
     }
     try!(assume_string("DEF", &v[0]));
     let mut s = Symbol::new(v[1].clone(), v[2].clone());
@@ -291,27 +291,27 @@ fn parse_symbol(p:&mut ParseState) -> Result<Symbol> {
         s.draw.push(s2.clone());
         p.next()
     }
-    assume_line!(p,"ENDDEF");
-    assume_line!(p,"#");
+    assume_line!(p, "ENDDEF");
+    assume_line!(p, "#");
     Ok(s)
 }
 
-fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> Result<bool> {
+fn bool_from<T: PartialEq + fmt::Display>(i: T, t: T, f: T) -> Result<bool> {
     if i == t {
-        return Ok(true)
+        return Ok(true);
     }
     if i == f {
-        return Ok(false)
+        return Ok(false);
     }
     str_error(format!("unknown boolean {}, expected {} or {}", i, t, f))
 }
 
 // F0 "L" 0 50 40 H V C CNN
-fn parse_field(p:&mut ParseState, line:&str) -> Result<Field> {
+fn parse_field(p: &mut ParseState, line: &str) -> Result<Field> {
     let mut f = Field::default();
     let v = &parse_split_quote_aware(line);
     if v.len() != 9 && v.len() != 10 {
-        return str_error(format!("unexpected elements in {}", line))
+        return str_error(format!("unexpected elements in {}", line));
     }
     f.i = try!(i64_from_string(p, &String::from(&v[0][1..])));
     let name = if v.len() == 10 {
@@ -338,32 +338,32 @@ fn parse_field(p:&mut ParseState, line:&str) -> Result<Field> {
     f.name = name;
     Ok(f)
 }
-    
+
 fn parse(s: &str) -> Result<SymbolLib> {
     let mut lib = SymbolLib::default();
-    let v:Vec<&str> = s.lines().collect();
+    let v: Vec<&str> = s.lines().collect();
     let p = &mut ParseState::new(v);
     assume_line!(p, "EESchema-LIBRARY Version 2.3");
     assume_line!(p, "#encoding utf-8");
-    assume_line!(p,"#");
+    assume_line!(p, "#");
     while !p.eof() {
-        //println!("here: {}", &p.here());
+        // println!("here: {}", &p.here());
         if &p.here() == "#End Library" {
             break;
         }
         let s = try!(parse_symbol(p));
-        //println!("new symbol: {}", &s);
+        // println!("new symbol: {}", &s);
         lib.symbols.push(s)
     }
     Ok(lib)
 }
 
 
-pub fn parse_str(s:&str) -> Result<SymbolLib> {
+pub fn parse_str(s: &str) -> Result<SymbolLib> {
     parse(s)
 }
 
-pub fn parse_file(filename:&PathBuf) -> Result<SymbolLib> {
+pub fn parse_file(filename: &PathBuf) -> Result<SymbolLib> {
     let name = filename.to_str().unwrap();
     let s = try!(read_file(name));
     parse(&s[..])

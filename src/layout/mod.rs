@@ -13,9 +13,10 @@ use FromSexp;
 
 pub use layout::data::*;
 
-pub fn layout_to_string(layout:&Layout, indent_level:i64) -> Result<String> {
+pub fn layout_to_string(layout: &Layout, indent_level: i64) -> Result<String> {
     let formatter = KicadFormatter::new(indent_level);
-    symbolic_expressions::ser::to_string_with_formatter(&layout.into_sexp(), formatter).map_err(From::from)
+    symbolic_expressions::ser::to_string_with_formatter(&layout.into_sexp(), formatter)
+        .map_err(From::from)
 }
 
 pub fn parse(s: &str) -> Result<Layout> {

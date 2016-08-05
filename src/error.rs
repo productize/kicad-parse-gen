@@ -21,10 +21,10 @@ pub enum Error {
 
 
 impl error::Error for Error {
-    
     fn description(&self) -> &str {
         match *self {
-            Error::Other(ref s) | Error::Parse(ref s) => s,
+            Error::Other(ref s) |
+            Error::Parse(ref s) => s,
             Error::Io(ref error) => error::Error::description(error),
             Error::Symbolic(ref error) => error.description(),
         }
@@ -60,12 +60,8 @@ impl From<String> for Error {
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
-            Error::Other(ref s) => {
-                write!(fmt, "Error:{}", s)
-            }
-            Error::Parse(ref s) => {
-                write!(fmt, "Parse Error:{}", s)
-            }
+            Error::Other(ref s) => write!(fmt, "Error:{}", s),
+            Error::Parse(ref s) => write!(fmt, "Parse Error:{}", s),
             Error::Io(ref error) => fmt::Display::fmt(error, fmt),
             Error::Symbolic(ref error) => fmt::Display::fmt(error, fmt),
         }
@@ -76,11 +72,11 @@ impl fmt::Display for Error {
 pub type Result<T> = result::Result<T, Error>;
 
 /// create an other error
-pub fn str_error<T>(s:String) -> Result<T> {
+pub fn str_error<T>(s: String) -> Result<T> {
     Err(Error::Other(s))
 }
 
 /// create a parse error
-pub fn parse_error<T>(s:String) -> Result<T> {
+pub fn parse_error<T>(s: String) -> Result<T> {
     Err(Error::Parse(s))
 }

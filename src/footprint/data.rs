@@ -10,32 +10,35 @@ pub struct Module {
     /// name of the Kicad Module
     pub name: String,
     /// elements contained within the Kicad Module
-    pub elements: Vec<Element>
+    pub elements: Vec<Element>,
 }
 
 impl Module {
     /// create a Module
     pub fn new(name: String) -> Module {
-        Module { name: name, elements: vec![] }
+        Module {
+            name: name,
+            elements: vec![],
+        }
     }
     /// append an Element to a Module
     pub fn append(&mut self, e: Element) {
         self.elements.push(e)
     }
     /// check if a Module has a reference Element with the specified name
-    pub fn is_reference_with_name(&self, reference:&str) -> bool {
+    pub fn is_reference_with_name(&self, reference: &str) -> bool {
         for element in &self.elements[..] {
             if let Element::FpText(ref fp_text) = *element {
                 if fp_text.name == "reference" && fp_text.value == *reference {
-                    return true
+                    return true;
                 }
             }
         }
         false
     }
     /// update the name of the reference element specified by name, if found
-    pub fn set_reference(&mut self, reference:&str, reference2:&str) {
-        //println!("debug: searching '{}'", reference);
+    pub fn set_reference(&mut self, reference: &str, reference2: &str) {
+        // println!("debug: searching '{}'", reference);
         for ref mut element in &mut self.elements[..] {
             if let Element::FpText(ref mut fp_text) = **element {
                 if fp_text.name == "reference" && fp_text.value == *reference {
@@ -50,7 +53,7 @@ impl Module {
     pub fn at(&self) -> (f64, f64) {
         for element in &self.elements[..] {
             if let Element::At(ref at) = *element {
-                return (at.x, at.y)
+                return (at.x, at.y);
             }
         }
         (0.0, 0.0)
@@ -60,14 +63,14 @@ impl Module {
     pub fn is_front(&self) -> bool {
         for element in &self.elements[..] {
             if let Element::Layer(ref layer) = *element {
-                return &layer[..] == "F.Cu"
+                return &layer[..] == "F.Cu";
             }
         }
         true
     }
 
     /// rename a net
-    pub fn rename_net(&mut self, old_name:&str, new_name:&str) {
+    pub fn rename_net(&mut self, old_name: &str, new_name: &str) {
         for element in &mut self.elements[..] {
             if let Element::Pad(ref mut pad) = *element {
                 pad.rename_net(old_name, new_name)
@@ -82,16 +85,24 @@ impl BoundingBox for Module {
         let mut y1 = 10000.0_f64;
         let mut x2 = 0.0_f64;
         let mut y2 = 0.0_f64;
-        let (x,y) = self.at();
+        let (x, y) = self.at();
         for element in &self.elements {
             let (x1a, y1a, x2a, y2a) = element.bounding_box();
-            x1 = x1.min(x+x1a);
-            y1 = y1.min(y+y1a);
-            x2 = x2.max(x+x2a);
-            y2 = y2.max(y+y2a);
+            x1 = x1.min(x + x1a);
+            y1 = y1.min(y + y1a);
+            x2 = x2.max(x + x2a);
+            y2 = y2.max(y + y2a);
         }
-        let (x1, x2) = if x1 < x2 { (x1, x2) } else { (x2, x1) };
-        let (y1, y2) = if y1 < y2 { (y1, y2) } else { (y2, y1) };
+        let (x1, x2) = if x1 < x2 {
+            (x1, x2)
+        } else {
+            (x2, x1)
+        };
+        let (y1, y2) = if y1 < y2 {
+            (y1, y2)
+        } else {
+            (y2, y1)
+        };
         (x1, y1, x2, y2)
     }
 }
@@ -136,14 +147,13 @@ pub enum Element {
 }
 
 impl BoundingBox for Element {
-    
     fn bounding_box(&self) -> (f64, f64, f64, f64) {
         match *self {
             Element::Pad(ref x) => x.bounding_box(),
             Element::FpPoly(ref x) => x.bounding_box(),
             Element::FpLine(ref x) => x.bounding_box(),
             Element::FpCircle(ref x) => x.bounding_box(),
-            _ => (0.0,0.0,0.0,0.0),
+            _ => (0.0, 0.0, 0.0, 0.0),
         }
     }
 }
@@ -174,7 +184,7 @@ impl FpText {
             at: At::default(),
             layer: Layer::default(),
             effects: Effects::default(),
-            hide: false
+            hide: false,
         }
     }
     /// set the text effects of the text
@@ -195,13 +205,17 @@ pub struct At {
     /// y coordinate
     pub y: f64,
     /// rotation
-    pub rot: f64
+    pub rot: f64,
 }
 
 impl At {
     /// create a location
-    pub fn new(x:f64 ,y:f64, rot:f64) -> At {
-        At { x:x, y:y, rot:rot }
+    pub fn new(x: f64, y: f64, rot: f64) -> At {
+        At {
+            x: x,
+            y: y,
+            rot: rot,
+        }
     }
 }
 
@@ -220,13 +234,16 @@ pub struct Effects {
     /// the font used
     pub font: Font,
     /// the text justification
-    pub justify:Option<Justify>,
+    pub justify: Option<Justify>,
 }
 
 impl Effects {
     /// create a text effects element from font and justification
     pub fn from_font(font: Font, justify: Option<Justify>) -> Effects {
-        Effects { font: font, justify:justify }
+        Effects {
+            font: font,
+            justify: justify,
+        }
     }
 }
 
@@ -274,11 +291,15 @@ pub struct Xy {
 impl Xy {
     /// create a new X-Y coordinate
     pub fn new(x: f64, y: f64, t: XyType) -> Xy {
-        Xy { x:x, y:y, t:t }
+        Xy { x: x, y: y, t: t }
     }
     /// create a new default X-Y coordinate of a certain type
-    pub fn new_empty(t:XyType) -> Xy {
-        Xy { x:0.0, y:0.0, t:t }
+    pub fn new_empty(t: XyType) -> Xy {
+        Xy {
+            x: 0.0,
+            y: 0.0,
+            t: t,
+        }
     }
 }
 
@@ -286,22 +307,22 @@ impl Xy {
 #[derive(Debug,Clone,Default)]
 pub struct Pts {
     /// the list of X-Y coordinates
-    pub elements: Vec<Xy>
+    pub elements: Vec<Xy>,
 }
 
 /// a drill
 #[derive(Clone,Debug,Default)]
 pub struct Drill {
     /// shape of the drill
-    pub shape:Option<String>,
+    pub shape: Option<String>,
     /// width of the drill
-    pub width:f64,
+    pub width: f64,
     /// height of the drill
-    pub height:f64,
+    pub height: f64,
     /// x-offset of the drill
-    pub offset_x:f64,
+    pub offset_x: f64,
     /// y-offset of the drill
-    pub offset_y:f64,
+    pub offset_y: f64,
 }
 
 /// type of a Pad
@@ -316,14 +337,13 @@ pub enum PadType {
 }
 
 impl PadType {
-
     /// convert a &str to a pad type
-    pub fn from_string(s:&str) -> Result<PadType> {
+    pub fn from_string(s: &str) -> Result<PadType> {
         match s {
             "smd" => Ok(PadType::Smd),
             "thru_hole" => Ok(PadType::Pth),
             "np_thru_hole" => Ok(PadType::NpPth),
-            x => str_error(format!("unknown PadType {}", x))
+            x => str_error(format!("unknown PadType {}", x)),
         }
     }
 }
@@ -338,19 +358,18 @@ pub enum PadShape {
     /// oval
     Oval,
     /// trapezoid
-    Trapezoid,
-    // TODO
+    Trapezoid, // TODO
 }
 
 impl PadShape {
     /// convert a &str to a pad shape
-    pub fn from_string(s:&str) -> Result<PadShape> {
+    pub fn from_string(s: &str) -> Result<PadShape> {
         match s {
             "rect" => Ok(PadShape::Rect),
             "circle" => Ok(PadShape::Circle),
             "oval" => Ok(PadShape::Oval),
             "trapezoid" => Ok(PadShape::Trapezoid),
-            x => str_error(format!("unknown PadShape: {}", x))
+            x => str_error(format!("unknown PadShape: {}", x)),
         }
     }
 }
@@ -433,7 +452,7 @@ pub struct Layer {
 impl Layer {
     /// create a layer from a String
     pub fn from_string(s: String) -> Result<Layer> {
-        let sp:Vec<&str> = s.split('.').collect();
+        let sp: Vec<&str> = s.split('.').collect();
         let mut side = LayerSide::None;
         let s_t = if sp.len() == 2 {
             side = match sp[0] {
@@ -453,7 +472,7 @@ impl Layer {
         } else {
             sp[0]
         };
-        
+
         let t = match s_t {
             "Cu" => LayerType::Cu,
             "Paste" => LayerType::Paste,
@@ -467,7 +486,7 @@ impl Layer {
             "Margin" => LayerType::Margin,
             x => LayerType::Other(String::from(x)),
         };
-        Ok(Layer { side:side, t:t, })
+        Ok(Layer { side: side, t: t })
     }
 }
 
@@ -496,7 +515,7 @@ pub struct Pad {
     pub shape: PadShape,
     /// size
     pub size: Xy,
-    /// offset 
+    /// offset
     pub rect_delta: Option<Xy>,
     /// location
     pub at: At,
@@ -516,48 +535,50 @@ pub struct Pad {
 
 impl Pad {
     /// create a pad with a name, type and shape
-    pub fn new(name: String, t:PadType, shape: PadShape) -> Pad {
+    pub fn new(name: String, t: PadType, shape: PadShape) -> Pad {
         Pad {
             name: name,
             t: t,
             shape: shape,
             size: Xy::new_empty(XyType::Size),
-            rect_delta:None,
+            rect_delta: None,
             at: At::default(),
             layers: Layers::default(),
-            net:None,
-            drill:None,
-            solder_paste_margin:None,
-            solder_mask_margin:None,
-            clearance:None,
+            net: None,
+            drill: None,
+            solder_paste_margin: None,
+            solder_mask_margin: None,
+            clearance: None,
         }
     }
 
     /// rename the net of a pad
-    pub fn rename_net(&mut self, old_name:&str, new_name:&str) {
+    pub fn rename_net(&mut self, old_name: &str, new_name: &str) {
         let new_net = if let Some(ref net) = self.net {
             if &net.name == old_name {
-                Some(Net { name:new_name.to_string(), .. *net })
+                Some(Net { name: new_name.to_string(), ..*net })
             } else {
                 Some(net.clone())
             }
-        } else { None } ;
+        } else {
+            None
+        };
         self.net = new_net
     }
 
     /// set the net of a pad
-    pub fn set_net(&mut self, net:Net) {
+    pub fn set_net(&mut self, net: Net) {
         self.net = Some(net)
     }
 
     /// set the drill of a pad
-    pub fn set_drill(&mut self, drill:Drill) {
+    pub fn set_drill(&mut self, drill: Drill) {
         self.drill = Some(drill)
     }
 }
 
 impl BoundingBox for Pad {
-    fn bounding_box(&self) -> (f64,f64,f64,f64) {
+    fn bounding_box(&self) -> (f64, f64, f64, f64) {
         let x = self.at.x;
         let y = self.at.y;
         let (dx, dy) = if self.at.rot < 0.1 {
@@ -565,7 +586,7 @@ impl BoundingBox for Pad {
         } else {
             (self.size.y, self.size.x)
         };
-        (x-dx/2.0, y-dy/2.0, x+dx/2.0, y+dy/2.0)
+        (x - dx / 2.0, y - dy / 2.0, x + dx / 2.0, y + dy / 2.0)
     }
 }
 
@@ -573,16 +594,16 @@ impl BoundingBox for Pad {
 #[derive(Debug,Clone,Default)]
 pub struct FpPoly {
     /// points
-    pub pts:Pts,
+    pub pts: Pts,
     /// width
-    pub width:f64,
+    pub width: f64,
     /// layer
-    pub layer:Layer,
+    pub layer: Layer,
 }
 
 impl FpPoly {
     /// bounding box of a polygon
-    pub fn bounding_box(&self) -> (f64,f64,f64,f64) {
+    pub fn bounding_box(&self) -> (f64, f64, f64, f64) {
         let mut x1 = 10000.0_f64;
         let mut y1 = 10000.0_f64;
         let mut x2 = 0.0_f64;
@@ -593,7 +614,7 @@ impl FpPoly {
             x2 = x2.max(p.x);
             y2 = y2.max(p.y);
         }
-        (x1,y2,x2,y2)
+        (x1, y2, x2, y2)
     }
 }
 
@@ -601,24 +622,28 @@ impl FpPoly {
 #[derive(Debug,Clone)]
 pub struct FpLine {
     /// start point
-    pub start:Xy,
+    pub start: Xy,
     /// end point
-    pub end:Xy,
+    pub end: Xy,
     /// layer
-    pub layer:Layer,
+    pub layer: Layer,
     /// width
-    pub width:f64,
+    pub width: f64,
 }
 
 impl Default for FpLine {
     fn default() -> FpLine {
-        FpLine { start:Xy::new_empty(XyType::Start), end:Xy::new_empty(XyType::End), layer:Layer::default(), width:0.0 }
+        FpLine {
+            start: Xy::new_empty(XyType::Start),
+            end: Xy::new_empty(XyType::End),
+            layer: Layer::default(),
+            width: 0.0,
+        }
     }
 }
-    
+
 impl BoundingBox for FpLine {
- 
-    fn bounding_box(&self) -> (f64,f64,f64,f64) {
+    fn bounding_box(&self) -> (f64, f64, f64, f64) {
         let mut x1 = 10000.0_f64;
         let mut y1 = 10000.0_f64;
         let mut x2 = 0.0_f64;
@@ -627,7 +652,7 @@ impl BoundingBox for FpLine {
         y1 = y1.min(self.start.y);
         x2 = x2.max(self.end.x);
         y2 = y2.max(self.end.y);
-        (x1,y1,x2,y2)
+        (x1, y1, x2, y2)
     }
 }
 
@@ -635,36 +660,41 @@ impl BoundingBox for FpLine {
 #[derive(Debug,Clone)]
 pub struct FpCircle {
     /// center point
-    pub center:Xy,
+    pub center: Xy,
     /// end point
-    pub end:Xy,
+    pub end: Xy,
     /// layer
-    pub layer:Layer,
+    pub layer: Layer,
     /// width
-    pub width:f64,
+    pub width: f64,
 }
 
 impl Default for FpCircle {
     fn default() -> FpCircle {
-        FpCircle { center:Xy::new_empty(XyType::Center), end:Xy::new_empty(XyType::End), layer:Layer::default(), width:0.0 }
+        FpCircle {
+            center: Xy::new_empty(XyType::Center),
+            end: Xy::new_empty(XyType::End),
+            layer: Layer::default(),
+            width: 0.0,
+        }
     }
 }
-    
+
 impl BoundingBox for FpCircle {
-    fn bounding_box(&self) -> (f64,f64,f64,f64) {
+    fn bounding_box(&self) -> (f64, f64, f64, f64) {
         let mut x1 = 10000.0_f64;
         let mut y1 = 10000.0_f64;
         let mut x2 = 0.0_f64;
         let mut y2 = 0.0_f64;
         let dx = self.center.x - self.end.x;
         let dy = self.center.y - self.end.y;
-        let d2 = dx*dx + dy*dy;
+        let d2 = dx * dx + dy * dy;
         let d = d2.sqrt();
-        x1 = x1.min(self.center.x-d);
-        y1 = y1.min(self.center.y-d);
-        x2 = x2.max(self.center.x+d);
-        y2 = y2.max(self.center.y+d);
-        (x1,y1,x2,y2)
+        x1 = x1.min(self.center.x - d);
+        y1 = y1.min(self.center.y - d);
+        x2 = x2.max(self.center.x + d);
+        y2 = y2.max(self.center.y + d);
+        (x1, y1, x2, y2)
     }
 }
 
@@ -672,20 +702,26 @@ impl BoundingBox for FpCircle {
 #[derive(Debug,Clone)]
 pub struct FpArc {
     /// start point
-    pub start:Xy,
+    pub start: Xy,
     /// end point
-    pub end:Xy,
+    pub end: Xy,
     /// angle
-    pub angle:f64,
+    pub angle: f64,
     /// layer
-    pub layer:Layer,
+    pub layer: Layer,
     /// width
-    pub width:f64,
+    pub width: f64,
 }
 
 impl Default for FpArc {
     fn default() -> FpArc {
-        FpArc { start:Xy::new_empty(XyType::Start), end:Xy::new_empty(XyType::End), angle:0.0, layer:Layer::default(), width:0.0 }
+        FpArc {
+            start: Xy::new_empty(XyType::Start),
+            end: Xy::new_empty(XyType::End),
+            angle: 0.0,
+            layer: Layer::default(),
+            width: 0.0,
+        }
     }
 }
 
@@ -715,16 +751,16 @@ pub struct Model {
 #[derive(Debug,Clone)]
 pub struct Xyz {
     /// X coordinate
-    pub x:f64,
+    pub x: f64,
     /// Y coordinate
-    pub y:f64,
+    pub y: f64,
     /// Z coordinate
-    pub z:f64,
+    pub z: f64,
 }
 
 impl Xyz {
     /// create a X-Y-Z coordinate
-    pub fn new(x:f64, y:f64, z:f64) -> Xyz {
-        Xyz { x:x, y:y, z:z, }
+    pub fn new(x: f64, y: f64, z: f64) -> Xyz {
+        Xyz { x: x, y: y, z: z }
     }
 }

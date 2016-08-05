@@ -2,7 +2,7 @@
 
 extern crate kicad_parse_gen;
 
-fn main() { 
+fn main() {
     let mut args = std::env::args();
     args.next();
     let name = args.next().unwrap();
@@ -11,4 +11,3 @@ fn main() {
     println!("{}", module.name);
     println!("{}", s)
 }
-

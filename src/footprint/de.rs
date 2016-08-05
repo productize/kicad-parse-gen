@@ -10,7 +10,7 @@ use wrap;
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
 impl FromSexp for Result<At> {
-    fn from_sexp(s:&Sexp) -> Result<At> {
+    fn from_sexp(s: &Sexp) -> Result<At> {
         let v = try!(s.slice_atom("at"));
         match v.len() {
             2 => {
@@ -24,13 +24,13 @@ impl FromSexp for Result<At> {
                 let rot = try!(v[2].f());
                 Ok(At::new(x, y, rot))
             }
-            _ => str_error("at with wrong length".to_string())
+            _ => str_error("at with wrong length".to_string()),
         }
     }
 }
 
 impl FromSexp for Result<Layer> {
-    fn from_sexp(s:&Sexp) -> Result<Layer> {
+    fn from_sexp(s: &Sexp) -> Result<Layer> {
         let v = try!(s.slice_atom("layer"));
         let layer = try!(v[0].string());
         let layer = try!(Layer::from_string(layer.clone()));
@@ -39,12 +39,12 @@ impl FromSexp for Result<Layer> {
 }
 
 impl FromSexp for Result<Effects> {
-    fn from_sexp(s:&Sexp) -> Result<Effects> {
-        //let v = try!(s.slice_atom_num("effects", 1));
+    fn from_sexp(s: &Sexp) -> Result<Effects> {
+        // let v = try!(s.slice_atom_num("effects", 1));
         // TODO investigate why the above doesn't work !?
         let v = try!(s.slice_atom("effects"));
         if v.len() < 1 {
-            return str_error(format!("Expected at least one element in {}", s))
+            return str_error(format!("Expected at least one element in {}", s));
         }
         let font = try!(Result::from_sexp(&v[0]));
         let justify = if v.len() > 1 {
@@ -57,26 +57,26 @@ impl FromSexp for Result<Effects> {
 }
 
 impl FromSexp for Result<Justify> {
-    fn from_sexp(s:&Sexp) -> Result<Justify> {
+    fn from_sexp(s: &Sexp) -> Result<Justify> {
         let v = try!(s.slice_atom("justify"));
         if v.len() < 1 {
-            return str_error(format!("Expected at least one element in {}", s))
+            return str_error(format!("Expected at least one element in {}", s));
         }
         let s = try!(v[0].string());
         match &s[..] {
             "mirror" => Ok(Justify::Mirror),
-            _ => str_error(format!("unknown justify: {}", s))
+            _ => str_error(format!("unknown justify: {}", s)),
         }
     }
 }
 
 impl FromSexp for Result<Font> {
-    fn from_sexp(s:&Sexp) -> Result<Font> {
+    fn from_sexp(s: &Sexp) -> Result<Font> {
         let v = try!(s.slice_atom("font"));
         let parts = try!(parse_parts(&v));
         let mut font = Font::default();
         for part in &parts[..] {
-            //println!("part: {}", part);
+            // println!("part: {}", part);
             try!(match *part {
                 Part::Xy(ref xy) if xy.t == XyType::Size => {
                     font.size.x = xy.x;
@@ -87,7 +87,7 @@ impl FromSexp for Result<Font> {
                     font.thickness = *t;
                     Ok(())
                 }
-                ref x => Err(format!("unknown element in font: {:?}", x))
+                ref x => Err(format!("unknown element in font: {:?}", x)),
             })
         }
         Ok(font)
@@ -95,7 +95,7 @@ impl FromSexp for Result<Font> {
 }
 
 impl FromSexp for Result<Layers> {
-    fn from_sexp(s:&Sexp) -> Result<Layers> {
+    fn from_sexp(s: &Sexp) -> Result<Layers> {
         let mut l = Layers::default();
         let v = try!(s.slice_atom("layers"));
         for v1 in v {
@@ -107,19 +107,19 @@ impl FromSexp for Result<Layers> {
     }
 }
 
-fn parse_part_float<F>(e: &Sexp, make:F) -> Result<Part>
-    where F:Fn(f64) -> Part
+fn parse_part_float<F>(e: &Sexp, make: F) -> Result<Part>
+    where F: Fn(f64) -> Part
 {
     let v = try!(e.list());
     if v.len() < 2 {
-        return str_error(format!("not enough elements in {}", e))
+        return str_error(format!("not enough elements in {}", e));
     }
     let f = try!(v[1].f());
     Ok(make(f))
 }
 
-impl FromSexp for Result<Vec<Xy> > {
-    fn from_sexp(s:&Sexp) -> Result<Vec<Xy> > {
+impl FromSexp for Result<Vec<Xy>> {
+    fn from_sexp(s: &Sexp) -> Result<Vec<Xy>> {
         let v = try!(s.slice_atom("pts"));
         let mut pts = vec![];
         for e in &v[1..] {
@@ -145,7 +145,7 @@ impl FromSexp for Result<Xy> {
         let v = try!(s.slice_atom_num(&name, 2));
         let x = try!(v[0].f());
         let y = try!(v[1].f());
-        Ok(Xy::new(x,y,t))
+        Ok(Xy::new(x, y, t))
     }
 }
 
@@ -157,7 +157,7 @@ impl FromSexp for Result<Pts> {
             let xy = try!(Result::from_sexp(x));
             r.push(xy)
         }
-        Ok(Pts { elements:r })
+        Ok(Pts { elements: r })
     }
 }
 
@@ -168,7 +168,7 @@ impl FromSexp for Result<Xyz> {
         let x = try!(v[0].f());
         let y = try!(v[1].f());
         let z = try!(v[2].f());
-        Ok(Xyz::new(x,y,z))
+        Ok(Xyz::new(x, y, z))
     }
 }
 
@@ -177,7 +177,10 @@ impl FromSexp for Result<Net> {
         let v = try!(s.slice_atom_num("net", 2));
         let num = try!(v[0].i());
         let name = try!(v[1].string());
-        Ok(Net { num:num, name:name.clone(), })
+        Ok(Net {
+            num: num,
+            name: name.clone(),
+        })
     }
 }
 
@@ -191,20 +194,20 @@ impl FromSexp for Result<Drill> {
         let shape = try!(v[i].string());
         if let "oval" = &shape[..] {
             drill.shape = Some(shape.clone());
-            i+=1;
+            i += 1;
         }
         // always at least one drill
         let drill1 = try!(v[i].f());
-        i+=1;
+        i += 1;
         drill.width = drill1;
         drill.height = drill1;
         if i == len {
-            return Ok(drill)
+            return Ok(drill);
         }
         match v[i] {
             Sexp::String(_) => {
                 drill.height = try!(v[i].f());
-            },
+            }
             Sexp::Empty => (),
             Sexp::List(_) => {
                 let v2 = try!(v[i].slice_atom("offset"));
@@ -217,12 +220,14 @@ impl FromSexp for Result<Drill> {
 }
 
 impl FromSexp for Result<Part> {
-    fn from_sexp(s:&Sexp) -> Result<Part> {
+    fn from_sexp(s: &Sexp) -> Result<Part> {
         match s.string() {
-            Ok(ref sx) => match &sx[..] {
-                "hide" => Ok(Part::Hide),
-                x => str_error(format!("unknown part in element: {}", x))
-            },
+            Ok(ref sx) => {
+                match &sx[..] {
+                    "hide" => Ok(Part::Hide),
+                    x => str_error(format!("unknown part in element: {}", x)),
+                }
+            }
             _ => {
                 let name = &try!(s.list_name())[..];
                 match name {
@@ -232,7 +237,9 @@ impl FromSexp for Result<Part> {
                     "layers" => wrap(s, Result::from_sexp, Part::Layers),
                     "width" => parse_part_float(s, Part::Width),
                     "angle" => parse_part_float(s, Part::Angle),
-                    "start" | "end" | "size" | "center" | "rect_delta" => wrap(s, Result::from_sexp, Part::Xy),
+                    "start" | "end" | "size" | "center" | "rect_delta" => {
+                        wrap(s, Result::from_sexp, Part::Xy)
+                    }
                     "pts" => wrap(s, Result::from_sexp, Part::Pts),
                     "thickness" => parse_part_float(s, Part::Thickness),
                     "net" => wrap(s, Result::from_sexp, Part::Net),
@@ -240,11 +247,11 @@ impl FromSexp for Result<Part> {
                     "solder_paste_margin" => parse_part_float(s, Part::SolderPasteMargin),
                     "solder_mask_margin" => parse_part_float(s, Part::SolderMaskMargin),
                     "clearance" => parse_part_float(s, Part::Clearance),
-                    x => str_error(format!("unknown part {}", x))
+                    x => str_error(format!("unknown part {}", x)),
                 }
             }
         }
-    }        
+    }
 }
 
 fn parse_parts(v: &[Sexp]) -> Result<Vec<Part>> {
@@ -256,14 +263,14 @@ fn parse_parts(v: &[Sexp]) -> Result<Vec<Part>> {
     Ok(res)
 }
 
-fn parse_string_element(s:&Sexp) -> Result<String> {
+fn parse_string_element(s: &Sexp) -> Result<String> {
     let name = try!(s.list_name());
     let v = try!(s.slice_atom_num(&name, 1));
     let s = try!(v[0].string());
     Ok(s.clone())
 }
 
-fn parse_float_element(s:&Sexp) -> Result<f64> {
+fn parse_float_element(s: &Sexp) -> Result<f64> {
     let name = try!(s.list_name());
     let v = try!(s.slice_atom_num(&name, 1));
     let f = try!(v[0].f());
@@ -271,7 +278,7 @@ fn parse_float_element(s:&Sexp) -> Result<f64> {
 }
 
 impl FromSexp for Result<FpText> {
-    fn from_sexp(s:&Sexp) -> Result<FpText> {
+    fn from_sexp(s: &Sexp) -> Result<FpText> {
         let v = try!(s.slice_atom("fp_text"));
         let name = try!(v[0].string());
         let value = try!(v[1].string());
@@ -279,21 +286,11 @@ impl FromSexp for Result<FpText> {
         let mut fp = FpText::new(name.clone(), value.clone());
         for part in &parts[..] {
             match *part {
-                Part::At(ref at) => {
-                    fp.at.clone_from(at)
-                },
-                Part::Layer(ref layer) => {
-                    fp.set_layer(layer)
-                }
-                Part::Hide => {
-                    fp.hide = true
-                },
-                Part::Effects(ref effects) => {
-                    fp.set_effects(effects)
-                }
-                ref x => {
-                    return str_error(format!("fp_text: unknown {:?}", x))
-                }
+                Part::At(ref at) => fp.at.clone_from(at),
+                Part::Layer(ref layer) => fp.set_layer(layer),
+                Part::Hide => fp.hide = true,
+                Part::Effects(ref effects) => fp.set_effects(effects),
+                ref x => return str_error(format!("fp_text: unknown {:?}", x)),
             }
         }
         Ok(fp)
@@ -301,10 +298,10 @@ impl FromSexp for Result<FpText> {
 }
 
 impl FromSexp for Result<Pad> {
-    fn from_sexp(s:&Sexp) -> Result<Pad> {
+    fn from_sexp(s: &Sexp) -> Result<Pad> {
         let v = try!(s.slice_atom("pad"));
         if v.len() < 3 {
-            return str_error("not enough elements in pad".to_string())
+            return str_error("not enough elements in pad".to_string());
         }
         let name = try!(v[0].string()).clone();
         let t = try!(v[1].string());
@@ -312,7 +309,7 @@ impl FromSexp for Result<Pad> {
         let shape = try!(v[2].string());
         let shape = try!(PadShape::from_string(&shape));
         let mut pad = Pad::new(name, t, shape);
-        //println!("{}", pad);
+        // println!("{}", pad);
         let parts = try!(parse_parts(&v[3..]));
         for part in parts.into_iter() {
             match part {
@@ -333,7 +330,7 @@ impl FromSexp for Result<Pad> {
 }
 
 impl FromSexp for Result<FpPoly> {
-    fn from_sexp(s:&Sexp) -> Result<FpPoly> {
+    fn from_sexp(s: &Sexp) -> Result<FpPoly> {
         let v = try!(s.slice_atom("fp_poly"));
         let mut fp_poly = FpPoly::default();
         let parts = try!(parse_parts(&v));
@@ -344,13 +341,13 @@ impl FromSexp for Result<FpPoly> {
                 Part::Layer(ref layer) => fp_poly.layer.clone_from(layer),
                 ref x => println!("fp_poly: ignoring {:?}", x),
             }
-        } 
+        }
         Ok(fp_poly)
     }
 }
 
 impl FromSexp for Result<FpLine> {
-    fn from_sexp(s:&Sexp) -> Result<FpLine> {
+    fn from_sexp(s: &Sexp) -> Result<FpLine> {
         let v = try!(s.slice_atom("fp_line"));
         let mut fp_line = FpLine::default();
         let parts = try!(parse_parts(&v));
@@ -368,7 +365,7 @@ impl FromSexp for Result<FpLine> {
 }
 
 impl FromSexp for Result<FpCircle> {
-    fn from_sexp(s:&Sexp) -> Result<FpCircle> {
+    fn from_sexp(s: &Sexp) -> Result<FpCircle> {
         let v = try!(s.slice_atom("fp_circle"));
         let mut fp_circle = FpCircle::default();
         let parts = try!(parse_parts(&v));
@@ -386,7 +383,7 @@ impl FromSexp for Result<FpCircle> {
 }
 
 impl FromSexp for Result<FpArc> {
-    fn from_sexp(s:&Sexp) -> Result<FpArc> {
+    fn from_sexp(s: &Sexp) -> Result<FpArc> {
         let v = try!(s.slice_atom("fp_arc"));
         let mut fp_arc = FpArc::default();
         let parts = try!(parse_parts(&v));
@@ -405,34 +402,40 @@ impl FromSexp for Result<FpArc> {
 }
 
 
-fn parse_sublist<X>(s:&Sexp, name:&'static str) -> Result<X>
-    where Result<X>:FromSexp {
+fn parse_sublist<X>(s: &Sexp, name: &'static str) -> Result<X>
+    where Result<X>: FromSexp
+{
     let x = &try!(s.slice_atom_num(name, 1))[0];
     Result::from_sexp(x)
 }
 
 
 impl FromSexp for Result<Model> {
-    fn from_sexp(s:&Sexp) -> Result<Model> {
+    fn from_sexp(s: &Sexp) -> Result<Model> {
         let v = try!(s.slice_atom_num("model", 4));
         let name = try!(v[0].string()).clone();
         let at = try!(parse_sublist(&v[1], "at"));
         let scale = try!(parse_sublist(&v[2], "scale"));
         let rotate = try!(parse_sublist(&v[3], "rotate"));
-        let m = Model {name:name, at:at, scale:scale, rotate:rotate};
+        let m = Model {
+            name: name,
+            at: at,
+            scale: scale,
+            rotate: rotate,
+        };
         Ok(m)
     }
 }
 
 impl FromSexp for Result<Element> {
-    fn from_sexp(s:&Sexp) -> Result<Element> {
+    fn from_sexp(s: &Sexp) -> Result<Element> {
         match *s {
             Sexp::String(ref s) => {
                 match &s[..] {
                     "locked" => Ok(Element::Locked),
-                    _ => str_error(format!("unknown element in module: {}", s))
+                    _ => str_error(format!("unknown element in module: {}", s)),
                 }
-            },
+            }
             Sexp::List(_) => {
                 let name = try!(s.list_name());
                 match &name[..] {
@@ -452,16 +455,16 @@ impl FromSexp for Result<Element> {
                     "path" => wrap(s, parse_string_element, Element::Path),
                     "at" => wrap(s, Result::from_sexp, Element::At),
                     "model" => wrap(s, Result::from_sexp, Element::Model),
-                    _ => str_error(format!("unknown element in module: {}", name))
+                    _ => str_error(format!("unknown element in module: {}", name)),
                 }
-            },
+            }
             Sexp::Empty => unreachable!(),
         }
     }
 }
 
 impl FromSexp for Result<Module> {
-    fn from_sexp(s:&Sexp) -> Result<Module> {
+    fn from_sexp(s: &Sexp) -> Result<Module> {
         let v = try!(s.slice_atom("module"));
         if v.len() < 1 {
             return str_error("no name in module".to_string());
@@ -475,5 +478,3 @@ impl FromSexp for Result<Module> {
         Ok(module)
     }
 }
-
-

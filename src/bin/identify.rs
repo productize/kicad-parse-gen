@@ -2,11 +2,10 @@
 
 extern crate kicad_parse_gen;
 
-fn main() { 
+fn main() {
     let mut args = std::env::args();
     args.next();
     let name = args.next().unwrap();
     let f = kicad_parse_gen::read_kicad_file(&name, kicad_parse_gen::Expected::Any).unwrap();
     println!("found: {}", f);
 }
-

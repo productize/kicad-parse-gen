@@ -21,47 +21,47 @@ use parse_split_quote_aware_n;
 #[derive(Debug,Default)]
 pub struct Schematic {
     /// filename of the schematic
-    pub filename:Option<PathBuf>,
+    pub filename: Option<PathBuf>,
     /// list of libraries referenced
-    pub libraries:Vec<String>,
+    pub libraries: Vec<String>,
     /// description
-    pub description:Description,
+    pub description: Description,
     /// elements contained in the schematic
-    pub elements:Vec<Element>,
+    pub elements: Vec<Element>,
     /// nested sheets contained in the schematic
-    pub sheets:Vec<Sheet>,
+    pub sheets: Vec<Sheet>,
 }
 
 impl Schematic {
-    fn add_library(&mut self, s:String) {
+    fn add_library(&mut self, s: String) {
         self.libraries.push(s)
     }
 
-    fn set_description(&mut self, d:Description) {
+    fn set_description(&mut self, d: Description) {
         self.description = d;
     }
 
-    fn append_component(&mut self, c:Component) {
+    fn append_component(&mut self, c: Component) {
         self.elements.push(Element::Component(c))
     }
 
-    fn append_sheet(&mut self, c:Sheet) {
+    fn append_sheet(&mut self, c: Sheet) {
         self.sheets.push(c)
     }
-    
-    fn append_other(&mut self, c:String) {
+
+    fn append_other(&mut self, c: String) {
         self.elements.push(Element::Other(c))
     }
 
     /// modify the component by name
-    pub fn modify_component<F>(&mut self, reference:&str, fun:F)
-        where F:Fn(&mut Component) -> ()
+    pub fn modify_component<F>(&mut self, reference: &str, fun: F)
+        where F: Fn(&mut Component) -> ()
     {
         for ref mut x in &mut self.elements[..] {
             match **x {
                 Element::Component(ref mut c) => {
                     if c.reference == *reference {
-                        return fun(c)
+                        return fun(c);
                     }
                 }
                 Element::Other(_) => (),
@@ -70,21 +70,19 @@ impl Schematic {
     }
 
     /// modify all components
-    pub fn modify_components<F>(&mut self, fun:F)
-        where F:Fn(&mut Component) -> ()
+    pub fn modify_components<F>(&mut self, fun: F)
+        where F: Fn(&mut Component) -> ()
     {
         for ref mut x in &mut self.elements[..] {
             match **x {
-                Element::Component(ref mut c) => {
-                    fun(c)
-                }
+                Element::Component(ref mut c) => fun(c),
                 Element::Other(_) => (),
             }
         }
     }
 
     /// collect all components in a list
-    pub fn collect_components(&self, v:&mut Vec<Component>) {
+    pub fn collect_components(&self, v: &mut Vec<Component>) {
         for x in &self.elements {
             match *x {
                 Element::Component(ref c) => v.push(c.clone()),
@@ -106,12 +104,12 @@ impl Schematic {
     }
 
     /// get a component by reference
-    pub fn component_by_reference(&self, reference:&str) -> Result<Component> {
+    pub fn component_by_reference(&self, reference: &str) -> Result<Component> {
         for x in &self.elements {
             match *x {
                 Element::Component(ref c) => {
                     if c.reference == *reference {
-                        return Ok(c.clone())
+                        return Ok(c.clone());
                     }
                 }
                 Element::Other(_) => (),
@@ -120,7 +118,7 @@ impl Schematic {
         for sheet in &self.sheets {
             let schematic = try!(parse_file_for_sheet(&self, sheet));
             if let Ok(c) = schematic.component_by_reference(reference) {
-                return Ok(c)
+                return Ok(c);
             }
         }
         str_error(format!("could not find component {} in schematic", reference))
@@ -130,7 +128,6 @@ impl Schematic {
     pub fn increment_sheet_count(&mut self) {
         self.description.sheet_count += 1
     }
-    
 }
 
 impl fmt::Display for Schematic {
@@ -148,7 +145,7 @@ impl fmt::Display for Schematic {
         for v in &self.sheets[..] {
             try!(write!(f, "{}", v))
         }
-        try!(writeln!(f,"$EndSCHEMATC"));
+        try!(writeln!(f, "$EndSCHEMATC"));
         Ok(())
     }
 }
@@ -167,18 +164,18 @@ macro_rules! assume_line {
 
 #[derive(Debug)]
 struct ParseState {
-    i:usize,
-    v:Vec<String>,
+    i: usize,
+    v: Vec<String>,
 }
 
 impl ParseState {
-    fn new(v2:Vec<&str>) -> ParseState {
+    fn new(v2: Vec<&str>) -> ParseState {
         ParseState {
-            i:0,
-            v:v2.iter().map(|x| String::from(*x)).collect(),
+            i: 0,
+            v: v2.iter().map(|x| String::from(*x)).collect(),
         }
     }
-    
+
     fn here(&self) -> String {
         (self.v[self.i]).clone()
     }
@@ -191,67 +188,66 @@ impl ParseState {
         self.i >= self.v.len()
     }
 }
-/*
-$Descr A4 11693 8268
-encoding utf-8
-Sheet 1 1
-Title "Normal"
-Date "Tue 19 May 2015"
-Rev ""
-Comp ""
-Comment1 ""
-Comment2 ""
-Comment3 ""
-Comment4 ""
-$EndDesc
- */
+// $Descr A4 11693 8268
+// encoding utf-8
+// Sheet 1 1
+// Title "Normal"
+// Date "Tue 19 May 2015"
+// Rev ""
+// Comp ""
+// Comment1 ""
+// Comment2 ""
+// Comment3 ""
+// Comment4 ""
+// $EndDesc
+//
 /// description of a schematic
 #[derive(Debug,Clone)]
 pub struct Description {
     /// size
-    pub size:String,
+    pub size: String,
     /// dimension in X
-    pub dimx:i64,
+    pub dimx: i64,
     /// dimension in Y
-    pub dimy:i64,
+    pub dimy: i64,
     /// title
-    pub title:String,
+    pub title: String,
     /// date
-    pub date:String,
+    pub date: String,
     /// revision
-    pub rev:String,
+    pub rev: String,
     /// computer reference
-    pub comp:String,
+    pub comp: String,
     /// comment1
-    pub comment1:String,
+    pub comment1: String,
     /// comment2
-    pub comment2:String,
+    pub comment2: String,
     /// comment3
-    pub comment3:String,
+    pub comment3: String,
     /// comment4
-    pub comment4:String,
+    pub comment4: String,
     /// sheet number
-    pub sheet:i64,
+    pub sheet: i64,
     /// number of sheets in total
-    pub sheet_count:i64,
+    pub sheet_count: i64,
 }
 
 impl Default for Description {
     fn default() -> Description {
         Description {
-            size:String::from(""),
-            dimx:0,
-            dimy:0,
-            title:String::from("Normal"),
-            date:String::from("Tue 19 May 2015"),
-            rev:String::from(""),
-            comp:String::from(""),
-            comment1:String::from(""),
-            comment2:String::from(""),
-            comment3:String::from(""),
-            comment4:String::from(""),
-            sheet:1,
-            sheet_count:1,
+            size: String::from(""),
+            dimx: 0,
+            dimy: 0,
+            title: String::from("Normal"),
+            date: String::from("Tue 19 May 2015"),
+            rev: String::from(""),
+            comp: String::from(""),
+            comment1: String::from(""),
+            comment2: String::from(""),
+            comment3: String::from(""),
+            comment4: String::from(""),
+            sheet: 1,
+            sheet_count: 1,
         }
     }
 }
@@ -291,89 +287,94 @@ impl fmt::Display for Element {
     }
 }
 
-// component fields: 
+// component fields:
 // reference = 0. Value = 1. FootPrint = 2. UserDocLink = 3.
 /// a schematic component
 #[derive(Debug, RustcEncodable, RustcDecodable, Clone)]
 pub struct Component {
     /// name
-    pub name:String,
+    pub name: String,
     /// reference
-    pub reference:String,
+    pub reference: String,
     /// u
-    pub u:String, // TODO
+    pub u: String, // TODO
     /// X coordinate
-    pub x:i64, // P
+    pub x: i64, // P
     /// Y coordinate
-    pub y:i64, // P
+    pub y: i64, // P
     /// ARPath
-    pub ar_path:Vec<String>,
+    pub ar_path: Vec<String>,
     /// component fields
-    pub fields:Vec<ComponentField>,
+    pub fields: Vec<ComponentField>,
     /// rotation
-    pub rotation:ComponentRotation,
+    pub rotation: ComponentRotation,
 }
 
 impl Default for Component {
     fn default() -> Component {
         Component {
-            name:String::from("DUMMY"),
-            reference:String::from("U1"),
-            u:String::from(""),
-            x:0,
-            y:0,
-            ar_path:vec![],
-            fields:vec![],
-            rotation:ComponentRotation {a:0,b:0,c:0,d:0},
+            name: String::from("DUMMY"),
+            reference: String::from("U1"),
+            u: String::from(""),
+            x: 0,
+            y: 0,
+            ar_path: vec![],
+            fields: vec![],
+            rotation: ComponentRotation {
+                a: 0,
+                b: 0,
+                c: 0,
+                d: 0,
+            },
         }
     }
 }
 
 impl Component {
     /// set the name
-    fn set_name(&mut self, s:String) {
+    fn set_name(&mut self, s: String) {
         self.name = s;
     }
     /// set the reference
-    fn set_reference(&mut self, s:String) {
+    fn set_reference(&mut self, s: String) {
         self.reference = s;
     }
     /// add a component field
-    fn add_field(&mut self, f:ComponentField) {
+    fn add_field(&mut self, f: ComponentField) {
         self.fields.push(f)
     }
 
     /// get a component field value by name
-    pub fn get_field_value(&self, name:&str) -> Option<String> {
+    pub fn get_field_value(&self, name: &str) -> Option<String> {
         for field in &self.fields[..] {
             if field.name == *name {
-                return Some(field.value.clone())
+                return Some(field.value.clone());
             }
         }
         None
     }
     /// get a component field by name
-    pub fn get_field(&self, name:&str) -> Option<ComponentField> {
+    pub fn get_field(&self, name: &str) -> Option<ComponentField> {
         for field in &self.fields[..] {
             if field.name == *name {
-                return Some(field.clone())
+                return Some(field.clone());
             }
         }
         None
     }
     /// get the first free component field number
     pub fn get_available_field_num(&self) -> i64 {
-        let mut i:i64 = 0;
+        let mut i: i64 = 0;
         for field in &self.fields[..] {
             if field.i > i {
                 i = field.i
             }
         }
-        i+1
+        i + 1
     }
 
     /// get the component fields as a hashmap
-    pub fn fields_hash(&self) -> HashMap<String,String> {
+    pub fn fields_hash(&self) -> HashMap<String, String> {
         let mut h = HashMap::new();
         for field in &self.fields[..] {
             h.insert(field.name.clone(), field.value.clone());
@@ -382,7 +383,7 @@ impl Component {
     }
 
     /// update the reference of a component
-    pub fn update_reference(&mut self, r:String) {
+    pub fn update_reference(&mut self, r: String) {
         self.reference = r;
         for field in &mut self.fields[..] {
             if field.i == 0 {
@@ -392,7 +393,7 @@ impl Component {
     }
 
     /// update the name of a component
-    pub fn update_name(&mut self, n:String) {
+    pub fn update_name(&mut self, n: String) {
         self.name = n;
         for field in &mut self.fields[..] {
             if field.i == 1 {
@@ -402,7 +403,7 @@ impl Component {
     }
 
     /// update name and value of a component field
-    pub fn update_field(&mut self, name:&str, value:&str) {
+    pub fn update_field(&mut self, name: &str, value: &str) {
         for field in &mut self.fields {
             if field.name == *name {
                 field.value.clear();
@@ -416,13 +417,16 @@ impl Component {
 
     /// add a new component field based on an existing one but
     /// with a new name and value
-    pub fn add_new_field(&mut self, template:&ComponentField, name:&str, value:&str) {
+    pub fn add_new_field(&mut self, template: &ComponentField, name: &str, value: &str) {
         let i = self.get_available_field_num();
-        let mut c = ComponentField::new_from(i, name.to_string(), value.to_string(), template.x, template.y);
+        let mut c = ComponentField::new_from(i,
+                                             name.to_string(),
+                                             value.to_string(),
+                                             template.x,
+                                             template.y);
         c.visible = false;
         self.fields.push(c)
     }
-    
 }
 
 impl fmt::Display for Component {
@@ -438,36 +442,41 @@ impl fmt::Display for Component {
             try!(writeln!(f, "{}", x))
         }
         try!(writeln!(f, "\t1 {} {}", self.x, self.y));
-        try!(writeln!(f, "\t{} {} {} {}", self.rotation.a, self.rotation.b, self.rotation.c, self.rotation.d));
+        try!(writeln!(f,
+                      "\t{} {} {} {}",
+                      self.rotation.a,
+                      self.rotation.b,
+                      self.rotation.c,
+                      self.rotation.d));
         writeln!(f, "$EndComp")
     }
 }
 
 /// a component rotation
 #[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
-pub struct ComponentRotation  {
-    a:i64,
-    b:i64,
-    c:i64,
-    d:i64
+pub struct ComponentRotation {
+    a: i64,
+    b: i64,
+    c: i64,
+    d: i64,
 }
 
 /// a component orientation
 #[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub enum Orientation {
     Horizontal,
-    Vertical
+    Vertical,
 }
 
 impl Orientation {
     /// create a new component orientation from a char
-    pub fn new(c:char) -> Result<Orientation> {
+    pub fn new(c: char) -> Result<Orientation> {
         match c {
             'H' => Ok(Orientation::Horizontal),
             'V' => Ok(Orientation::Vertical),
-            _ => str_error(format!("unknown orientation {}", c))
+            _ => str_error(format!("unknown orientation {}", c)),
         }
-        
+
     }
 }
 
@@ -505,7 +514,7 @@ impl Justify {
             'L' => Ok(Justify::Left),
             'B' => Ok(Justify::Bottom),
             'T' => Ok(Justify::Top),
-            _ => str_error(format!("unexpected justify: {}", c))
+            _ => str_error(format!("unexpected justify: {}", c)),
         }
     }
 }
@@ -526,24 +535,24 @@ impl fmt::Display for Justify {
 /// a component field
 #[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub struct ComponentField {
-    pub i:i64,
-    pub value:String,
-    pub orientation:Orientation,
-    pub x:f64,
-    pub y:f64,
-    pub size:i64,
-    pub visible:bool,
-    pub hjustify:Justify,
-    pub vjustify:Justify,
-    pub italic:bool,
-    pub bold:bool,
-    pub name:String,
+    pub i: i64,
+    pub value: String,
+    pub orientation: Orientation,
+    pub x: f64,
+    pub y: f64,
+    pub size: i64,
+    pub visible: bool,
+    pub hjustify: Justify,
+    pub vjustify: Justify,
+    pub italic: bool,
+    pub bold: bool,
+    pub name: String,
 }
 
 impl ComponentField {
-    fn new(p:&ParseState, v:&[String]) -> Result<ComponentField> {
+    fn new(p: &ParseState, v: &[String]) -> Result<ComponentField> {
         if v.len() != 10 && v.len() != 11 {
-            return str_error(format!("expecting 10 or 11 parts got {} in {}", v.len(), p.here()))
+            return str_error(format!("expecting 10 or 11 parts got {} in {}", v.len(), p.here()));
         }
         let i = try!(i64_from_string(p, &v[1]));
         let name = if v.len() == 11 {
@@ -558,36 +567,36 @@ impl ComponentField {
             }
         };
         let c = ComponentField {
-            i:i,
-            value:v[2].clone(),
-            orientation:try!(Orientation::new(char_at(&v[3],0))),
-            x:try!(f64_from_string(p, &v[4])),
-            y:try!(f64_from_string(p, &v[5])),
-            size:try!(i64_from_string(p, &v[6])),
-            visible:try!(bool_from_string(&v[7],"0000","0001")),
-            hjustify:try!(Justify::new(char_at(&v[8], 0))),
-            vjustify:try!(Justify::new(char_at(&v[9], 0))),
-            italic:try!(bool_from(char_at(&v[9], 1), 'I', 'N')),
-            bold:try!(bool_from(char_at(&v[9], 2), 'B', 'N')),
-            name:name,
+            i: i,
+            value: v[2].clone(),
+            orientation: try!(Orientation::new(char_at(&v[3], 0))),
+            x: try!(f64_from_string(p, &v[4])),
+            y: try!(f64_from_string(p, &v[5])),
+            size: try!(i64_from_string(p, &v[6])),
+            visible: try!(bool_from_string(&v[7], "0000", "0001")),
+            hjustify: try!(Justify::new(char_at(&v[8], 0))),
+            vjustify: try!(Justify::new(char_at(&v[9], 0))),
+            italic: try!(bool_from(char_at(&v[9], 1), 'I', 'N')),
+            bold: try!(bool_from(char_at(&v[9], 2), 'B', 'N')),
+            name: name,
         };
         Ok(c)
     }
 
-    pub fn new_from(i:i64, name:String, value:String, x:f64, y:f64) -> ComponentField {
+    pub fn new_from(i: i64, name: String, value: String, x: f64, y: f64) -> ComponentField {
         ComponentField {
-            i:i,
-            name:name,
-            value:value,
-            orientation:Orientation::Horizontal,
-            hjustify:Justify::Center,
-            vjustify:Justify::Center,
-            italic:false,
-            bold:false,
-            visible:false,
-            size:60,
-            x:x,
-            y:y,
+            i: i,
+            name: name,
+            value: value,
+            orientation: Orientation::Horizontal,
+            hjustify: Justify::Center,
+            vjustify: Justify::Center,
+            italic: false,
+            bold: false,
+            visible: false,
+            size: 60,
+            x: x,
+            y: y,
         }
     }
 }
@@ -596,10 +605,28 @@ impl fmt::Display for ComponentField {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(write!(f, "F {} \"{}\" {} ", self.i, self.value, self.orientation));
         try!(write!(f, "{} {} {} ", self.x, self.y, self.size));
-        try!(write!(f, "{} ", if self.visible { "0000" } else { "0001" }));
+        try!(write!(f,
+                    "{} ",
+                    if self.visible {
+                        "0000"
+                    } else {
+                        "0001"
+                    }));
         try!(write!(f, "{} {}", self.hjustify, self.vjustify));
-        try!(write!(f, "{}", if self.italic { 'I' } else { 'N' }));
-        try!(write!(f, "{}", if self.bold { 'B' } else { 'N' }));
+        try!(write!(f,
+                    "{}",
+                    if self.italic {
+                        'I'
+                    } else {
+                        'N'
+                    }));
+        try!(write!(f,
+                    "{}",
+                    if self.bold {
+                        'B'
+                    } else {
+                        'N'
+                    }));
         if self.i > 3 {
             try!(write!(f, " \"{}\"", self.name))
         };
@@ -609,24 +636,31 @@ impl fmt::Display for ComponentField {
 
 #[derive(Debug,Clone)]
 pub struct Sheet {
-    pub x:i64,
-    pub y:i64,
-    pub dimx:i64,
-    pub dimy:i64,
-    pub unique:String, // U timestamp field
-    pub name:String, // F0
-    pub name_size:i64,
-    pub filename:String, // F1
-    pub filename_size:i64,
-    pub labels:Vec<SheetLabel>, // starting at F2
+    pub x: i64,
+    pub y: i64,
+    pub dimx: i64,
+    pub dimy: i64,
+    pub unique: String, // U timestamp field
+    pub name: String, // F0
+    pub name_size: i64,
+    pub filename: String, // F1
+    pub filename_size: i64,
+    pub labels: Vec<SheetLabel>, // starting at F2
 }
 
 impl Default for Sheet {
     fn default() -> Sheet {
-        Sheet { x:0, y:0, dimx:0, dimy:0, unique:String::from(""),
-                name:String::from("DUMMY"), name_size:60,
-                filename:String::from(""), filename_size:60,
-                labels:vec![],
+        Sheet {
+            x: 0,
+            y: 0,
+            dimx: 0,
+            dimy: 0,
+            unique: String::from(""),
+            name: String::from("DUMMY"),
+            name_size: 60,
+            filename: String::from(""),
+            filename_size: 60,
+            labels: vec![],
         }
     }
 }
@@ -652,30 +686,48 @@ impl fmt::Display for Sheet {
 // side = R (right) , L (left)., T (tpo) , B (bottom)
 #[derive(Debug,Clone)]
 pub struct SheetLabel {
-    pub name:String,
-    pub form:LabelForm,
-    pub side:LabelSide,
-    pub x:i64,
-    pub y:i64,
-    pub size:i64,
+    pub name: String,
+    pub form: LabelForm,
+    pub side: LabelSide,
+    pub x: i64,
+    pub y: i64,
+    pub size: i64,
 }
 
 impl Default for SheetLabel {
     fn default() -> SheetLabel {
-        SheetLabel { name:String::from(""), form:LabelForm::Input,
-                     side:LabelSide::Left, x:0, y:0, size:60,
+        SheetLabel {
+            name: String::from(""),
+            form: LabelForm::Input,
+            side: LabelSide::Left,
+            x: 0,
+            y: 0,
+            size: 60,
         }
     }
 }
 
 impl fmt::Display for SheetLabel {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        write!(f, "\"{}\" {} {} {} {} {}", self.name, self.form, self.side, self.x, self.y, self.size)
+        write!(f,
+               "\"{}\" {} {} {} {} {}",
+               self.name,
+               self.form,
+               self.side,
+               self.x,
+               self.y,
+               self.size)
     }
 }
 
 #[derive(Debug,Clone)]
-pub enum LabelForm { Input, Output, BiDi, TriState, Unspecified }
+pub enum LabelForm {
+    Input,
+    Output,
+    BiDi,
+    TriState,
+    Unspecified,
+}
 
 impl fmt::Display for LabelForm {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
@@ -691,7 +743,12 @@ impl fmt::Display for LabelForm {
 }
 
 #[derive(Debug,Clone)]
-pub enum LabelSide { Left, Right, Top, Bottom }
+pub enum LabelSide {
+    Left,
+    Right,
+    Top,
+    Bottom,
+}
 
 impl fmt::Display for LabelSide {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
@@ -705,64 +762,64 @@ impl fmt::Display for LabelSide {
     }
 }
 
-fn char_at(s:&str, p:usize) -> char {
-    let v:Vec<char> = s.chars().collect();
+fn char_at(s: &str, p: usize) -> char {
+    let v: Vec<char> = s.chars().collect();
     v[..][p]
 }
 
 
-fn assume_string(e:&'static str, s:&str) -> Result<()> {
+fn assume_string(e: &'static str, s: &str) -> Result<()> {
     if *e != *s {
-        return str_error(format!("expecting: {}, actually: {}", e, s))
+        return str_error(format!("expecting: {}, actually: {}", e, s));
     }
     Ok(())
 }
 
-fn i64_from_string(p:&ParseState, s:&str) -> Result<i64> {
+fn i64_from_string(p: &ParseState, s: &str) -> Result<i64> {
     match i64::from_str(&s[..]) {
         Ok(i) => Ok(i),
-        _ => str_error(format!("int parse error in {}; line: {}", s, p.here()))
+        _ => str_error(format!("int parse error in {}; line: {}", s, p.here())),
     }
 }
 
-fn f64_from_string(p:&ParseState, s:&str) -> Result<f64> {
+fn f64_from_string(p: &ParseState, s: &str) -> Result<f64> {
     match f64::from_str(s) {
         Ok(i) => Ok(i),
-        _ => str_error(format!("float parse error in {}; line: {}", s, p.here()))
+        _ => str_error(format!("float parse error in {}; line: {}", s, p.here())),
     }
 }
 
-fn bool_from_string(s:&str, t:&'static str, f:&'static str) -> Result<bool> {
+fn bool_from_string(s: &str, t: &'static str, f: &'static str) -> Result<bool> {
     if &s[..] == t {
-        return Ok(true)
+        return Ok(true);
     }
     if &s[..] == f {
-        return Ok(false)
+        return Ok(false);
     }
     str_error(format!("unknown boolean {}, expected {} or {}", s, t, f))
 }
 
-fn bool_from<T: PartialEq + fmt::Display>(i:T, t:T, f:T) -> Result<bool> {
+fn bool_from<T: PartialEq + fmt::Display>(i: T, t: T, f: T) -> Result<bool> {
     if i == t {
-        return Ok(true)
+        return Ok(true);
     }
     if i == f {
-        return Ok(false)
+        return Ok(false);
     }
     str_error(format!("unknown boolean {}, expected {} or {}", i, t, f))
 }
 
-fn word_and_qstring<F>(d:&mut Description, name:&'static str, s:&str, setter:F) -> Result<()>
-    where F:Fn(&mut Description, String) -> ()
+fn word_and_qstring<F>(d: &mut Description, name: &'static str, s: &str, setter: F) -> Result<()>
+    where F: Fn(&mut Description, String) -> ()
 {
     let v = try!(parse_split_quote_aware_n(2, s));
     try!(assume_string(name, &v[0]));
     setter(d, v[1].clone());
     Ok(())
 }
-    
-    
-fn parse_description(p:&mut ParseState) -> Result<Description> {
+
+
+fn parse_description(p: &mut ParseState) -> Result<Description> {
     let mut d = Description::default();
     let v = try!(parse_split_quote_aware_n(4, &p.here()));
     d.size = v[1].clone();
@@ -771,7 +828,9 @@ fn parse_description(p:&mut ParseState) -> Result<Description> {
     p.next(); // $Descr
     p.next(); // encoding
     let v = try!(parse_split_quote_aware_n(3, &p.here()));
-    if v[0] != "Sheet" { return str_error(String::from("Expecting 'Sheet'")) };
+    if v[0] != "Sheet" {
+        return str_error(String::from("Expecting 'Sheet'"));
+    };
     d.sheet = try!(i64_from_string(p, &v[1]));
     d.sheet_count = try!(i64_from_string(p, &v[2]));
     p.next(); // Sheet
@@ -795,58 +854,63 @@ fn parse_description(p:&mut ParseState) -> Result<Description> {
     Ok(d)
 }
 
-fn parse_component_l(p:&mut ParseState, d:&mut Component) -> Result<()> {
+fn parse_component_l(p: &mut ParseState, d: &mut Component) -> Result<()> {
     let v = try!(parse_split_quote_aware_n(3, &p.here()));
     d.set_name(v[1].clone());
     d.set_reference(v[2].clone());
     Ok(())
 }
 
-fn parse_component_u(p:&mut ParseState, d:&mut Component) -> Result<()> {
+fn parse_component_u(p: &mut ParseState, d: &mut Component) -> Result<()> {
     d.u = p.here();
     Ok(())
 }
-        
-fn parse_component_ar(p:&mut ParseState, d:&mut Component) -> Result<()> {
+
+fn parse_component_ar(p: &mut ParseState, d: &mut Component) -> Result<()> {
     d.ar_path.push(p.here());
     Ok(())
 }
 
-fn parse_component_p(p:&mut ParseState, d:&mut Component) -> Result<()> {
+fn parse_component_p(p: &mut ParseState, d: &mut Component) -> Result<()> {
     let v = try!(parse_split_quote_aware_n(3, &p.here()));
     d.x = try!(i64_from_string(p, &v[1]));
     d.y = try!(i64_from_string(p, &v[2]));
     Ok(())
 }
 
-fn parse_component_f(p:&mut ParseState, d:&mut Component) -> Result<()> {
-    //println!("{}", p.here());
+fn parse_component_f(p: &mut ParseState, d: &mut Component) -> Result<()> {
+    // println!("{}", p.here());
     let v = parse_split_quote_aware(&p.here());
-    //for i in &v[..] {
+    // for i in &v[..] {
     //    println!("'{}'", i)
-    //}
+    // }
     let f = try!(ComponentField::new(p, &v));
     d.add_field(f);
     Ok(())
 }
 
-fn parse_component_rotation(p:&mut ParseState, d:&mut Component) -> Result<()> {
+fn parse_component_rotation(p: &mut ParseState, d: &mut Component) -> Result<()> {
     p.next(); // skip redundant position line
     let s = p.here();
-    let v:Vec<&str> = s.split_whitespace().collect();
+    let v: Vec<&str> = s.split_whitespace().collect();
     if v.len() != 4 {
-        return str_error(format!("expecting 4 elements in {}", s))
+        return str_error(format!("expecting 4 elements in {}", s));
     }
     let a1 = try!(i64_from_string(p, &String::from(v[0])));
     let b1 = try!(i64_from_string(p, &String::from(v[1])));
     let c1 = try!(i64_from_string(p, &String::from(v[2])));
     let d1 = try!(i64_from_string(p, &String::from(v[3])));
-    let rot = ComponentRotation { a:a1, b:b1, c:c1, d:d1 };
+    let rot = ComponentRotation {
+        a: a1,
+        b: b1,
+        c: c1,
+        d: d1,
+    };
     d.rotation = rot;
     Ok(())
 }
 
-fn parse_component(p:&mut ParseState) -> Result<Component> {
+fn parse_component(p: &mut ParseState) -> Result<Component> {
     let mut d = Component::default();
     p.next();
     loop {
@@ -861,7 +925,7 @@ fn parse_component(p:&mut ParseState) -> Result<Component> {
             Some("F") => try!(parse_component_f(p, &mut d)),
             Some("1") | Some("0") => try!(parse_component_rotation(p, &mut d)),
             Some("AR") => try!(parse_component_ar(p, &mut d)),
-            _ => println!("skipping unknown component line {}", s)
+            _ => println!("skipping unknown component line {}", s),
         }
         p.next()
     }
@@ -869,7 +933,7 @@ fn parse_component(p:&mut ParseState) -> Result<Component> {
 }
 
 // S 5250 2300 950  3100
-fn parse_sheet_s(p:&mut ParseState, s:&mut Sheet) -> Result<()> {
+fn parse_sheet_s(p: &mut ParseState, s: &mut Sheet) -> Result<()> {
     let v = try!(parse_split_quote_aware_n(5, &p.here()));
     s.x = try!(i64_from_string(p, &v[1]));
     s.y = try!(i64_from_string(p, &v[2]));
@@ -879,36 +943,36 @@ fn parse_sheet_s(p:&mut ParseState, s:&mut Sheet) -> Result<()> {
 }
 
 // U 5655A9F3
-fn parse_sheet_u(p:&mut ParseState, s:&mut Sheet) -> Result<()> {
+fn parse_sheet_u(p: &mut ParseState, s: &mut Sheet) -> Result<()> {
     let v = try!(parse_split_quote_aware_n(2, &p.here()));
     s.unique = v[1].clone();
     Ok(())
 }
 
-fn parse_label_form(s:&str) -> Result<LabelForm> {
+fn parse_label_form(s: &str) -> Result<LabelForm> {
     match &s[..] {
         "I" => Ok(LabelForm::Input),
         "O" => Ok(LabelForm::Output),
         "B" => Ok(LabelForm::BiDi),
         "T" => Ok(LabelForm::TriState),
         "U" => Ok(LabelForm::Unspecified),
-        _ => str_error(format!("unknown labelform {}", s))
+        _ => str_error(format!("unknown labelform {}", s)),
     }
 }
 
-fn parse_label_side(s:&str) -> Result<LabelSide> {
+fn parse_label_side(s: &str) -> Result<LabelSide> {
     match &s[..] {
         "L" => Ok(LabelSide::Left),
         "R" => Ok(LabelSide::Right),
         "T" => Ok(LabelSide::Top),
         "B" => Ok(LabelSide::Bottom),
-        _ => str_error(format!("unknown labelside {}", s))
+        _ => str_error(format!("unknown labelside {}", s)),
     }
 }
 
 
-// F3 "P0.02/AIN0" I L 5250 2450 60 
-fn parse_sheet_label(p:&ParseState, s:&str) -> Result<SheetLabel> {
+// F3 "P0.02/AIN0" I L 5250 2450 60
+fn parse_sheet_label(p: &ParseState, s: &str) -> Result<SheetLabel> {
     let mut l = SheetLabel::default();
     let v = try!(parse_split_quote_aware_n(7, s));
     l.name = v[1].clone();
@@ -920,8 +984,8 @@ fn parse_sheet_label(p:&ParseState, s:&str) -> Result<SheetLabel> {
     Ok(l)
 }
 
-fn parse_sheet_f(p:&mut ParseState, s:&mut Sheet, f:&str) -> Result<()> {
-    //s.u = p.here();
+fn parse_sheet_f(p: &mut ParseState, s: &mut Sheet, f: &str) -> Result<()> {
+    // s.u = p.here();
     let mut f = String::from(f);
     f.remove(0);
     let i = try!(i64_from_string(p, &f));
@@ -929,13 +993,11 @@ fn parse_sheet_f(p:&mut ParseState, s:&mut Sheet, f:&str) -> Result<()> {
         let name_size = try!(parse_split_quote_aware_n(3, &p.here()));
         s.name = name_size[1].clone();
         s.name_size = try!(i64_from_string(p, &name_size[2]));
-    }
-    else if i == 1 {
+    } else if i == 1 {
         let filename_size = try!(parse_split_quote_aware_n(3, &p.here()));
         s.filename = filename_size[1].clone();
         s.filename_size = try!(i64_from_string(p, &filename_size[2]));
-    }
-    else {
+    } else {
         let label_el = try!(parse_sheet_label(p, &p.here()));
         s.labels.push(label_el)
     }
@@ -943,7 +1005,7 @@ fn parse_sheet_f(p:&mut ParseState, s:&mut Sheet, f:&str) -> Result<()> {
 }
 
 
-fn parse_sheet(p:&mut ParseState) -> Result<Sheet> {
+fn parse_sheet(p: &mut ParseState) -> Result<Sheet> {
     let mut s = Sheet::default();
     p.next();
     loop {
@@ -960,7 +1022,7 @@ fn parse_sheet(p:&mut ParseState) -> Result<Sheet> {
                 } else {
                     println!("skipping unknown sheet line {}", st)
                 }
-            },
+            }
             _ => println!("skipping unknown sheet line {}", st),
         }
         p.next();
@@ -969,18 +1031,18 @@ fn parse_sheet(p:&mut ParseState) -> Result<Sheet> {
 }
 
 
-pub fn parse(filename:Option<PathBuf>, s: &str) -> Result<Schematic> {
+pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
     let mut sch = Schematic::default();
     sch.filename = filename;
-    let v:Vec<&str> = s.lines().collect();
+    let v: Vec<&str> = s.lines().collect();
     let p = &mut ParseState::new(v);
     assume_line!(p, "EESchema Schematic File Version 2");
     while !p.eof() {
         {
-          let s = p.here();
-          if !s.starts_with("LIBS:") {
-              break
-          }
+            let s = p.here();
+            if !s.starts_with("LIBS:") {
+                break;
+            }
             sch.add_library(String::from(&s[5..]));
         }
         p.next();
@@ -993,20 +1055,18 @@ pub fn parse(filename:Option<PathBuf>, s: &str) -> Result<Schematic> {
                 Some("$Descr") => {
                     let d = try!(parse_description(p));
                     sch.set_description(d)
-                },
+                }
                 Some("$Comp") => {
                     let d = try!(parse_component(p));
                     sch.append_component(d)
-                },
+                }
                 Some("$Sheet") => {
                     let d = try!(parse_sheet(p));
                     sch.append_sheet(d)
-                },
+                }
                 Some("$EndSCHEMATC") => (),
-                Some(_) => {
-                    sch.append_other(p.here())
-                },
-                None => unreachable!()
+                Some(_) => sch.append_other(p.here()),
+                None => unreachable!(),
             }
         }
         p.next()
@@ -1015,17 +1075,17 @@ pub fn parse(filename:Option<PathBuf>, s: &str) -> Result<Schematic> {
 }
 
 
-pub fn parse_str(s:&str) -> Result<Schematic> {
+pub fn parse_str(s: &str) -> Result<Schematic> {
     parse(None, s)
 }
 
-pub fn parse_file(filename:&PathBuf) -> Result<Schematic> {
+pub fn parse_file(filename: &PathBuf) -> Result<Schematic> {
     let name = filename.to_str().unwrap();
     let s = try!(read_file(name));
     parse(Some(filename.clone()), &s[..])
 }
 
-pub fn filename_for_sheet(schematic:&Schematic, sheet:&Sheet) -> Result<PathBuf> {
+pub fn filename_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<PathBuf> {
     let path = try!(match schematic.filename {
         Some(ref path) => Ok(path),
         None => Err("can't load sheet when there is no filename for the schematic".to_string()),
@@ -1038,7 +1098,7 @@ pub fn filename_for_sheet(schematic:&Schematic, sheet:&Sheet) -> Result<PathBuf>
 }
 
 
-pub fn parse_file_for_sheet(schematic:&Schematic, sheet:&Sheet) -> Result<Schematic> {
-    let f = try!(filename_for_sheet(schematic,sheet));
+pub fn parse_file_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<Schematic> {
+    let f = try!(filename_for_sheet(schematic, sheet));
     parse_file(&f)
 }
