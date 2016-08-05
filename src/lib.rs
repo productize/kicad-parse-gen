@@ -1,7 +1,6 @@
 // (c) 2016 Productize SPRL <joost@productize.be>
 
-#![cfg_attr(feature = "use_clippy", feature(plugin))]
-#![cfg_attr(feature = "use_clippy", plugin(clippy))]
+#![warn(missing_docs)]
 
 extern crate rustc_serialize;
 extern crate symbolic_expressions;
