@@ -129,16 +129,23 @@ pub enum LayerType {
     User,
 }
 
+/// setup elements of the layout
 #[derive(Clone,Debug,Default)]
 pub struct Setup {
+    /// the setup elements
     pub elements: Vec<SetupElement>,
+    /// the pcb plot elements
     pub pcbplotparams: Vec<SetupElement>,
 }
 
+/// a generic setup element
 #[derive(Clone,Debug)]
 pub struct SetupElement {
+    /// a name
     pub name: String,
+    /// a first value
     pub value1: String,
+    /// an optional second value
     pub value2: Option<String>,
 }
 
