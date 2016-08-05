@@ -8,5 +8,5 @@ documentation = "https://productize.github.io/kicad-parse-gen"
 
 [dependencies]
 rustc-serialize = "0.3"
-symbolic_expressions = { git = "git://github.com/productize/symbolic-expressions.git" }
-#symbolic_expressions = "0.3.11"
+#symbolic_expressions = { git = "git://github.com/productize/symbolic-expressions.git" }
+symbolic_expressions = "0.3.*"
