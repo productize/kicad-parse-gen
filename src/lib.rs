@@ -18,8 +18,10 @@ pub trait FromSexp {
     fn from_sexp(&Sexp) -> Self;
 }
 
-use util::read_file;
-use util::write_file;
+/// read file utility wrapper function
+pub use util::read_file;
+/// write file utility wrapper function
+pub use util::write_file;
 
 fn parse_split_quote_aware(s:&str) -> Vec<String> {
     let mut v:Vec<String> = vec![];
