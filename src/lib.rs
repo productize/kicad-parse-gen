@@ -1,5 +1,7 @@
 // (c) 2016 Productize SPRL <joost@productize.be>
 
+//! Kicad file format parser and generator library
+
 #![warn(missing_docs)]
 
 extern crate rustc_serialize;
@@ -10,14 +12,16 @@ use std::fmt;
 pub use symbolic_expressions::Sexp;
 pub use error::*;
 
+/// convert from a symbolic-expression to something
 pub trait FromSexp {
+    /// convert from a symbolic-expression to something
     fn from_sexp(&Sexp) -> Self;
 }
 
-pub use util::read_file;
-pub use util::write_file;
+use util::read_file;
+use util::write_file;
 
-pub fn parse_split_quote_aware(s:&str) -> Vec<String> {
+fn parse_split_quote_aware(s:&str) -> Vec<String> {
     let mut v:Vec<String> = vec![];
     let mut in_q:bool = false;
     let mut q_seen:bool = false;
@@ -50,7 +54,7 @@ pub fn parse_split_quote_aware(s:&str) -> Vec<String> {
     v
 }
 
-pub fn parse_split_quote_aware_n(n:usize, s:&str) -> Result<Vec<String>> {
+fn parse_split_quote_aware_n(n:usize, s:&str) -> Result<Vec<String>> {
     let mut i = 0;
     let mut v:Vec<String> = vec![];
     let mut in_q:bool = false;
@@ -92,23 +96,37 @@ pub fn parse_split_quote_aware_n(n:usize, s:&str) -> Result<Vec<String>> {
     Ok(v)
 }
 
+/// types of Kicad files that can be found
 #[derive(Debug)]
 pub enum KicadFile {
+    /// unknown file, probably no kicad file
     Unknown(String),
+    /// a Kicad module, also know as a footprint
     Module(footprint::Module),
+    /// a Kicad schematic file
     Schematic(schematic::Schematic),
+    /// a Kicad layout file
     Layout(layout::Layout),
+    /// a Kicad symbol library file
     SymbolLib(symbol_lib::SymbolLib),
+    /// a Kicad project file
     Project(project::Project),
 }
 
+/// types of Kicad files that we expect to read
 #[derive(PartialEq)]
 pub enum Expected {
+    /// a Kicad module, also know as a footprint
     Module,
+    /// a Kicad schematic file
     Schematic,
+    /// a Kicad layout file
     Layout,
+    /// a Kicad symbol library file
     SymbolLib,
+    /// a Kicad project file
     Project,
+    /// any Kicad file
     Any,
 }
 
@@ -126,7 +144,8 @@ impl fmt::Display for KicadFile {
     }
 }
 
-
+/// try to read a file, trying to parse it as the different formats
+/// and matching it against the Expected type
 pub fn read_kicad_file(name: &str, expected:Expected) -> Result<KicadFile> {
     let pb = std::path::PathBuf::from(name);
     let data = try!(read_file(name));
@@ -154,6 +173,7 @@ pub fn read_kicad_file(name: &str, expected:Expected) -> Result<KicadFile> {
     Ok(KicadFile::Unknown(format!("{}: {}", name, msg)))
 }
 
+/// read a file, expecting it to be a Kicad module file
 pub fn read_module(name: &str) -> Result<footprint::Module> {
     match try!(read_kicad_file(name, Expected::Module)) {
         KicadFile::Module(mo) => Ok(mo),
@@ -161,6 +181,7 @@ pub fn read_module(name: &str) -> Result<footprint::Module> {
     }
 }
 
+/// read a file, expecting it to be a Kicad schematic
 pub fn read_schematic(name: &str) -> Result<schematic::Schematic> {
     match try!(read_kicad_file(name, Expected::Schematic)) {
         KicadFile::Schematic(mo) => Ok(mo),
@@ -168,6 +189,7 @@ pub fn read_schematic(name: &str) -> Result<schematic::Schematic> {
     }
 }
 
+/// read a file, expecting it to be a Kicad layout file
 pub fn read_layout(name: &str) -> Result<layout::Layout> {
     match try!(read_kicad_file(name, Expected::Layout)) {
         KicadFile::Layout(mo) => Ok(mo),
@@ -175,11 +197,13 @@ pub fn read_layout(name: &str) -> Result<layout::Layout> {
     }
 }
 
+/// write out a kicad Layout to a file
 pub fn write_layout(layout:&layout::Layout, name:&str) -> Result<()> {
     let s = try!(layout::layout_to_string(layout, 0));
     write_file(name, &s)
 }
 
+/// read a file, expecting it to be a Kicad symbol library file
 pub fn read_symbol_lib(name: &str) -> Result<symbol_lib::SymbolLib> {
     match try!(read_kicad_file(name, Expected::SymbolLib)) {
         KicadFile::SymbolLib(mo) => Ok(mo),
@@ -187,6 +211,7 @@ pub fn read_symbol_lib(name: &str) -> Result<symbol_lib::SymbolLib> {
     }
 }
 
+/// read a file, expecting it to be a Kicad project file
 pub fn read_project(name: &str) -> Result<project::Project> {
     match try!(read_kicad_file(name, Expected::Project)) {
         KicadFile::Project(mo) => Ok(mo),
@@ -194,11 +219,18 @@ pub fn read_project(name: &str) -> Result<project::Project> {
     }
 }
 
+/// Kicad error handling code and types
 pub mod error;
+/// Kicad footprint format handling
 pub mod footprint;
+/// Kicad schematic format handling
 pub mod schematic;
+/// Kicad layout format handling
 pub mod layout;
+/// Kicad symbol library format handling
 pub mod symbol_lib;
+/// Kicad project format handling
 pub mod project;
-pub mod util;
+
+mod util;
 mod formatter;

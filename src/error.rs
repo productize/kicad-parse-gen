@@ -6,11 +6,16 @@ use std::fmt;
 use std::result;
 use symbolic_expressions;
 
+/// encapsulating Error type
 #[derive(Debug)]
 pub enum Error {
+    /// parsing error
     Parse(String),
+    /// other error
     Other(String),
+    /// IO error
     Io(io::Error),
+    /// symbolic-expressions library error
     Symbolic(symbolic_expressions::Error),
 }
 
@@ -67,12 +72,15 @@ impl fmt::Display for Error {
     }
 }
 
+/// result type type alias
 pub type Result<T> = result::Result<T, Error>;
 
+/// create an other error
 pub fn str_error<T>(s:String) -> Result<T> {
     Err(Error::Other(s))
 }
 
+/// create a parse error
 pub fn parse_error<T>(s:String) -> Result<T> {
     Err(Error::Parse(s))
 }

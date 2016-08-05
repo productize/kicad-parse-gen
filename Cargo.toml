@@ -1,6 +1,6 @@
 [package]
 name = "kicad_parse_gen"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Joost Damad <joost@productize.be>"]
 
 [dependencies]

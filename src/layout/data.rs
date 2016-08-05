@@ -245,7 +245,7 @@ impl Layout {
         for ref x in &self.elements[..] {
             match **x {
                 Element::Module(ref m) => {
-                    if m.is_reference(reference) {
+                    if m.is_reference_with_name(reference) {
                         return Some(m)
                     }
                 },
@@ -268,7 +268,7 @@ impl Layout {
         for ref mut x in &mut self.elements {
             match **x {
                 Element::Module(ref mut m) => {
-                    if m.is_reference(reference) {
+                    if m.is_reference_with_name(reference) {
                         return Ok(fun(m))
                     }
                 },

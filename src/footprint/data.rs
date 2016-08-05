@@ -3,20 +3,26 @@
 use str_error;
 use Result;
 
+/// a Kicad module, with a name and a list of elements
 #[derive(Debug,Clone)]
 pub struct Module {
+    /// name of the Kicad Module
     pub name: String,
+    /// elements contained within the Kicad Module
     pub elements: Vec<Element>
 }
 
 impl Module {
+    /// create a Module
     pub fn new(name: String) -> Module {
         Module { name: name, elements: vec![] }
     }
+    /// append an Element to a Module
     pub fn append(&mut self, e: Element) {
         self.elements.push(e)
     }
-    pub fn is_reference(&self, reference:&str) -> bool {
+    /// check if a Module has a reference Element with the specified name
+    pub fn is_reference_with_name(&self, reference:&str) -> bool {
         for element in &self.elements[..] {
             if let Element::FpText(ref fp_text) = *element {
                 if fp_text.name == "reference" && fp_text.value == *reference {
@@ -26,6 +32,7 @@ impl Module {
         }
         false
     }
+    /// update the name of the reference element specified by name, if found
     pub fn set_reference(&mut self, reference:&str, reference2:&str) {
         //println!("debug: searching '{}'", reference);
         for ref mut element in &mut self.elements[..] {
@@ -37,6 +44,8 @@ impl Module {
             }
         }
     }
+    /// check if there is an At element and return the coordinates found
+    /// returns the default of (0.0,0.0) if not found
     pub fn at(&self) -> (f64, f64) {
         for element in &self.elements[..] {
             if let Element::At(ref at) = *element {
@@ -45,8 +54,9 @@ impl Module {
         }
         (0.0, 0.0)
     }
-    
-    pub fn front(&self) -> bool {
+
+    /// check if the Module is on the front layer
+    pub fn is_front(&self) -> bool {
         for element in &self.elements[..] {
             if let Element::Layer(ref layer) = *element {
                 return &layer[..] == "F.Cu"
@@ -55,6 +65,7 @@ impl Module {
         true
     }
 
+    /// calculate the bounding box of the module
     pub fn bounding_box(&self) -> (f64, f64, f64, f64) {
         let mut x1 = 10000.0_f64;
         let mut y1 = 10000.0_f64;
@@ -77,6 +88,7 @@ impl Module {
         (x1, y1, x2, y2)
     }
 
+    /// rename a net
     pub fn rename_net(&mut self, old_name:&str, new_name:&str) {
         for element in &mut self.elements[..] {
             if let Element::Pad(ref mut pad) = *element {
