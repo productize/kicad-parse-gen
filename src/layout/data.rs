@@ -60,7 +60,7 @@ pub struct General {
     pub nets:i64,
 }
 
-#[derive(Clone,Debug)]
+#[derive(Clone,Debug,Default)]
 pub struct Area {
     pub x1:f64, pub y1:f64,
     pub x2:f64, pub y2:f64,
@@ -80,7 +80,7 @@ pub enum LayerType {
     User,
 }
 
-#[derive(Clone,Debug)]
+#[derive(Clone,Debug,Default)]
 pub struct Setup {
     pub elements:Vec<SetupElement>,
     pub pcbplotparams:Vec<SetupElement>,
@@ -325,17 +325,6 @@ impl Default for General {
     }
 }
 
-impl Default for Area {
-    fn default() -> Area {
-        Area {
-            x1:0.0, y1:0.0,
-            x2:0.0, y2:0.0,
-        }
-    }
-}
-    
-    
-
 impl NetClass {
     pub fn equal_no_net(&self, other:&NetClass) -> bool {
         let mut s1 = self.clone();
@@ -354,12 +343,6 @@ impl NetClass {
     }
 }
 
-impl Default for Setup {
-    fn default() -> Setup {
-        Setup { elements:vec![], pcbplotparams:vec![] }
-    }
-}
-    
 impl Setup {
     pub fn get(&self, s:&str) -> Option<&String> {
         for element in &self.elements {
