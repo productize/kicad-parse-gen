@@ -464,7 +464,9 @@ pub struct ComponentRotation {
 /// a component orientation
 #[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub enum Orientation {
+    /// horizontal orientation
     Horizontal,
+    /// vertical orientation
     Vertical,
 }
 
@@ -530,22 +532,34 @@ impl fmt::Display for Justify {
         }
     }
 }
-
+    
 
 /// a component field
 #[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub struct ComponentField {
+    /// index of component field       
     pub i: i64,
+    /// value
     pub value: String,
+    /// orientation
     pub orientation: Orientation,
+    /// X coordinate
     pub x: f64,
+    /// Y coordinate
     pub y: f64,
+    /// size
     pub size: i64,
+    /// if it is visible
     pub visible: bool,
+    /// horizontal justification
     pub hjustify: Justify,
+    /// vertical justification
     pub vjustify: Justify,
+    /// if it is italic
     pub italic: bool,
+    /// if it is bold
     pub bold: bool,
+    /// name of the component field
     pub name: String,
 }
 
@@ -583,6 +597,7 @@ impl ComponentField {
         Ok(c)
     }
 
+    /// create a component field
     pub fn new_from(i: i64, name: String, value: String, x: f64, y: f64) -> ComponentField {
         ComponentField {
             i: i,
@@ -634,17 +649,28 @@ impl fmt::Display for ComponentField {
     }
 }
 
+/// a component sheet
 #[derive(Debug,Clone)]
 pub struct Sheet {
+    /// X coordinate
     pub x: i64,
+    /// Y coordinate
     pub y: i64,
+    /// X dimension
     pub dimx: i64,
+    /// Y dimension
     pub dimy: i64,
+    /// timestamp field
     pub unique: String, // U timestamp field
+    /// name of the sheet
     pub name: String, // F0
+    /// size of the name
     pub name_size: i64,
+    /// filename of the sheet font
     pub filename: String, // F1
+    /// size of the filename font
     pub filename_size: i64,
+    /// sheet labels
     pub labels: Vec<SheetLabel>, // starting at F2
 }
 
@@ -684,13 +710,20 @@ impl fmt::Display for Sheet {
 // F3 "P0.02/AIN0" I L 5250 2450 60
 // form = I (input) O (output) B (BiDi) T (tri state) U (unspecified)
 // side = R (right) , L (left)., T (tpo) , B (bottom)
+/// label on a sheet    
 #[derive(Debug,Clone)]
 pub struct SheetLabel {
+    /// name
     pub name: String,
+    /// shape of the label
     pub form: LabelForm,
+    /// side of the label
     pub side: LabelSide,
+    /// X coordinate
     pub x: i64,
+    /// Y coordinate
     pub y: i64,
+    /// size
     pub size: i64,
 }
 
@@ -720,12 +753,18 @@ impl fmt::Display for SheetLabel {
     }
 }
 
+/// form of a label
 #[derive(Debug,Clone)]
 pub enum LabelForm {
+    /// input
     Input,
+    /// output
     Output,
+    /// bidirectional
     BiDi,
+    /// tristate
     TriState,
+    /// unspecified
     Unspecified,
 }
 
@@ -742,11 +781,16 @@ impl fmt::Display for LabelForm {
     }
 }
 
+/// a side of a label
 #[derive(Debug,Clone)]
 pub enum LabelSide {
+    /// left
     Left,
+    /// right
     Right,
+    /// top
     Top,
+    /// bottom
     Bottom,
 }
 
@@ -1030,7 +1074,7 @@ fn parse_sheet(p: &mut ParseState) -> Result<Sheet> {
     Ok(s)
 }
 
-
+/// parse a &str to a Kicad schematic, optionally setting the filename
 pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
     let mut sch = Schematic::default();
     sch.filename = filename;
@@ -1075,16 +1119,19 @@ pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
 }
 
 
+/// parse a &str as a Kicad schematic
 pub fn parse_str(s: &str) -> Result<Schematic> {
     parse(None, s)
 }
 
+/// parse a file as a Kicad schematic
 pub fn parse_file(filename: &PathBuf) -> Result<Schematic> {
     let name = filename.to_str().unwrap();
     let s = try!(read_file(name));
     parse(Some(filename.clone()), &s[..])
 }
 
+/// get the filename for a sheet in a schematic
 pub fn filename_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<PathBuf> {
     let path = try!(match schematic.filename {
         Some(ref path) => Ok(path),
@@ -1098,6 +1145,7 @@ pub fn filename_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<PathBu
 }
 
 
+/// parse a file as a Kicad schematic for a sheet
 pub fn parse_file_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<Schematic> {
     let f = try!(filename_for_sheet(schematic, sheet));
     parse_file(&f)
