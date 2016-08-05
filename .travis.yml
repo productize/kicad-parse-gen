@@ -1,13 +1,13 @@
 language: rust
 sudo: required
 after_success: |
-      [ $TRAVIS_BRANCH = master ] &&
-      [ $TRAVIS_PULL_REQUEST = false ] &&
-      cargo doc &&
-      echo "<meta http-equiv=refresh content=0;url=kicad_parse_gen/index.html>" > target/doc/index.html &&
-      sudo pip install ghp-import &&
-      ghp-import -n target/doc &&
-      git push -fq https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages
+  [ $TRAVIS_BRANCH = master ] &&
+  [ $TRAVIS_PULL_REQUEST = false ] &&
+  cargo doc &&
+  echo "<meta http-equiv=refresh content=0;url=kicad_parse_gen/index.html>" > target/doc/index.html &&
+  sudo pip install ghp-import &&
+  ghp-import -n target/doc &&
+  git push -fq https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages
 env:
-      global:
-              secure: vzgy/uWGCQIktNBBzSGxDZaICU0aWK7Yebfa46aYWIQ4tUZdGGEXPlIrtuvxBW6zI+e2MMcNa3eB4MwaceoLT7DxwMPP1SuoPsdNZdu4U9bXZOWJelFD4Bue0YgPaghD0OzY0Oh88rj7bHSJFARbc9I2T/JpGVCbj/cQKHxlrs9FFO70PaLpB4ech4siU6iHU5hw3lvPG5tKzg3IniheMrjw6TxXLT1uvhbGUpxuUEGlo6Nt+U5WE4mw56Yqy2ILUYkhjbkADBcSte638vQT4ShY0CtCcjXxSsfGrqNdayQHlZNgLa1aroY+3bIA0X0veQ44XRxhLEgJalnZ3RHlcRgtglLX7LArdw17ClmgOt33hsv9vdJmIu1IBW9jtS+AQ781pobcvPA86DBRbymssZgP9vFUOAkYtq3xHpfmK5s+OCazIA/iPQMpaLdKT50k5SvrVU86rrUmuDxi6EJmEX88h2Y+h3AR+n4IOlO+7ZingRRJhG2ncqP2e2nOTdI2X3df1QrDpaAOYDpIP7yKqT17uLohI//c5cw1eVA4swRRo/gRqY8OppJmdR4OiYTI6Adp8zWbI1yVOKJCqvXd/27V318npPB8TMaoGAuWLaw6FnnIYM+sGPSZIXOPnUeynqfykHUSMlF4M3qOWFFbOupPG0ogRFaH6H+IIp7Zwvw=
+  global:
+  - secure: mOSTnVXA2YDrhZv77rf4n9ksodp762nr2TZN7cLdbChnZANQXY75dBZYnffxGnSh7kZ4Ls/aRF3vHFuTHPUGysIqrT6CL4A76PRTOXF1ZuSubQhzC7l/7Cn2QmiqGTF0LOkYdedu/TPeHNqqHSZZHb8eEcj9cq7JmbSa5udHPRsgtAw/WHRZggRE+lCxaMaKruZdnHcsUoZGcC7ju1Rfz7NnCqTR82KX+NG7Uq0jLLogf+9mdup7PUfNy0A7Nl5NtJmzLatlE9PDFG2YeCMaH3nY5DZKejqG6AU+ZibirZssNhTk4vLgOYInBoQX/xC6ZWraL60OC9+dMJABU1FrmM8GeV0fUKSEwry3oUO9Tqml1z+knGYL0oZLk1tgL6EU0mqkgMpKDdbF6Q5eg5WH4e6diq2eg6GT7LCa+G2SnSmykk3vRjwe/s+5YY6U8cTCHz2LHuICsXL2mM7iW1cqDgLe7LQi8zlpNrr39bce636Kfw838r5ifK6Jxf7/z6eRpPEIpUW4nGA0dCHVcfx8VBFDAxxivNU3+ZkySh/4Iunx009FW8amNA3KW3gxyRBXRuMmWx/t67nbQEvRD6hrkTxfWlpGY7irzdpMr80LgKzPL6EkWwgu1vdFUPWbdf/MdAvOF/LUogAs8fivWekBhNhq3rG8BeefUFJriAiXTLQ=
