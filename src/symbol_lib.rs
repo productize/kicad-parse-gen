@@ -81,7 +81,6 @@ pub struct Field {
 }
 
 impl SymbolLib {
-
     /// find a symbol in a symbol lib
     pub fn find<F>(&self, filter: F) -> Option<&Symbol>
         where F: Fn(&Symbol) -> bool

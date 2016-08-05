@@ -223,7 +223,7 @@ pub struct GrArc {
     pub end: footprint::Xy,
     /// angle
     pub angle: i64,
-    /// layer 
+    /// layer
     pub layer: footprint::Layer,
     /// width
     pub width: f64,
@@ -390,7 +390,7 @@ impl Layout {
             name: String::from(name),
         }));
     }
-    
+
     /// add a net class
     pub fn add_netclass(&mut self,
                         name: &'static str,
@@ -442,7 +442,6 @@ impl Default for General {
 }
 
 impl NetClass {
-
     /// check if two netclasses are equal not looking at the nets
     pub fn equal_no_net(&self, other: &NetClass) -> bool {
         let mut s1 = self.clone();
@@ -464,7 +463,6 @@ impl NetClass {
 }
 
 impl Setup {
-
     /// get a setup element
     pub fn get(&self, s: &str) -> Option<&String> {
         for element in &self.elements {

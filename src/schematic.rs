@@ -532,12 +532,12 @@ impl fmt::Display for Justify {
         }
     }
 }
-    
+
 
 /// a component field
 #[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
 pub struct ComponentField {
-    /// index of component field       
+    /// index of component field
     pub i: i64,
     /// value
     pub value: String,
@@ -710,7 +710,7 @@ impl fmt::Display for Sheet {
 // F3 "P0.02/AIN0" I L 5250 2450 60
 // form = I (input) O (output) B (BiDi) T (tri state) U (unspecified)
 // side = R (right) , L (left)., T (tpo) , B (bottom)
-/// label on a sheet    
+/// label on a sheet
 #[derive(Debug,Clone)]
 pub struct SheetLabel {
     /// name
