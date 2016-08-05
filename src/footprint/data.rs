@@ -190,7 +190,7 @@ impl FpText {
 }
 
 /// a location and rotation in a layout
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Default)]
 pub struct At {
     /// x coordinate
     pub x: f64,
@@ -207,15 +207,8 @@ impl At {
     }
 }
 
-impl Default for At {
-    /// create a default location
-    fn default() -> At {
-        At { x:0.0, y:0.0, rot:0.0 }
-    }
-}
-
 /// font attributes for text
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Default)]
 pub struct Font {
     /// size of the font
     pub size: Xy,
@@ -223,27 +216,13 @@ pub struct Font {
     pub thickness: f64,
 }
 
-impl Default for Font {
-    /// create a default font
-    fn default() -> Font {
-        Font { size: Xy::new(0.0, 0.0, XyType::Size), thickness: 0.0 }
-    }
-}
-
 /// text effects
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Default)]
 pub struct Effects {
     /// the font used
     pub font: Font,
     /// the text justification
     pub justify:Option<Justify>,
-}
-
-impl Default for Effects {
-    /// create a default text effects
-    fn default() -> Effects {
-        Effects { font: Font::default(), justify:None }
-    }
 }
 
 impl Effects {
@@ -277,8 +256,14 @@ pub enum XyType {
     RectDelta,
 }
 
+impl Default for XyType {
+    fn default() -> XyType {
+        XyType::Xy
+    }
+}
+
 /// X-Y element
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Default)]
 pub struct Xy {
     /// x coordinate
     pub x: f64,
@@ -288,22 +273,20 @@ pub struct Xy {
     pub t: XyType,
 }
 
-#[derive(Debug,Clone)]
-pub struct Pts {
-    pub elements: Vec<Xy>
-}
-
 impl Xy {
     pub fn new(x: f64, y: f64, t: XyType) -> Xy {
         Xy { x:x, y:y, t:t }
     }
-    pub fn new_empty(t: XyType) -> Xy {
+    pub fn new_empty(t:XyType) -> Xy {
         Xy { x:0.0, y:0.0, t:t }
     }
 }
 
-impl Default for Pts {
-    fn default() -> Pts { Pts { elements:vec![] } }
+/// a list of X-Y coordinates
+#[derive(Debug,Clone,Default)]
+pub struct Pts {
+    /// the list of X-Y coordinates
+    pub elements: Vec<Xy>
 }
 
 #[derive(Clone,Debug,Default)]
@@ -388,6 +371,12 @@ pub enum LayerSide {
     None,
 }
 
+impl Default for LayerSide {
+    fn default() -> LayerSide {
+        LayerSide::Front
+    }
+}
+
 #[derive(Debug,Clone)]
 pub enum LayerType {
     Cu,
@@ -403,19 +392,18 @@ pub enum LayerType {
     Other(String),
 }
 
-#[derive(Debug,Clone)]
+impl Default for LayerType {
+    fn default() -> LayerType {
+        LayerType::Cu
+    }
+}
+
+#[derive(Debug,Clone,Default)]
 pub struct Layer {
     pub side: LayerSide,
     pub t: LayerType,
 }
 
-impl Default for Layer {
-
-    fn default() -> Layer {
-        Layer { side:LayerSide::Front, t:LayerType::Cu }
-    }
-}
-    
 impl Layer {
     
     pub fn from_string(s: String) -> Result<Layer> {
@@ -460,19 +448,11 @@ impl Layer {
     }
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Default)]
 pub struct Layers {
     pub layers: Vec<Layer>,
 }
 
-impl Default for Layers {
-    fn default() -> Layers {
-        Layers {
-            layers: vec![]
-        }
-    }
-}
-    
 impl Layers {
     pub fn append(&mut self, layer: &Layer) {
         self.layers.push(layer.clone())
@@ -544,18 +524,11 @@ impl Pad {
     }
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Default)]
 pub struct FpPoly {
     pub pts:Pts,
     pub width:f64,
     pub layer:Layer,
-}
-
-impl Default for FpPoly {
-    
-    fn default() -> FpPoly {
-        FpPoly { pts:Pts::default(), width:0.0, layer:Layer::default() }
-    }
 }
 
 impl FpPoly {
