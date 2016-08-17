@@ -205,7 +205,7 @@ pub struct GrLine {
     /// end point
     pub end: footprint::Xy,
     /// angle
-    pub angle: i64,
+    pub angle: f64,
     /// layer
     pub layer: footprint::Layer,
     /// width
@@ -222,7 +222,7 @@ pub struct GrArc {
     /// end point
     pub end: footprint::Xy,
     /// angle
-    pub angle: i64,
+    pub angle: f64,
     /// layer
     pub layer: footprint::Layer,
     /// width

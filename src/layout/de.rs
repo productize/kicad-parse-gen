@@ -278,7 +278,7 @@ impl FromSexp for Result<GrElement> {
             "end" => wrap(s, Result::from_sexp, GrElement::End),
             "angle" => {
                 let l2 = try!(s.slice_atom("angle"));
-                Ok(GrElement::Angle(try!(l2[0].i())))
+                Ok(GrElement::Angle(try!(l2[0].f())))
             }
             "layer" => wrap(s, Result::from_sexp, GrElement::Layer),
             "width" => {
@@ -304,7 +304,7 @@ impl FromSexp for Result<GrLine> {
         let l = try!(s.slice_atom("gr_line"));
         let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
-        let mut angle = 0;
+        let mut angle = 0.0_f64;
         let mut layer = footprint::Layer::default();
         let mut width = 0.0_f64;
         let mut tstamp = String::from("");
@@ -336,7 +336,7 @@ impl FromSexp for Result<GrArc> {
         let l = try!(s.slice_atom("gr_arc"));
         let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
-        let mut angle = 0;
+        let mut angle = 0.0_f64;
         let mut layer = footprint::Layer::default();
         let mut width = 0.0_f64;
         let mut tstamp = String::from("");

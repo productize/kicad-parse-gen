@@ -266,7 +266,7 @@ enum Part {
 enum GrElement {
     Start(footprint::Xy),
     End(footprint::Xy),
-    Angle(i64),
+    Angle(f64),
     Layer(footprint::Layer),
     Width(f64),
     TStamp(String),
