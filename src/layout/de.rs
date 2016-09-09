@@ -5,7 +5,6 @@
 
 // from parent
 use Result;
-use str_error as err;
 use footprint;
 use wrap;
 use Sexp;

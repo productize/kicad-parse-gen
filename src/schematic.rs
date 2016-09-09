@@ -11,7 +11,6 @@ use std::result;
 
 // get from parent
 use Result;
-use str_error as err;
 use util::read_file;
 use str_error;
 use parse_split_quote_aware;
@@ -290,7 +289,7 @@ impl fmt::Display for Element {
 // component fields:
 // reference = 0. Value = 1. FootPrint = 2. UserDocLink = 3.
 /// a schematic component
-#[derive(Debug, RustcEncodable, RustcDecodable, Clone)]
+#[derive(Debug, Clone)]
 pub struct Component {
     /// name
     pub name: String,
@@ -453,7 +452,7 @@ impl fmt::Display for Component {
 }
 
 /// a component rotation
-#[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
+#[derive(Debug, Clone)]
 pub struct ComponentRotation {
     a: i64,
     b: i64,
@@ -462,7 +461,7 @@ pub struct ComponentRotation {
 }
 
 /// a component orientation
-#[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
+#[derive(Debug, Clone)]
 pub enum Orientation {
     /// horizontal orientation
     Horizontal,
@@ -493,7 +492,7 @@ impl fmt::Display for Orientation {
 
 
 /// a text justification on a component
-#[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
+#[derive(Debug,Clone)]
 pub enum Justify {
     /// left justification
     Left,
@@ -535,7 +534,7 @@ impl fmt::Display for Justify {
 
 
 /// a component field
-#[derive(Debug,RustcEncodable,RustcDecodable,Clone)]
+#[derive(Debug,Clone)]
 pub struct ComponentField {
     /// index of component field
     pub i: i64,

@@ -4,7 +4,6 @@
 
 #![warn(missing_docs)]
 
-extern crate rustc_serialize;
 extern crate symbolic_expressions;
 
 use std::fmt;

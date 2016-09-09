@@ -10,7 +10,6 @@ use std::path::PathBuf;
 
 // get from parent
 use Result;
-use str_error as err;
 use util::read_file;
 use parse_split_quote_aware;
 use schematic;
