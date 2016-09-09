@@ -2,7 +2,7 @@
 name = "kicad_parse_gen"
 version = "0.7.3"
 authors = ["Joost Damad <joost@productize.be>"]
-license = "MIT/Apache2.0"
+license = "MIT/Apache-2.0"
 repository = "https://github.com/productize/kicad-parse-gen"
 documentation = "https://productize.github.io/kicad-parse-gen"
 description = "Kicad file format parser and generator library"
