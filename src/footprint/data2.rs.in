@@ -1,8 +1,22 @@
 // (c) 2016 Productize SPRL <joost@productize.be>
 
-/// Test structure
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
-pub struct Planet {
-    /// size
-    pub size:i64,
+pub struct Start (f64, f64);
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct End (f64, f64);
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Layer (String);
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Width (f64);
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[allow(non_camel_case_types)] 
+pub struct Fp_Line {
+    start:Start,
+    end:End,
+    layer:Layer,
+    width:Width,
 }
