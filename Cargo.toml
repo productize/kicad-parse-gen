@@ -1,12 +1,26 @@
 [package]
 name = "kicad_parse_gen"
-version = "1.0.0"
+version = "2.0.0"
 authors = ["Joost Damad <joost@productize.be>"]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/productize/kicad-parse-gen"
 documentation = "https://productize.github.io/kicad-parse-gen"
 description = "Kicad file format parser and generator library"
+build = "src/build.rs"
+
+[features]
+default = ["serde_codegen", "symbolic_expressions/default"]
+nightly = ["serde_derive", "symbolic_expressions/nightly"]
+
+[build-dependencies]
+serde_codegen = { version = "0.8.*", optional = true }
 
 [dependencies]
-#symbolic_expressions = { git = "git://github.com/productize/symbolic-expressions.git" }
-symbolic_expressions = "1.0.*"
+symbolic_expressions = { version = "2.0.*", default-features = false }
+serde_derive = { version = "0.8.*", optional = true }
+
+# build with default:
+# cargo build
+
+# build with nightly:
+# RUST_MIN_STACK=100000000 cargo build --features nightly --no-default-features
