@@ -1,6 +1,6 @@
 [package]
 name = "kicad_parse_gen"
-version = "0.7.3"
+version = "1.0.0"
 authors = ["Joost Damad <joost@productize.be>"]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/productize/kicad-parse-gen"
@@ -9,4 +9,4 @@ description = "Kicad file format parser and generator library"
 
 [dependencies]
 #symbolic_expressions = { git = "git://github.com/productize/symbolic-expressions.git" }
-symbolic_expressions = "0.4.*"
+symbolic_expressions = "1.0.*"
