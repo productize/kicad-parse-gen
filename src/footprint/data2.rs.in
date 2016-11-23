@@ -1,0 +1,8 @@
+// (c) 2016 Productize SPRL <joost@productize.be>
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Planet {
+    /// size
+    pub size:i64,
+}

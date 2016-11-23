@@ -66,3 +66,4 @@ pub fn parse(s: &str) -> Result<Module> {
 mod data;
 mod ser;
 mod de;
+mod data2;
