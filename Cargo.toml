@@ -16,7 +16,9 @@ nightly = ["serde_derive", "symbolic_expressions/nightly"]
 serde_codegen = { version = "0.8.*", optional = true }
 
 [dependencies]
-symbolic_expressions = { version = "2.0.*", default-features = false }
+# symbolic_expressions = { version = "2.0.*", default-features = false }
+symbolic_expressions = { git = "https://github.com/productize/symbolic-expressions.git", default-features = false }
+
 serde_derive = { version = "0.8.*", optional = true }
 serde = "0.8.*"
 

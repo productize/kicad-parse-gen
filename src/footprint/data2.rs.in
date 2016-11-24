@@ -7,16 +7,24 @@ pub struct Start (f64, f64);
 pub struct End (f64, f64);
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
-pub struct Layer (String);
-
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
-pub struct Width (f64);
-
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[allow(non_camel_case_types)] 
 pub struct Fp_Line {
     start:Start,
     end:End,
-    layer:Layer,
-    width:Width,
+    layer:String,
+    width:f64,
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Xy (f64, f64);
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Pts (Vec<Xy>);
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[allow(non_camel_case_types)] 
+pub struct Fp_Poly {
+    pts:Pts,
+    layer:String,
+    width:f64,
 }
