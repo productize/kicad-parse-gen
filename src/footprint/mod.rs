@@ -87,3 +87,23 @@ fn test_footprint_fp_poly() {
     let f = symbolic_expressions::encode::to_sexp(h).unwrap();
     assert_eq!(e,f);
 }
+
+#[test]
+fn test_footprint_fp_text() {
+    let s = "(fp_text reference U1 (at 2.3 0) (layer F.SilkS) (effects (font (size 0.625 0.625) (thickness 0.1))))";
+    let e = symbolic_expressions::parser::parse_str(s).unwrap();
+    let h: data2::Fp_Text = symbolic_expressions::decode::decode(e.clone()).unwrap();
+    println!("{:?}", h);
+    let f = symbolic_expressions::encode::to_sexp(h).unwrap();
+    assert_eq!(s,format!("{}",f));
+}
+
+#[test]
+fn test_footprint_effects() {
+    let s = "(effects (font (size 0.625 0.625) (thickness 0.1)))";
+    let e = symbolic_expressions::parser::parse_str(s).unwrap();
+    let h: data2::Effects = symbolic_expressions::decode::decode(e.clone()).unwrap();
+    println!("{:?}", h);
+    let f = symbolic_expressions::encode::to_sexp(h).unwrap();
+    assert_eq!(s,format!("{}",f));
+}

@@ -1,0 +1,104 @@
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct DecodeStruct {
+    /// world
+    pub world:String,
+    /// mars
+    pub mars:i64,
+}
+    
+/// Test tuple structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct DecodeTupleStruct(pub i64, pub String);
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct DecodeNested {
+    /// world
+    pub world:Vec<i64>,
+    /// mars
+    pub mars:Planet,
+}
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Planet {
+    /// size
+    pub size:i64,
+}
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct DecodeMissing1 {
+    /// world
+    pub world:i64,
+}
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct DecodeMissing2 {
+    /// world
+    pub world:i64,
+    /// bar
+    pub bar:Option<i64>,
+}
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct DecodeNestedTupleStruct {
+    /// world
+    pub world:Vec<i64>,
+    /// decodetuplestruct
+    pub decodetuplestruct:DecodeTupleStruct,
+}
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub enum DecodeEnum {
+    /// One
+    One,
+    /// Two
+    Two,
+}
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub enum DecodeEnum2 {
+    /// One
+    One,
+    /// Two
+    Two(i64),
+}
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub enum DecodeEnum3 {
+    /// One
+    One,
+    /// Two
+    Two(Planet),
+}
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Xy(f64, f64);
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Pts(Vec<Xy>);
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct NewList {
+    list:Vec<i64>,
+}
+
+/// Test structure
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Special {
+    name_:String,
+    value_:String,
+    xy:Xy,
+    hide_:Option<String>,
+}

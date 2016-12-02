@@ -8,6 +8,7 @@
 #[cfg(feature = "serde_derive")]
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
 extern crate serde;
 
 extern crate symbolic_expressions;
@@ -305,5 +306,13 @@ pub mod symbol_lib;
 /// Kicad project format handling
 pub mod project;
 
+/// serde kicad symbolic-expression encoding code: rust -> symbolic-expression
+pub mod encode;
+
+/// serde kicad symbolic-expression decoding code: symbolic-expression -> rust
+pub mod decode;
+
 mod util;
 mod formatter;
+mod test;
+mod test_data;

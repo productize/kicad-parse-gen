@@ -1,11 +1,23 @@
 // (c) 2016 Productize SPRL <joost@productize.be>
 
+/// (start -1.5 0.7)
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct Start (f64, f64);
 
+/// (end -1.5 0.7)
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct End (f64, f64);
 
+/// (at -1.5 0.7)
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct At (f64, f64);
+
+/// (size -1.5 0.7)
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Size (f64, f64);
+
+
+/// (fp_line (start -1.5 0.7) (end 1.5 0.7) (layer Dwgs.User) (width 0.1))
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[allow(non_camel_case_types)] 
 pub struct Fp_Line {
@@ -15,12 +27,15 @@ pub struct Fp_Line {
     width:f64,
 }
 
+/// (xy -0.25 -1.15)
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct Xy (f64, f64);
 
+///  (pts (xy -0.25 -1.15) (xy -0.25 -0.65) (xy 0.25 -0.65) (xy 0.25 -1.15) (xy -0.25 -1.15))
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct Pts (Vec<Xy>);
 
+/// (fp_poly (pts (xy -1.2 0.65) (xy -1.2 1.15) (xy -0.7 1.15) (xy -0.7 0.65) (xy -1.2 0.65)) (layer Dwgs.User) (width 0.15))
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[allow(non_camel_case_types)] 
 pub struct Fp_Poly {
@@ -28,3 +43,47 @@ pub struct Fp_Poly {
     layer:String,
     width:f64,
 }
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Layer (String, f64);
+
+/// (effects (font (size 0.625 0.625) (thickness 0.1)))
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Effects {
+    font:Font,
+}
+
+/// (font (size 0.625 0.625) (thickness 0.1))
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Font {
+    size:Size,
+    thickness:f64,
+}
+
+///  (fp_text value MOSFET-N-GSD (at 0 2.6) (layer F.SilkS) hide (effects (font (size 0.625 0.625) (thickness 0.1))))
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[allow(non_camel_case_types)] 
+pub struct Fp_Text {
+    value_type_:String,
+    value_:String,
+    at:At,
+    layer:String,
+    hide_:Option<String>,
+    effects:Effects,
+}
+
+/*
+#[allow(non_camel_case_types)] 
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub enum ModuleElement {
+    Flat(String), // special handling...
+    Layer(String),
+    TEdit(String),
+    Descr(String),
+    FP_Text(FP_Text),
+    FP_Line(FP_Line),
+    FP_Poly(FP_Poly),
+    Pad(Pad),
+    Model(Model),
+}
+*/
