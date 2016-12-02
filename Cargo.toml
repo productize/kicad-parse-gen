@@ -9,15 +9,15 @@ description = "Kicad file format parser and generator library"
 build = "src/build.rs"
 
 [features]
-default = ["serde_codegen", "symbolic_expressions/default"]
-nightly = ["serde_derive", "symbolic_expressions/nightly"]
+default = ["serde_codegen"]
+nightly = ["serde_derive"]
 
 [build-dependencies]
 serde_codegen = { version = "0.8.*", optional = true }
 
 [dependencies]
-# symbolic_expressions = { version = "2.0.*", default-features = false }
-symbolic_expressions = { git = "https://github.com/productize/symbolic-expressions.git", default-features = false }
+symbolic_expressions = { version = "3.0.*", default-features = false }
+# symbolic_expressions = { git = "https://github.com/productize/symbolic-expressions.git", default-features = false }
 
 serde_derive = { version = "0.8.*", optional = true }
 serde = "0.8.*"

@@ -13,6 +13,8 @@ use symbolic_expressions;
 use symbolic_expressions::IntoSexp;
 use formatter::KicadFormatter;
 use FromSexp;
+use encode;
+use decode;
 
 // pub use footprint;
 pub use footprint::data::*;
@@ -72,9 +74,9 @@ mod data2;
 fn test_footprint_fp_line() {
     let s = "(fp_line (start -1.5 0.7) (end 1.5 0.7) (layer Dwgs.User) (width 0.1))";
     let e = symbolic_expressions::parser::parse_str(s).unwrap();
-    let h: data2::Fp_Line = symbolic_expressions::decode::decode(e.clone()).unwrap();
+    let h: data2::Fp_Line = decode::decode(e.clone()).unwrap();
     println!("{:?}", h);
-    let f = symbolic_expressions::encode::to_sexp(h).unwrap();
+    let f = encode::to_sexp(h).unwrap();
     assert_eq!(e,f);
 }
 
@@ -82,9 +84,9 @@ fn test_footprint_fp_line() {
 fn test_footprint_fp_poly() {
     let s = "(fp_poly (pts (xy -0.25 -1.15) (xy -0.25 -0.65) (xy 0.25 -0.65) (xy 0.25 -1.15) (xy -0.25 -1.15)) (layer Dwgs.User) (width 0.15))";
     let e = symbolic_expressions::parser::parse_str(s).unwrap();
-    let h: data2::Fp_Poly = symbolic_expressions::decode::decode(e.clone()).unwrap();
+    let h: data2::Fp_Poly = decode::decode(e.clone()).unwrap();
     println!("{:?}", h);
-    let f = symbolic_expressions::encode::to_sexp(h).unwrap();
+    let f = encode::to_sexp(h).unwrap();
     assert_eq!(e,f);
 }
 
@@ -92,9 +94,9 @@ fn test_footprint_fp_poly() {
 fn test_footprint_fp_text() {
     let s = "(fp_text reference U1 (at 2.3 0) (layer F.SilkS) (effects (font (size 0.625 0.625) (thickness 0.1))))";
     let e = symbolic_expressions::parser::parse_str(s).unwrap();
-    let h: data2::Fp_Text = symbolic_expressions::decode::decode(e.clone()).unwrap();
+    let h: data2::Fp_Text = decode::decode(e.clone()).unwrap();
     println!("{:?}", h);
-    let f = symbolic_expressions::encode::to_sexp(h).unwrap();
+    let f = encode::to_sexp(h).unwrap();
     assert_eq!(s,format!("{}",f));
 }
 
@@ -102,8 +104,8 @@ fn test_footprint_fp_text() {
 fn test_footprint_effects() {
     let s = "(effects (font (size 0.625 0.625) (thickness 0.1)))";
     let e = symbolic_expressions::parser::parse_str(s).unwrap();
-    let h: data2::Effects = symbolic_expressions::decode::decode(e.clone()).unwrap();
+    let h: data2::Effects = decode::decode(e.clone()).unwrap();
     println!("{:?}", h);
-    let f = symbolic_expressions::encode::to_sexp(h).unwrap();
+    let f = encode::to_sexp(h).unwrap();
     assert_eq!(s,format!("{}",f));
 }
