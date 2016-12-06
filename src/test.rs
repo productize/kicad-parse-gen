@@ -16,7 +16,7 @@ fn test_decode_encode_struct() {
                    mars: 42,
                });
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(e,f);
+    assert_eq!(e, f);
 }
 
 #[test]
@@ -26,7 +26,7 @@ fn test_decode_encode_tuple_struct() {
     let h: DecodeTupleStruct = decode::decode(e.clone()).unwrap();
     assert_eq!(h, DecodeTupleStruct(42, "foo".into()));
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(e,f);
+    assert_eq!(e, f);
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn test_decode_encode_vec_int() {
     let h: Vec<i64> = decode::decode(e.clone()).unwrap();
     assert_eq!(h, vec![4, 5, 42]);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(e,f);
+    assert_eq!(e, f);
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn test_decode_encode_vec_string() {
     let i: Vec<String> = vec!["hi", "there", "mars"].iter().map(|&x| x.into()).collect();
     assert_eq!(h, i);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(e,f);
+    assert_eq!(e, f);
 }
 
 #[test]
@@ -58,7 +58,7 @@ fn test_decode_encode_vec_string_int() {
     let i: Vec<String> = vec!["4", "5", "42"].iter().map(|&x| x.into()).collect();
     assert_eq!(h, i);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(e,f);
+    assert_eq!(e, f);
 }
 
 #[test]
@@ -72,7 +72,7 @@ fn test_decode_encode_struct_nested() {
     };
     assert_eq!(h, i);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(s,format!("{}", f));
+    assert_eq!(s, format!("{}", f));
 }
 
 #[test]
@@ -87,7 +87,7 @@ fn test_decode_encode_struct_nested_tuple_struct() {
     };
     assert_eq!(h, i);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(s ,format!("{}", f));
+    assert_eq!(s, format!("{}", f));
 }
 
 #[test]
@@ -137,7 +137,7 @@ fn test_decode_encode_struct_missing_exp_side() {
                    bar: None,
                });
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(e,f);
+    assert_eq!(e, f);
 }
 
 #[test]
@@ -151,7 +151,7 @@ fn test_decode_encode_struct_missing_exp_side_there() {
                    bar: Some(7),
                });
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(e,f);
+    assert_eq!(e, f);
 }
 
 #[test]
@@ -161,7 +161,7 @@ fn test_decode_encode_enum_simplest() {
     let h: DecodeEnum = decode::decode(e.clone()).unwrap();
     assert_eq!(h, DecodeEnum::One);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(s,format!("{}", f));
+    assert_eq!(s, format!("{}", f));
 }
 
 
@@ -172,7 +172,7 @@ fn test_decode_encode_vec_enum() {
     let h: Vec<DecodeEnum> = decode::decode(e.clone()).unwrap();
     assert_eq!(h, vec![DecodeEnum::One, DecodeEnum::Two]);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(s,format!("{}", f));
+    assert_eq!(s, format!("{}", f));
 }
 
 
@@ -183,7 +183,7 @@ fn test_decode_encode_enum2() {
     let h: Vec<DecodeEnum2> = decode::decode(e.clone()).unwrap();
     assert_eq!(h, vec![DecodeEnum2::One, DecodeEnum2::Two(42)]);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(s,format!("{}", f));
+    assert_eq!(s, format!("{}", f));
 }
 
 #[test]
@@ -191,19 +191,21 @@ fn test_decode_encode_enum3() {
     let s = "(one (two (planet (size 42))))";
     let e = parser::parse_str(s).unwrap();
     let h: Vec<DecodeEnum3> = decode::decode(e.clone()).unwrap();
-    assert_eq!(h, vec![DecodeEnum3::One, DecodeEnum3::Two(Planet{ size:42 })]);
+    assert_eq!(h,
+               vec![DecodeEnum3::One, DecodeEnum3::Two(Planet { size: 42 })]);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(s,format!("{}", f));
+    assert_eq!(s, format!("{}", f));
 }
 
 #[test]
 fn test_decode_encode_wierd_list() {
-    let s = "(pts (xy -0.25 -1.15) (xy -0.25 -0.65) (xy 0.25 -0.65) (xy 0.25 -1.15) (xy -0.25 -1.15))";
+    let s = "(pts (xy -0.25 -1.15) (xy -0.25 -0.65) (xy 0.25 -0.65) (xy 0.25 -1.15) (xy -0.25 \
+             -1.15))";
     let e = parser::parse_str(s).unwrap();
     let h: Pts = decode::decode(e).unwrap();
     println!("{:?}", h);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(s,format!("{}", f));
+    assert_eq!(s, format!("{}", f));
 }
 
 #[test]
@@ -214,7 +216,7 @@ fn test_decode_encode_member_list() {
     let h: NewList = decode::decode(e).unwrap();
     println!("{:?}", h);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(s,format!("{}", f));
+    assert_eq!(s, format!("{}", f));
 }
 
 #[test]
@@ -224,7 +226,7 @@ fn test_decode_encode_member_list_compacted_in_struct() {
     let h: NewList = decode::decode(e).unwrap();
     println!("{:?}", h);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(s,format!("{}", f));
+    assert_eq!(s, format!("{}", f));
 }
 
 #[test]
@@ -234,5 +236,5 @@ fn test_decode_encode_special_handling() {
     let h: Special = decode::decode(e).unwrap();
     println!("{:?}", h);
     let f = encode::to_sexp(h).unwrap();
-    assert_eq!(s,format!("{}", f));
+    assert_eq!(s, format!("{}", f));
 }

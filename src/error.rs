@@ -5,7 +5,7 @@ use std::io;
 use std::fmt;
 use std::result;
 use symbolic_expressions;
-use serde::{de,ser};
+use serde::{de, ser};
 
 /// encapsulating Error type
 #[derive(Debug)]

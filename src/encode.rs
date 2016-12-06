@@ -44,7 +44,11 @@ impl ser::Serializer for Serializer {
     type StructVariantState = ();
 
     fn serialize_bool(&mut self, v: bool) -> Result<()> {
-        let b = if v { "true".into() } else { "false".into() };
+        let b = if v {
+            "true".into()
+        } else {
+            "false".into()
+        };
         self.exp = Sexp::String(b);
         Ok(())
     }
@@ -66,7 +70,7 @@ impl ser::Serializer for Serializer {
     }
 
     fn serialize_i64(&mut self, v: i64) -> Result<()> {
-        self.exp = Sexp::String(format!("{}",v));
+        self.exp = Sexp::String(format!("{}", v));
         Ok(())
     }
 
@@ -124,26 +128,21 @@ impl ser::Serializer for Serializer {
         Ok(())
     }
 
-    fn serialize_unit_variant(
-        &mut self,
-        _name: &str,
-        _variant_index: usize,
-        variant: &str
-    ) -> Result<()> {
+    fn serialize_unit_variant(&mut self,
+                              _name: &str,
+                              _variant_index: usize,
+                              variant: &str)
+                              -> Result<()> {
         let mut s = String::new();
         s.push_str(variant);
         self.exp = Sexp::String(s.to_lowercase());
         Ok(())
     }
 
-    fn serialize_newtype_struct<T>(
-        &mut self,
-        name: &'static str,
-        value: T
-    ) -> Result<()>
-        where T: ser::Serialize,
+    fn serialize_newtype_struct<T>(&mut self, name: &'static str, value: T) -> Result<()>
+        where T: ser::Serialize
     {
-        let name:String = name.into();
+        let name: String = name.into();
         let name = name.to_lowercase();
         let mut value = try!(to_sexp(value));
         let mut v = try!(value.take_list());
@@ -153,14 +152,13 @@ impl ser::Serializer for Serializer {
         Ok(())
     }
 
-    fn serialize_newtype_variant<T>(
-        &mut self,
-        _name: &str,
-        _variant_index: usize,
-        variant: &str,
-        value: T
-    ) -> Result<()>
-        where T: ser::Serialize,
+    fn serialize_newtype_variant<T>(&mut self,
+                                    _name: &str,
+                                    _variant_index: usize,
+                                    variant: &str,
+                                    value: T)
+                                    -> Result<()>
+        where T: ser::Serialize
     {
         let mut s = String::new();
         s.push_str(variant);
@@ -175,7 +173,7 @@ impl ser::Serializer for Serializer {
     }
 
     fn serialize_some<V>(&mut self, value: V) -> Result<()>
-        where V: ser::Serialize,
+        where V: ser::Serialize
     {
         value.serialize(self)
     }
@@ -185,12 +183,8 @@ impl ser::Serializer for Serializer {
         Ok(vec![])
     }
 
-    fn serialize_seq_elt<T>(
-        &mut self,
-        state: &mut Vec<Sexp>,
-        elem: T
-    ) -> Result<()>
-        where T: ser::Serialize,
+    fn serialize_seq_elt<T>(&mut self, state: &mut Vec<Sexp>, elem: T) -> Result<()>
+        where T: ser::Serialize
     {
         state.push(to_sexp(elem)?);
         Ok(())
@@ -209,12 +203,8 @@ impl ser::Serializer for Serializer {
         self.serialize_seq(Some(len))
     }
 
-    fn serialize_tuple_elt<T>(
-        &mut self,
-        state: &mut Vec<Sexp>,
-        elem: T
-    ) -> Result<()>
-        where T: ser::Serialize,
+    fn serialize_tuple_elt<T>(&mut self, state: &mut Vec<Sexp>, elem: T) -> Result<()>
+        where T: ser::Serialize
     {
         self.serialize_seq_elt(state, elem)
     }
@@ -223,22 +213,14 @@ impl ser::Serializer for Serializer {
         self.serialize_seq_end(state)
     }
 
-    fn serialize_tuple_struct(
-        &mut self,
-        name: &'static str,
-        _len: usize
-    ) -> Result<Vec<Sexp>> {
+    fn serialize_tuple_struct(&mut self, name: &'static str, _len: usize) -> Result<Vec<Sexp>> {
         let mut v = vec![];
         v.push(Sexp::String(name.to_lowercase()));
         Ok(v)
     }
 
-    fn serialize_tuple_struct_elt<V>(
-        &mut self,
-        state: &mut Vec<Sexp>,
-        value: V
-    ) -> Result<()>
-        where V: ser::Serialize,
+    fn serialize_tuple_struct_elt<V>(&mut self, state: &mut Vec<Sexp>, value: V) -> Result<()>
+        where V: ser::Serialize
     {
         self.serialize_seq_elt(state, value)
     }
@@ -247,30 +229,22 @@ impl ser::Serializer for Serializer {
         self.serialize_seq_end(state)
     }
 
-    fn serialize_tuple_variant(
-        &mut self,
-        _enum: &'static str,
-        _idx: usize,
-        _variant: &'static str,
-        _len: usize
-    ) -> Result<Vec<Sexp>> {
+    fn serialize_tuple_variant(&mut self,
+                               _enum: &'static str,
+                               _idx: usize,
+                               _variant: &'static str,
+                               _len: usize)
+                               -> Result<Vec<Sexp>> {
         Err(Error::Encoder("unsupported: tuple variant".into()))
     }
 
-    fn serialize_tuple_variant_elt<V>(
-        &mut self,
-        _state: &mut Vec<Sexp>,
-        _v: V
-    ) -> Result<()>
-        where V: ser::Serialize,
+    fn serialize_tuple_variant_elt<V>(&mut self, _state: &mut Vec<Sexp>, _v: V) -> Result<()>
+        where V: ser::Serialize
     {
         Err(Error::Encoder("unsupported: tuple variant".into()))
     }
 
-    fn serialize_tuple_variant_end(
-        &mut self,
-        _state: (Vec<Sexp>)
-    ) -> Result<()> {
+    fn serialize_tuple_variant_end(&mut self, _state: (Vec<Sexp>)) -> Result<()> {
         Err(Error::Encoder("unsupported: tuple variant".into()))
     }
 
@@ -278,21 +252,13 @@ impl ser::Serializer for Serializer {
         Err(Error::Encoder("unsupported: map".into()))
     }
 
-    fn serialize_map_key<T>(
-        &mut self,
-        _state: &mut (),
-        _key: T
-    ) -> Result<()>
+    fn serialize_map_key<T>(&mut self, _state: &mut (), _key: T) -> Result<()>
         where T: ser::Serialize
     {
         Err(Error::Encoder("unsupported: map".into()))
     }
 
-    fn serialize_map_value<T>(
-        &mut self,
-        _state: &mut (),
-        _value: T
-    ) -> Result<()>
+    fn serialize_map_value<T>(&mut self, _state: &mut (), _value: T) -> Result<()>
         where T: ser::Serialize
     {
         Err(Error::Encoder("unsupported: map".into()))
@@ -302,24 +268,19 @@ impl ser::Serializer for Serializer {
         Err(Error::Encoder("unsupported: map".into()))
     }
 
-    fn serialize_struct(
-        &mut self,
-        name: &'static str,
-        _len: usize
-    ) -> Result<Vec<Sexp>> {
+    fn serialize_struct(&mut self, name: &'static str, _len: usize) -> Result<Vec<Sexp>> {
         let mut v = vec![];
         let name = name.to_lowercase();
         v.push(Sexp::String(name));
         Ok(v)
     }
 
-    fn serialize_struct_elt<V>(
-        &mut self,
-        state: &mut Vec<Sexp>,
-        key: &'static str,
-        value: V
-    ) -> Result<()>
-        where V: ser::Serialize,
+    fn serialize_struct_elt<V>(&mut self,
+                               state: &mut Vec<Sexp>,
+                               key: &'static str,
+                               value: V)
+                               -> Result<()>
+        where V: ser::Serialize
     {
         let mut v = vec![];
 
@@ -327,27 +288,27 @@ impl ser::Serializer for Serializer {
         value.serialize(&mut ser)?;
         let was_seq = ser.was_seq;
         let mut value = ser.take();
-        
+
         // don't add empty values
         if value == Sexp::Empty {
-            return Ok(())
+            return Ok(());
         }
         let key = String::from(key);
         if value.is_string() {
             if let Some(c) = key.chars().last() {
                 if c == '_' {
                     state.push(value);
-                    return Ok(())
+                    return Ok(());
                 }
             }
         }
-        
+
         // check if the value is a list that has the same
         // first element name as the containing struct
         // push the elements directly in the containing List
         if value.is_list() {
             let x = value.list()?; // Ok
-            println!("x: {:?}", x);
+            //println!("x: {:?}", x);
             if !x.is_empty() && x.len() >= 2 {
                 if x[0].is_string() {
                     let ok = {
@@ -356,12 +317,12 @@ impl ser::Serializer for Serializer {
                     };
                     if ok {
                         state.push(value.clone()); // TODO optimize
-                        return Ok(())
+                        return Ok(());
                     }
                 }
             }
         }
-        
+
         v.push(Sexp::String(key.into()));
         // flatten value if appropriate... should only happen for Vec perhaps
         // TODO
@@ -381,38 +342,33 @@ impl ser::Serializer for Serializer {
         self.serialize_seq_end(state)
     }
 
-    fn serialize_struct_variant(
-        &mut self,
-        _enum: &'static str,
-        _idx: usize,
-        _variant: &'static str,
-        _len: usize
-    ) -> Result<()> {
+    fn serialize_struct_variant(&mut self,
+                                _enum: &'static str,
+                                _idx: usize,
+                                _variant: &'static str,
+                                _len: usize)
+                                -> Result<()> {
         Err(Error::Encoder("unsupported: struct variant".into()))
     }
 
-    fn serialize_struct_variant_elt<V>(
-        &mut self,
-        _state: &mut (),
-        _field: &'static str,
-        _v: V
-    ) -> Result<()>
-        where V: ser::Serialize,
+    fn serialize_struct_variant_elt<V>(&mut self,
+                                       _state: &mut (),
+                                       _field: &'static str,
+                                       _v: V)
+                                       -> Result<()>
+        where V: ser::Serialize
     {
         Err(Error::Encoder("unsupported: struct variant".into()))
     }
 
-    fn serialize_struct_variant_end(
-        &mut self,
-        _state: ()
-    ) -> Result<()> {
+    fn serialize_struct_variant_end(&mut self, _state: ()) -> Result<()> {
         Err(Error::Encoder("unsupported: struct variant".into()))
     }
 }
 
 /// convert a rust structure to a symbolic expression
 pub fn to_sexp<T>(elem: T) -> Result<Sexp>
-    where T: ser::Serialize,
+    where T: ser::Serialize
 {
     let mut ser = Serializer::new();
     try!(elem.serialize(&mut ser));

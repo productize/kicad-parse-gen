@@ -73,48 +73,64 @@ mod test {
     use decode;
     use symbolic_expressions;
     use super::data2;
-    
-#[test]
-fn test_footprint_fp_line() {
-    let s = "(fp_line (start -1.5 0.7) (end 1.5 0.7) (layer Dwgs.User) (width 0.1))";
-    let e = symbolic_expressions::parser::parse_str(s).unwrap();
-    let h: data2::Fp_Line = decode::decode(e.clone()).unwrap();
-    println!("{:?}", h);
-    let f = encode::to_sexp(h).unwrap();
-    assert_eq!(e,f);
-}
 
-#[test]
-fn test_footprint_fp_poly() {
-    let s = "(fp_poly (pts (xy -0.25 -1.15) (xy -0.25 -0.65) (xy 0.25 -0.65) (xy 0.25 -1.15) (xy -0.25 -1.15)) (layer Dwgs.User) (width 0.15))";
-    let e = symbolic_expressions::parser::parse_str(s).unwrap();
-    let h: data2::Fp_Poly = decode::decode(e.clone()).unwrap();
-    println!("{:?}", h);
-    let f = encode::to_sexp(h).unwrap();
-    assert_eq!(e,f);
-}
+    #[test]
+    fn test_footprint_fp_line() {
+        let s = "(fp_line (start -1.5 0.7) (end 1.5 0.7) (layer Dwgs.User) (width 0.1))";
+        let e = symbolic_expressions::parser::parse_str(s).unwrap();
+        let h: data2::Fp_Line = decode::decode(e.clone()).unwrap();
+        println!("{:?}", h);
+        let f = encode::to_sexp(h).unwrap();
+        assert_eq!(e, f);
+    }
 
-#[test]
-fn test_footprint_fp_text() {
-    use env_logger;
-    env_logger::init().unwrap();
-    trace!("test_footprint_fp_test");
-    let s = "(fp_text reference U1 (at 2.3 0) (layer F.SilkS) (effects (font (size 0.625 0.625) (thickness 0.1))))";
-    let e = symbolic_expressions::parser::parse_str(s).unwrap();
-    let h: data2::Fp_Text = decode::decode(e.clone()).unwrap();
-    println!("{:?}", h);
-    let f = encode::to_sexp(h).unwrap();
-    assert_eq!(s,format!("{}",f));
-}
+    #[test]
+    fn test_footprint_fp_poly() {
+        let s = "(fp_poly (pts (xy -0.25 -1.15) (xy -0.25 -0.65) (xy 0.25 -0.65) (xy 0.25 -1.15) \
+                 (xy -0.25 -1.15)) (layer Dwgs.User) (width 0.15))";
+        let e = symbolic_expressions::parser::parse_str(s).unwrap();
+        let h: data2::Fp_Poly = decode::decode(e.clone()).unwrap();
+        println!("{:?}", h);
+        let f = encode::to_sexp(h).unwrap();
+        assert_eq!(e, f);
+    }
 
-#[test]
-fn test_footprint_effects() {
-    let s = "(effects (font (size 0.625 0.625) (thickness 0.1)))";
-    let e = symbolic_expressions::parser::parse_str(s).unwrap();
-    let h: data2::Effects = decode::decode(e.clone()).unwrap();
-    println!("{:?}", h);
-    let f = encode::to_sexp(h).unwrap();
-    assert_eq!(s,format!("{}",f));
-}
+    #[test]
+    fn test_footprint_fp_text() {
+        use env_logger;
+        env_logger::init().unwrap();
+        trace!("test_footprint_fp_test");
+        let s = "(fp_text reference U1 (at 2.3 0) (layer F.SilkS) (effects (font (size 0.625 \
+                 0.625) (thickness 0.1))))";
+        let e = symbolic_expressions::parser::parse_str(s).unwrap();
+        let h: data2::Fp_Text = decode::decode(e.clone()).unwrap();
+        println!("{:?}", h);
+        let f = encode::to_sexp(h).unwrap();
+        assert_eq!(s, format!("{}", f));
+    }
+
+    #[test]
+    fn test_footprint_pad() {
+        use env_logger;
+        env_logger::init().unwrap();
+        let s = "(pad 1 smd rect (at -0.95 0.885) (size 0.802 0.972) (layers F.Cu F.Paste F.Mask))";
+        let e = symbolic_expressions::parser::parse_str(s).unwrap();
+        let h: data2::Pad = decode::decode(e.clone()).unwrap();
+        println!("{:?}", h);
+        let f = encode::to_sexp(h).unwrap();
+        assert_eq!(s, format!("{}", f));
+    }
+
+    #[test]
+    fn test_footprint_model() {
+        use env_logger;
+        env_logger::init().unwrap();
+        let s = "(model external/kicad-library/modules/packages3d/TO_SOT_Packages_SMD.3dshapes/SOT-23.wrl (at (xyz 0 0 0)) (scale (xyz 1 1 1)) (rotate (xyz 0 0 0)))";
+        let e = symbolic_expressions::parser::parse_str(s).unwrap();
+        let h: data2::Model = decode::decode(e.clone()).unwrap();
+        println!("{:?}", h);
+        let f = encode::to_sexp(h).unwrap();
+        assert_eq!(s, format!("{}", f));
+    }
 
 }

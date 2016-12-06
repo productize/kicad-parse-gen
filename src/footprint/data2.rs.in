@@ -16,6 +16,8 @@ pub struct At (f64, f64);
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct Size (f64, f64);
 
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Xyz (f64, f64, f64);
 
 /// (fp_line (start -1.5 0.7) (end 1.5 0.7) (layer Dwgs.User) (width 0.1))
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
@@ -47,12 +49,6 @@ pub struct Fp_Poly {
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct Layer (String, f64);
 
-/// (effects (font (size 0.625 0.625) (thickness 0.1)))
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
-pub struct Effects {
-    font:Font,
-}
-
 /// (font (size 0.625 0.625) (thickness 0.1))
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct Font {
@@ -69,7 +65,27 @@ pub struct Fp_Text {
     at:At,
     layer:String,
     hide_:Option<String>,
-    effects:Effects,
+    effects:Font,
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[allow(non_camel_case_types)] 
+pub struct Pad {
+    index_:i64,
+    type_:String,
+    shape_:String,
+    at:At,
+    size:Size,
+    layers:Vec<String>,
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[allow(non_camel_case_types)] 
+pub struct Model {
+    file_:String,
+    at:Xyz,
+    scale:Xyz,
+    rotate:Xyz,
 }
 
 /*
