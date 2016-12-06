@@ -69,11 +69,21 @@ pub struct Fp_Text {
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub enum PadType {
+    Smd,
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub enum PadShape {
+    Rect,
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[allow(non_camel_case_types)] 
 pub struct Pad {
     index_:i64,
-    type_:String,
-    shape_:String,
+    type_:PadType,
+    shape_:PadShape,
     at:At,
     size:Size,
     layers:Vec<String>,
@@ -86,6 +96,12 @@ pub struct Model {
     at:Xyz,
     scale:Xyz,
     rotate:Xyz,
+}
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[allow(non_camel_case_types)] 
+pub struct Module {
+    name_:String,
+    layer:String,
 }
 
 /*
