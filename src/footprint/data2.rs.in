@@ -71,11 +71,13 @@ pub struct Fp_Text {
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub enum PadType {
     Smd,
+    // TODO
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub enum PadShape {
     Rect,
+    // TODO
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
@@ -102,6 +104,8 @@ pub struct Model {
 pub struct Module {
     name_:String,
     layer:String,
+    tedit:String,
+    descr:String,
 }
 
 /*
