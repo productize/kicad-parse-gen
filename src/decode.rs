@@ -124,7 +124,7 @@ impl de::Deserializer for Deserializer {
         let v = match self.exp.take_list() {
             Ok(v) => v,
             _ => {
-                return Err(Error::Decoder(format!("expecting list for deserialize struct, got {}",
+                return Err(Error::Decoder(format!("expecting list for deserialize struct, got '{}'",
                                                   self.exp)))
             }
         };
@@ -144,7 +144,7 @@ impl de::Deserializer for Deserializer {
     fn deserialize_seq<V>(&mut self, mut visitor: V) -> Result<V::Value>
         where V: de::Visitor
     {
-        println!("des seq: {}", self.exp);
+        //println!("des seq: {}", self.exp);
         let v = self.exp.take_list()?;
         let mut skip = false;
         match self.name.take() {
@@ -213,7 +213,7 @@ impl de::Deserializer for Deserializer {
                            -> Result<V::Value>
         where V: de::EnumVisitor
     {
-        // println!("Variant: name: {}", name);
+        trace!("deserialize_enum name:{}, exp:{}", name, self.exp);
         let mut exp = self.take();
         if exp.is_list() {
             let (found, found_name, v) = {
@@ -238,7 +238,7 @@ impl de::Deserializer for Deserializer {
             };
             if found {
                 let l = Sexp::List(v);
-                // println!(".... going for {}", l);
+                trace!(".... going for {}", l);
                 visitor.visit(VariantVisitor::new(l))
             } else {
                 Err(Error::Decoder(format!("unknown variant {} in {}", found_name, name)))
@@ -246,25 +246,30 @@ impl de::Deserializer for Deserializer {
         } else if exp.is_string() {
             let s = try!(exp.take_string());
             let mut found = false;
-            let mut variant_found: String = "".into();
+            let mut variant_found  = Sexp::Empty;
             for &variant in variants {
                 if variant.to_lowercase() == s {
                     found = true;
-                    variant_found.push_str(variant);
+                    variant_found = Sexp::String(variant.into());
                     break;
                 }
             }
             if !found {
                 for &variant in variants {
-                    if variant.to_lowercase() == "unknown" {
-                        found = true;
-                        variant_found.push_str(variant);
-                        break;
+                    if let Some(c) = variant.chars().last() {
+                        if c == '_' {
+                            found = true;
+                            let mut v = vec![];
+                            v.push(Sexp::String(variant.into()));
+                            v.push(Sexp::String(s.clone()));
+                            variant_found = Sexp::List(v);
+                            break;
+                        }
                     }
                 }
             }
             if found {
-                visitor.visit(VariantVisitor::new(Sexp::String(variant_found)))
+                visitor.visit(VariantVisitor::new(variant_found))
             } else {
                 Err(Error::Decoder(format!("unknown variant {} in {}", s, name)))
             }
@@ -457,6 +462,7 @@ impl VariantVisitor {
 impl de::VariantVisitor for VariantVisitor {
     type Error = Error;
 
+    // visit variant name
     fn visit_variant<V>(&mut self) -> Result<V>
         where V: de::Deserialize
     {
@@ -489,15 +495,16 @@ impl de::VariantVisitor for VariantVisitor {
     fn visit_newtype<T>(&mut self) -> Result<T>
         where T: de::Deserialize
     {
-        let mut exp = self.take();
+        let exp = self.take();
+        trace!("VariantVisitor::visit_newtype: {}", exp);
         match exp {
             Sexp::String(_) => de::Deserialize::deserialize(&mut Deserializer::new(exp)),
-            Sexp::List(_) => {
-                let v = exp.take_list()?;
-                if v.len() < 2 {
-                    return Err(Error::Decoder(format!("not enough elements in variant: {:?}", v)));
+            Sexp::List(v) => {
+                if v.len() == 2 {
+                    de::Deserialize::deserialize(&mut Deserializer::new(v[1].clone()))
+                } else {
+                    de::Deserialize::deserialize(&mut Deserializer::new(Sexp::List(v)))
                 }
-                de::Deserialize::deserialize(&mut Deserializer::new(v[1].clone()))
             }
             Sexp::Empty => {
                 Err(Error::Decoder(format!("unexpected Empty in Variant visit_newtype {}",
@@ -515,7 +522,7 @@ impl de::VariantVisitor for VariantVisitor {
     fn visit_struct<V>(&mut self, _fields: &'static [&'static str], visitor: V) -> Result<V::Value>
         where V: de::Visitor
     {
-        // println!("VariantVisitor::visit_struct: {}", self.exp);
+        trace!("VariantVisitor::visit_struct: {}", self.exp);
         de::Deserializer::deserialize(&mut Deserializer::new(self.take()), visitor)
     }
 }

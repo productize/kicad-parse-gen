@@ -106,6 +106,7 @@ pub struct Module(Vec<ModuleElement>);
 #[allow(non_camel_case_types)] 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub enum ModuleElement {
+    Name_(String),
     Layer(String),
     TEdit(String),
     Descr(String),
@@ -114,5 +115,4 @@ pub enum ModuleElement {
     FP_Poly(Fp_Poly),
     Pad(Pad),
     Model(Model),
-    Unknown(String),
 }

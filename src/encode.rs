@@ -160,11 +160,32 @@ impl ser::Serializer for Serializer {
                                     -> Result<()>
         where T: ser::Serialize
     {
-        let mut s = String::new();
-        s.push_str(variant);
-        let name = Sexp::String(s.to_lowercase());
-        let value = try!(to_sexp(value));
-        self.exp = Sexp::List(vec![name, value]);
+        let low_var = variant.to_lowercase();
+        if variant.chars().last().unwrap() == '_' {
+            self.exp = to_sexp(value)?;
+        } else {
+            let mut s = String::new();
+            s.push_str(variant);
+            let name = Sexp::String(s.to_lowercase());
+            let value = try!(to_sexp(value));
+            let mut take_value = false;
+            if value.is_list() {
+                let v = value.list()?;
+                if v.len() >= 1 {
+                    if v[0].is_string() {
+                        if v[0].string()?.as_str() == low_var {
+                            take_value = true;
+                        }
+                    }
+                }
+            }
+            if !take_value {
+                self.exp = Sexp::List(vec![name, value]);
+            } else {
+                self.exp = value
+            }
+        }
+        trace!("serialize_newtype_variant: {} {}", variant, self.exp);
         Ok(())
     }
 
