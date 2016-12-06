@@ -101,25 +101,18 @@ pub struct Model {
 }
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[allow(non_camel_case_types)] 
-pub struct Module {
-    name_:String,
-    layer:String,
-    tedit:String,
-    descr:String,
-}
+pub struct Module(Vec<ModuleElement>);
 
-/*
 #[allow(non_camel_case_types)] 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub enum ModuleElement {
-    Flat(String), // special handling...
     Layer(String),
     TEdit(String),
     Descr(String),
-    FP_Text(FP_Text),
-    FP_Line(FP_Line),
-    FP_Poly(FP_Poly),
+    FP_Text(Fp_Text),
+    FP_Line(Fp_Line),
+    FP_Poly(Fp_Poly),
     Pad(Pad),
     Model(Model),
+    Unknown(String),
 }
-*/

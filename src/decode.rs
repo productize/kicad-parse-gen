@@ -254,6 +254,15 @@ impl de::Deserializer for Deserializer {
                     break;
                 }
             }
+            if !found {
+                for &variant in variants {
+                    if variant.to_lowercase() == "unknown" {
+                        found = true;
+                        variant_found.push_str(variant);
+                        break;
+                    }
+                }
+            }
             if found {
                 visitor.visit(VariantVisitor::new(Sexp::String(variant_found)))
             } else {
