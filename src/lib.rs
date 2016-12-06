@@ -10,6 +10,10 @@
 extern crate serde_derive;
 #[macro_use]
 extern crate serde;
+#[macro_use]
+extern crate log;
+extern crate env_logger;
+    
 
 extern crate symbolic_expressions;
 
@@ -314,5 +318,8 @@ pub mod decode;
 
 mod util;
 mod formatter;
+
+#[cfg(test)]
 mod test;
+#[cfg(test)]
 mod test_data;

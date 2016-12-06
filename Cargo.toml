@@ -13,17 +13,21 @@ default = ["serde_codegen"]
 nightly = ["serde_derive"]
 
 [build-dependencies]
-serde_codegen = { version = "0.8.*", optional = true }
+serde_codegen = { version = "0.8", optional = true }
 
 [dependencies]
-symbolic_expressions = { version = "3.0.*", default-features = false }
+log = "0.3"
+env_logger = "0.3"
+serde_derive = { version = "0.8", optional = true }
+serde = "0.8"
+symbolic_expressions = { version = "3.0", default-features = false }
 # symbolic_expressions = { git = "https://github.com/productize/symbolic-expressions.git", default-features = false }
-
-serde_derive = { version = "0.8.*", optional = true }
-serde = "0.8.*"
 
 # build with default:
 # cargo build
 
 # build with nightly:
 # RUST_MIN_STACK=100000000 cargo build --features nightly --no-default-features
+
+# run tests with tracing:
+# RUST_LOG="kicad_parse_gen=trace" cargo test --features nightly --no-default-features

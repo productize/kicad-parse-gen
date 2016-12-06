@@ -13,10 +13,7 @@ use symbolic_expressions;
 use symbolic_expressions::IntoSexp;
 use formatter::KicadFormatter;
 use FromSexp;
-use encode;
-use decode;
 
-// pub use footprint;
 pub use footprint::data::*;
 
 /// convert a Kicad Module (footprint) to a String
@@ -70,6 +67,13 @@ mod ser;
 mod de;
 mod data2;
 
+#[cfg(test)]
+mod test {
+    use encode;
+    use decode;
+    use symbolic_expressions;
+    use super::data2;
+    
 #[test]
 fn test_footprint_fp_line() {
     let s = "(fp_line (start -1.5 0.7) (end 1.5 0.7) (layer Dwgs.User) (width 0.1))";
@@ -92,6 +96,9 @@ fn test_footprint_fp_poly() {
 
 #[test]
 fn test_footprint_fp_text() {
+    use env_logger;
+    env_logger::init().unwrap();
+    trace!("test_footprint_fp_test");
     let s = "(fp_text reference U1 (at 2.3 0) (layer F.SilkS) (effects (font (size 0.625 0.625) (thickness 0.1))))";
     let e = symbolic_expressions::parser::parse_str(s).unwrap();
     let h: data2::Fp_Text = decode::decode(e.clone()).unwrap();
@@ -108,4 +115,6 @@ fn test_footprint_effects() {
     println!("{:?}", h);
     let f = encode::to_sexp(h).unwrap();
     assert_eq!(s,format!("{}",f));
+}
+
 }
