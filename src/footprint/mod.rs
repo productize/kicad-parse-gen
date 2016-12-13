@@ -134,7 +134,6 @@ mod test {
     }
 
     #[test]
-    //#[should_panic]
     fn test_footprint_module() {
         use env_logger;
         let _ = env_logger::init();
@@ -145,5 +144,20 @@ mod test {
         let f = encode::to_sexp(h).unwrap();
         assert_eq!(s, format!("{}", f));
     }
-
+    
+    fn test_footprint_module_file() {
+        use env_logger;
+        use util;
+        let _ = env_logger::init();
+        let mut filename = String::new();
+        filename.push_str(env!("CARGO_MANIFEST_DIR"));
+        filename.push_str("/examples/SOT-23.kicad_mod");
+        let data = util::read_file(&filename).unwrap();
+        let e = symbolic_expressions::parser::parse_str(&data).unwrap();
+        let f = format!("{}", e); // convert back to sexp string, but compacted
+        let g: data2::Module = decode::decode(e.clone()).unwrap();
+        let h = encode::to_sexp(g).unwrap();
+        let i = format!("{}", h);
+        assert_eq!(f, i);
+    }
 }
