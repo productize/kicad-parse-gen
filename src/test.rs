@@ -6,7 +6,7 @@ use encode;
 use test_data::*;
 
 #[test]
-fn test_decode_encode_struct() {
+fn decode_encode_struct() {
     let s = "(decodestruct (world foo) (mars 42))";
     let e = parser::parse_str(s).unwrap();
     let h: DecodeStruct = decode::decode(e.clone()).unwrap();
@@ -20,7 +20,7 @@ fn test_decode_encode_struct() {
 }
 
 #[test]
-fn test_decode_encode_tuple_struct() {
+fn decode_encode_tuple_struct() {
     let s = "(decodetuplestruct 42 foo)";
     let e = parser::parse_str(s).unwrap();
     let h: DecodeTupleStruct = decode::decode(e.clone()).unwrap();
@@ -30,7 +30,7 @@ fn test_decode_encode_tuple_struct() {
 }
 
 #[test]
-fn test_decode_encode_vec_int() {
+fn decode_encode_vec_int() {
     let s = "(4 5 42)";
     let e = parser::parse_str(s).unwrap();
     let h: Vec<i64> = decode::decode(e.clone()).unwrap();
@@ -40,7 +40,7 @@ fn test_decode_encode_vec_int() {
 }
 
 #[test]
-fn test_decode_encode_vec_string() {
+fn decode_encode_vec_string() {
     let s = "(hi there mars)";
     let e = parser::parse_str(s).unwrap();
     let h: Vec<String> = decode::decode(e.clone()).unwrap();
@@ -51,7 +51,7 @@ fn test_decode_encode_vec_string() {
 }
 
 #[test]
-fn test_decode_encode_vec_string_int() {
+fn decode_encode_vec_string_int() {
     let s = "(4 5 42)";
     let e = parser::parse_str(s).unwrap();
     let h: Vec<String> = decode::decode(e.clone()).unwrap();
@@ -62,7 +62,7 @@ fn test_decode_encode_vec_string_int() {
 }
 
 #[test]
-fn test_decode_encode_struct_nested() {
+fn decode_encode_struct_nested() {
     let s = "(decodenested (world 1 2 3) (mars (planet (size 7))))";
     let e = parser::parse_str(s).unwrap();
     let h: DecodeNested = decode::decode(e.clone()).unwrap();
@@ -77,7 +77,7 @@ fn test_decode_encode_struct_nested() {
 
 #[test]
 #[should_panic]
-fn test_decode_encode_struct_nested_tuple_struct() {
+fn decode_encode_struct_nested_tuple_struct() {
     let s = "(decodenestedtuplestruct (world 1 2 3) (decodetuplestruct (decodetuplestruct 7 foo)))";
     let e = parser::parse_str(s).unwrap();
     let h: DecodeNestedTupleStruct = decode::decode(e.clone()).unwrap();
@@ -91,7 +91,7 @@ fn test_decode_encode_struct_nested_tuple_struct() {
 }
 
 #[test]
-fn test_decode_encode_struct_nested_tuple_struct2() {
+fn decode_encode_struct_nested_tuple_struct2() {
     let s = "(decodenestedtuplestruct (world 1 2 3) (decodetuplestruct 7 foo))";
     let e = parser::parse_str(s).unwrap();
     let h: DecodeNestedTupleStruct = decode::decode(e.clone()).unwrap();
@@ -106,7 +106,7 @@ fn test_decode_encode_struct_nested_tuple_struct2() {
 
 
 #[test]
-fn test_decode_encode_empty() {
+fn decode_encode_empty() {
     let s = "";
     let e = parser::parse_str(s).unwrap();
     let () = decode::decode(e.clone()).unwrap();
@@ -115,7 +115,7 @@ fn test_decode_encode_empty() {
 }
 
 #[test]
-fn test_decode_encode_struct_missing_rust_side() {
+fn decode_encode_struct_missing_rust_side() {
     let s = "(decodemissing1 (world 3) (bar 7))";
     let e = parser::parse_str(s).unwrap();
     let s = "(decodemissing1 (world 3))";
@@ -127,7 +127,7 @@ fn test_decode_encode_struct_missing_rust_side() {
 }
 
 #[test]
-fn test_decode_encode_struct_missing_exp_side() {
+fn decode_encode_struct_missing_exp_side() {
     let s = "(decodemissing2 (world 3))";
     let e = parser::parse_str(s).unwrap();
     let h: DecodeMissing2 = decode::decode(e.clone()).unwrap();
@@ -141,7 +141,7 @@ fn test_decode_encode_struct_missing_exp_side() {
 }
 
 #[test]
-fn test_decode_encode_struct_missing_exp_side_there() {
+fn decode_encode_struct_missing_exp_side_there() {
     let s = "(decodemissing2 (world 3) (bar 7))";
     let e = parser::parse_str(s).unwrap();
     let h: DecodeMissing2 = decode::decode(e.clone()).unwrap();
@@ -155,7 +155,7 @@ fn test_decode_encode_struct_missing_exp_side_there() {
 }
 
 #[test]
-fn test_decode_encode_enum_simplest() {
+fn decode_encode_enum_simplest() {
     let s = "one";
     let e = parser::parse_str(s).unwrap();
     let h: DecodeEnum = decode::decode(e.clone()).unwrap();
@@ -166,7 +166,7 @@ fn test_decode_encode_enum_simplest() {
 
 
 #[test]
-fn test_decode_encode_vec_enum() {
+fn decode_encode_vec_enum() {
     let s = "(one two)";
     let e = parser::parse_str(s).unwrap();
     let h: Vec<DecodeEnum> = decode::decode(e.clone()).unwrap();
@@ -177,7 +177,7 @@ fn test_decode_encode_vec_enum() {
 
 
 #[test]
-fn test_decode_encode_enum2() {
+fn decode_encode_enum2() {
     let s = "(one (two 42))";
     let e = parser::parse_str(s).unwrap();
     let h: Vec<DecodeEnum2> = decode::decode(e.clone()).unwrap();
@@ -187,7 +187,7 @@ fn test_decode_encode_enum2() {
 }
 
 #[test]
-fn test_decode_encode_enum3() {
+fn decode_encode_enum3() {
     let s = "(one (two (planet (size 42))))";
     let e = parser::parse_str(s).unwrap();
     let h: Vec<DecodeEnum3> = decode::decode(e.clone()).unwrap();
@@ -198,7 +198,7 @@ fn test_decode_encode_enum3() {
 }
 
 #[test]
-fn test_decode_encode_wierd_list() {
+fn decode_encode_wierd_list() {
     let s = "(pts (xy -0.25 -1.15) (xy -0.25 -0.65) (xy 0.25 -0.65) (xy 0.25 -1.15) (xy -0.25 \
              -1.15))";
     let e = parser::parse_str(s).unwrap();
@@ -210,7 +210,7 @@ fn test_decode_encode_wierd_list() {
 
 #[test]
 #[should_panic]
-fn test_decode_encode_member_list() {
+fn decode_encode_member_list() {
     let s = "(newlist (list (4 5 7)))";
     let e = parser::parse_str(s).unwrap();
     let h: NewList = decode::decode(e).unwrap();
@@ -220,7 +220,7 @@ fn test_decode_encode_member_list() {
 }
 
 #[test]
-fn test_decode_encode_member_list_compacted_in_struct() {
+fn decode_encode_member_list_compacted_in_struct() {
     let s = "(newlist (list 4 5 7))";
     let e = parser::parse_str(s).unwrap();
     let h: NewList = decode::decode(e).unwrap();
@@ -230,7 +230,7 @@ fn test_decode_encode_member_list_compacted_in_struct() {
 }
 
 #[test]
-fn test_decode_encode_special_handling() {
+fn _decode_encode_special_handling() {
     let s = "(special reference U1 (xy 2.3 0) hide)";
     let e = parser::parse_str(s).unwrap();
     let h: Special = decode::decode(e).unwrap();

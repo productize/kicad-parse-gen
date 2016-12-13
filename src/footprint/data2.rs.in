@@ -23,10 +23,10 @@ pub struct Xyz (f64, f64, f64);
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[allow(non_camel_case_types)] 
 pub struct Fp_Line {
-    start:Start,
-    end:End,
-    layer:String,
-    width:f64,
+    pub start:Start,
+    pub end:End,
+    pub layer:String,
+    pub width:f64,
 }
 
 /// (xy -0.25 -1.15)
@@ -41,9 +41,9 @@ pub struct Pts (Vec<Xy>);
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[allow(non_camel_case_types)] 
 pub struct Fp_Poly {
-    pts:Pts,
-    layer:String,
-    width:f64,
+    pub pts:Pts,
+    pub layer:String,
+    pub width:f64,
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
@@ -52,55 +52,56 @@ pub struct Layer (String, f64);
 /// (font (size 0.625 0.625) (thickness 0.1))
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct Font {
-    size:Size,
-    thickness:f64,
+    pub size:Size,
+    pub thickness:f64,
 }
 
 ///  (fp_text value MOSFET-N-GSD (at 0 2.6) (layer F.SilkS) hide (effects (font (size 0.625 0.625) (thickness 0.1))))
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[allow(non_camel_case_types)] 
 pub struct Fp_Text {
-    value_type_:String,
-    value_:String,
-    at:At,
-    layer:String,
-    hide_:Option<String>,
-    effects:Font,
+    pub value_type_:String,
+    pub value_:String,
+    pub at:At,
+    pub layer:String,
+    pub hide_:Option<String>,
+    pub effects:Font,
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub enum PadType {
     Smd,
-    // TODO
+    Pth,
+    NpPth,
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub enum PadShape {
     Rect,
-    // TODO
+    Circle,
+    Oval,
+    Trapezoid,
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
-#[allow(non_camel_case_types)] 
+//#[allow(non_camel_case_types)] 
 pub struct Pad {
-    index_:i64,
-    type_:PadType,
-    shape_:PadShape,
-    at:At,
-    size:Size,
-    layers:Vec<String>,
+    pub name_:String,
+    pub type_:PadType,
+    pub shape_:PadShape,
+    pub at:At,
+    pub size:Size,
+    pub layers:Vec<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
-#[allow(non_camel_case_types)] 
 pub struct Model {
-    file_:String,
-    at:Xyz,
-    scale:Xyz,
-    rotate:Xyz,
+    pub file_:String,
+    pub at:Xyz,
+    pub scale:Xyz,
+    pub rotate:Xyz,
 }
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
-#[allow(non_camel_case_types)] 
 pub struct Module(Vec<ModuleElement>);
 
 #[allow(non_camel_case_types)] 
@@ -110,9 +111,10 @@ pub enum ModuleElement {
     Layer(String),
     TEdit(String),
     Descr(String),
-    FP_Text(Fp_Text),
-    FP_Line(Fp_Line),
-    FP_Poly(Fp_Poly),
+    Fp_Text(Fp_Text),
+    Fp_Line(Fp_Line),
+    Fp_Poly(Fp_Poly),
     Pad(Pad),
     Model(Model),
+    Locked,
 }
