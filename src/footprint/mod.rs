@@ -145,19 +145,32 @@ mod test {
         assert_eq!(s, format!("{}", f));
     }
     
-    fn test_footprint_module_file() {
+    fn test_footprint_module_file(filename:&str) {
         use env_logger;
         use util;
+        use difference;
         let _ = env_logger::init();
-        let mut filename = String::new();
-        filename.push_str(env!("CARGO_MANIFEST_DIR"));
-        filename.push_str("/examples/SOT-23.kicad_mod");
-        let data = util::read_file(&filename).unwrap();
+        let mut path = String::new();
+        path.push_str(env!("CARGO_MANIFEST_DIR"));
+        path.push_str("/examples/kicad_mod/");
+        path.push_str(&filename);
+        let data = util::read_file(&path).unwrap();
         let e = symbolic_expressions::parser::parse_str(&data).unwrap();
         let f = format!("{}", e); // convert back to sexp string, but compacted
         let g: data2::Module = decode::decode(e.clone()).unwrap();
         let h = encode::to_sexp(g).unwrap();
         let i = format!("{}", h);
+        difference::print_diff(&f, &i, " ");
         assert_eq!(f, i);
+    }
+    
+    #[test]
+    fn test_footprint_module_1() {
+        test_footprint_module_file("SOT-23.kicad_mod")
+    }
+    
+    #[test]
+    fn test_footprint_module_2() {
+        test_footprint_module_file("SILABS_EFM32_QFN24.kicad_mod")
     }
 }

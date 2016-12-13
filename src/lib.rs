@@ -13,7 +13,8 @@ extern crate serde;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
-
+#[macro_use]
+extern crate difference;
 
 extern crate symbolic_expressions;
 

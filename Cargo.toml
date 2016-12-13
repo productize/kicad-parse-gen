@@ -22,6 +22,7 @@ serde_derive = { version = "0.8", optional = true }
 serde = "0.8"
 symbolic_expressions = { version = "3.0", default-features = false }
 # symbolic_expressions = { git = "https://github.com/productize/symbolic-expressions.git", default-features = false }
+difference = "0.4"
 
 # build with default:
 # cargo build

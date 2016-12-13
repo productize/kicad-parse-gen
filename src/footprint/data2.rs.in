@@ -10,7 +10,11 @@ pub struct End (f64, f64);
 
 /// (at -1.5 0.7)
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
-pub struct At (f64, f64);
+pub struct At {
+    pub x_:f64,
+    pub y_:f64,
+    pub rot_:Option<f64>,
+}
 
 /// (size -1.5 0.7)
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
@@ -32,6 +36,10 @@ pub struct Fp_Line {
 /// (xy -0.25 -1.15)
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct Xy (f64, f64);
+
+/// (center -0.25 -1.15)
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+pub struct Center (f64, f64);
 
 ///  (pts (xy -0.25 -1.15) (xy -0.25 -0.65) (xy 0.25 -0.65) (xy 0.25 -1.15) (xy -0.25 -1.15))
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
@@ -67,6 +75,17 @@ pub struct Fp_Text {
     pub hide_:Option<String>,
     pub effects:Font,
 }
+
+///  (fp_text value MOSFET-N-GSD (at 0 2.6) (layer F.SilkS) hide (effects (font (size 0.625 0.625) (thickness 0.1))))
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[allow(non_camel_case_types)] 
+pub struct Fp_Circle {
+    pub center: Center,
+    pub end: End,
+    pub layer:String,
+    pub width:f64,
+}
+
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub enum PadType {
@@ -114,6 +133,7 @@ pub enum ModuleElement {
     Fp_Text(Fp_Text),
     Fp_Line(Fp_Line),
     Fp_Poly(Fp_Poly),
+    Fp_Circle(Fp_Circle),
     Pad(Pad),
     Model(Model),
     Locked,
