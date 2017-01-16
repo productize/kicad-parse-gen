@@ -29,6 +29,8 @@ pub struct Schematic {
     pub elements: Vec<Element>,
     /// nested sheets contained in the schematic
     pub sheets: Vec<Sheet>,
+    /// eelayer is transparently copied
+    pub eelayer: String,
 }
 
 impl Schematic {
@@ -135,7 +137,7 @@ impl fmt::Display for Schematic {
         for v in &self.libraries[..] {
             try!(writeln!(f, "LIBS:{}", v))
         }
-        try!(writeln!(f, "EELAYER 25 0"));
+        try!(writeln!(f, "{}", self.eelayer));
         try!(writeln!(f, "EELAYER END"));
         try!(write!(f, "{}", self.description));
         for v in &self.elements[..] {
@@ -1090,7 +1092,11 @@ pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
         }
         p.next();
     }
-    assume_line!(p, "EELAYER 25 0");
+    if !p.here().starts_with("EELAYER ") {
+        return str_error(format!("expecting EELAYER, got {}", p.here()))
+    }
+    sch.eelayer = p.here();
+    p.next();
     assume_line!(p, "EELAYER END");
     while !p.eof() {
         {
