@@ -619,32 +619,32 @@ impl ComponentField {
 
 impl fmt::Display for ComponentField {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        try!(write!(f, "F {} \"{}\" {} ", self.i, self.value, self.orientation));
-        try!(write!(f, "{} {} {} ", self.x, self.y, self.size));
-        try!(write!(f,
+        write!(f, "F {} \"{}\" {} ", self.i, self.value, self.orientation)?;
+        write!(f, "{} {} {}  ", self.x, self.y, self.size)?;
+        write!(f,
                     "{} ",
                     if self.visible {
                         "0000"
                     } else {
                         "0001"
-                    }));
-        try!(write!(f, "{} {}", self.hjustify, self.vjustify));
-        try!(write!(f,
+                    })?;
+        write!(f, "{} {}", self.hjustify, self.vjustify)?;
+        write!(f,
                     "{}",
                     if self.italic {
                         'I'
                     } else {
                         'N'
-                    }));
-        try!(write!(f,
+                    })?;
+        write!(f,
                     "{}",
                     if self.bold {
                         'B'
                     } else {
                         'N'
-                    }));
+                    })?;
         if self.i > 3 {
-            try!(write!(f, " \"{}\"", self.name))
+            write!(f, " \"{}\"", self.name)?
         };
         Ok(())
     }
