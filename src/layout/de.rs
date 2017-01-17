@@ -176,6 +176,8 @@ impl FromSexp for Result<NetClass> {
         let mut via_drill = 0.25;
         let mut uvia_dia = 0.508;
         let mut uvia_drill = 0.127;
+        let mut diff_pair_gap = None;
+        let mut diff_pair_width = None;
         let mut nets = vec![];
         for x in &l[2..] {
             let list_name = try!(x.list_name());
@@ -191,6 +193,8 @@ impl FromSexp for Result<NetClass> {
                 "via_drill" => via_drill = try!(parse(x, xn)),
                 "uvia_dia" => uvia_dia = try!(parse(x, xn)),
                 "uvia_drill" => uvia_drill = try!(parse(x, xn)),
+                "diff_pair_gap" => diff_pair_gap = Some(try!(parse(x, xn))),
+                "diff_pair_width" => diff_pair_width = Some(try!(parse(x, xn))),
                 _ => return str_error(format!("unknown net_class field {}", list_name)),
             }
         }
@@ -202,6 +206,8 @@ impl FromSexp for Result<NetClass> {
             via_drill: via_drill,
             uvia_dia: uvia_dia,
             uvia_drill: uvia_drill,
+            diff_pair_gap: diff_pair_gap,
+            diff_pair_width: diff_pair_width,
             nets: nets,
             trace_width: trace_width,
         };

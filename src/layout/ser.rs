@@ -125,6 +125,12 @@ impl IntoSexp for NetClass {
         v.push(Sexp::new_named("via_drill", self.via_drill));
         v.push(Sexp::new_named("uvia_dia", self.uvia_dia));
         v.push(Sexp::new_named("uvia_drill", self.uvia_drill));
+        if let Some(diff_pair_gap) = self.diff_pair_gap {
+            v.push(Sexp::new_named("diff_pair_gap", diff_pair_gap));
+        }
+        if let Some(diff_pair_width) = self.diff_pair_width {
+            v.push(Sexp::new_named("diff_pair_width", diff_pair_width));
+        }
         for net in &self.nets {
             v.push(Sexp::new_named("add_net", net));
         }

@@ -178,6 +178,10 @@ pub struct NetClass {
     pub uvia_dia: f64,
     /// micro via drill
     pub uvia_drill: f64,
+    /// differential pair gap
+    pub diff_pair_gap: Option<f64>,
+    /// differential pair width
+    pub diff_pair_width: Option<f64>,
     /// associated nets
     pub nets: Vec<String>,
 }
@@ -401,6 +405,8 @@ impl Layout {
                         via_drill: f64,
                         uvia_dia: f64,
                         uvia_drill: f64,
+                        diff_pair_gap: Option<f64>,
+                        diff_pair_width: Option<f64>,
                         nets: Vec<String>) {
         self.elements.push(Element::NetClass(NetClass {
             name: String::from(name),
@@ -411,6 +417,8 @@ impl Layout {
             via_drill: via_drill,
             uvia_dia: uvia_dia,
             uvia_drill: uvia_drill,
+            diff_pair_gap: diff_pair_gap,
+            diff_pair_width: diff_pair_width,
             nets: nets,
         }));
     }
