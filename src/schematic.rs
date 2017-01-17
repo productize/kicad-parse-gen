@@ -432,23 +432,23 @@ impl Component {
 
 impl fmt::Display for Component {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        try!(writeln!(f, "$Comp"));
-        try!(writeln!(f, "L {} {}", self.name, self.reference));
-        try!(writeln!(f, "{}", self.u));
-        try!(writeln!(f, "P {} {}", self.x, self.y));
+        writeln!(f, "$Comp")?;
+        writeln!(f, "L {} {}", self.name, self.reference)?;
+        writeln!(f, "{}", self.u)?;
+        writeln!(f, "P {} {}", self.x, self.y)?;
         for x in &self.ar_path {
-            try!(writeln!(f, "{}", x))
+            writeln!(f, "{}", x)?
         }
         for x in &self.fields[..] {
-            try!(writeln!(f, "{}", x))
+            writeln!(f, "{}", x)?
         }
-        try!(writeln!(f, "\t1 {} {}", self.x, self.y));
-        try!(writeln!(f,
-                      "\t{} {} {} {}",
-                      self.rotation.a,
-                      self.rotation.b,
-                      self.rotation.c,
-                      self.rotation.d));
+        writeln!(f, "\t{:4} {:4} {:4}", "1", format!("{}", self.x), (format!("{}", self.y)))?;
+        writeln!(f,
+                      "\t{:4} {:4} {:4} {:4}",
+                      format!("{}", self.rotation.a),
+                      format!("{}", self.rotation.b),
+                      format!("{}", self.rotation.c),
+                      format!("{}", self.rotation.d))?;
         writeln!(f, "$EndComp")
     }
 }
