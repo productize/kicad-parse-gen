@@ -341,10 +341,10 @@ pub enum FieldUpdate {
     Same,
 }
 
-impl FieldUpdate {
+impl Into<bool> for FieldUpdate {
     /// was the field updated
-    pub fn update(&self) -> bool {
-        match *self {
+    fn into(self) -> bool {
+        match self {
             FieldUpdate::New => true,
             FieldUpdate::Update(_) => true,
             FieldUpdate::Same => false,
