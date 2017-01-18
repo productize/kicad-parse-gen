@@ -416,6 +416,24 @@ impl Component {
         }
     }
 
+    /// update or add name and value of a component field
+    pub fn add_or_update_field(&mut self, template: &ComponentField, name: &str, value: &str) -> bool {
+        match self.get_field_value(name) {
+            Some(old_value) => {
+                if old_value == value {
+                    false
+                } else {
+                    self.update_field(name, value);
+                    true
+                }
+            },
+            None => {
+                self.add_new_field(template, name, value);
+                true
+            },
+        }
+    }
+
     /// add a new component field based on an existing one but
     /// with a new name and value
     pub fn add_new_field(&mut self, template: &ComponentField, name: &str, value: &str) {
