@@ -331,6 +331,27 @@ impl Default for Component {
     }
 }
 
+/// an indication of how a component field was updated
+pub enum FieldUpdate {
+    /// the field is new
+    New,
+    /// the field is updated from specified old value to the new one
+    Update(String),
+    /// the field already existed and is not updated
+    Same,
+}
+
+impl FieldUpdate {
+    /// was the field updated
+    pub fn update(&self) -> bool {
+        match *self {
+            FieldUpdate::New => true,
+            FieldUpdate::Update(_) => true,
+            FieldUpdate::Same => false,
+        }
+    }
+}
+
 impl Component {
     /// set the name
     fn set_name(&mut self, s: String) {
@@ -417,19 +438,19 @@ impl Component {
     }
 
     /// update or add name and value of a component field
-    pub fn add_or_update_field(&mut self, template: &ComponentField, name: &str, value: &str) -> bool {
+    pub fn add_or_update_field(&mut self, template: &ComponentField, name: &str, value: &str) -> FieldUpdate {
         match self.get_field_value(name) {
             Some(old_value) => {
                 if old_value == value {
-                    false
+                    FieldUpdate::Same
                 } else {
                     self.update_field(name, value);
-                    true
+                    FieldUpdate::Update(old_value.into())
                 }
             },
             None => {
                 self.add_new_field(template, name, value);
-                true
+                FieldUpdate::New
             },
         }
     }
