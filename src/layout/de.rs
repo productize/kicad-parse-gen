@@ -15,20 +15,20 @@ use GrElement;
 use layout::data::*;
 
 fn parse_version(e: &Sexp) -> Result<i64> {
-    let l = try!(e.slice_atom("version"));
+    let l = e.slice_atom("version")?;
     l[0].i().map_err(From::from)
 }
 
 fn parse_page(e: &Sexp) -> Result<String> {
-    let l = try!(e.slice_atom("page"));
-    Ok(try!(l[0].string()).clone())
+    let l = e.slice_atom("page")?;
+    Ok(l[0].string()?.clone())
 }
 
 impl FromSexp for Result<Net> {
     fn from_sexp(s: &Sexp) -> Result<Net> {
-        let l = try!(s.slice_atom_num("net", 2));
-        let num = try!(l[0].i());
-        let name = try!(l[1].string()).clone();
+        let l = s.slice_atom_num("net", 2)?;
+        let num = l[0].i()?;
+        let name = l[1].string()?.clone();
         Ok(Net {
             name: name,
             num: num,
@@ -38,9 +38,9 @@ impl FromSexp for Result<Net> {
 
 impl FromSexp for Result<Host> {
     fn from_sexp(s: &Sexp) -> Result<Host> {
-        let l = try!(s.slice_atom_num("host", 2));
-        let tool = try!(l[0].string()).clone();
-        let build = try!(l[1].string()).clone();
+        let l = s.slice_atom_num("host", 2)?;
+        let tool = l[0].string()?.clone();
+        let build = l[1].string()?.clone();
         Ok(Host {
             tool: tool,
             build: build,
@@ -50,16 +50,16 @@ impl FromSexp for Result<Host> {
 
 impl FromSexp for Result<General> {
     fn from_sexp(s: &Sexp) -> Result<General> {
-        let l = try!(s.slice_atom_num("general", 9));
-        let links = try!(l[0].named_value_i("links"));
-        let no_connects = try!(l[1].named_value_i("no_connects"));
-        let area = try!(Result::from_sexp(&l[2]));
-        let thickness = try!(l[3].named_value_f("thickness"));
-        let drawings = try!(l[4].named_value_i("drawings"));
-        let tracks = try!(l[5].named_value_i("tracks"));
-        let zones = try!(l[6].named_value_i("zones"));
-        let modules = try!(l[7].named_value_i("modules"));
-        let nets = try!(l[8].named_value_i("nets"));
+        let l = s.slice_atom_num("general", 9)?;
+        let links = l[0].named_value_i("links")?;
+        let no_connects = l[1].named_value_i("no_connects")?;
+        let area = Result::from_sexp(&l[2])?;
+        let thickness = l[3].named_value_f("thickness")?;
+        let drawings = l[4].named_value_i("drawings")?;
+        let tracks = l[5].named_value_i("tracks")?;
+        let zones = l[6].named_value_i("zones")?;
+        let modules = l[7].named_value_i("modules")?;
+        let nets = l[8].named_value_i("nets")?;
         Ok(General {
             links: links,
             no_connects: no_connects,
@@ -76,11 +76,11 @@ impl FromSexp for Result<General> {
 
 impl FromSexp for Result<Area> {
     fn from_sexp(s: &Sexp) -> Result<Area> {
-        let l = try!(s.slice_atom_num("area", 4));
-        let x1 = try!(l[0].f());
-        let y1 = try!(l[1].f());
-        let x2 = try!(l[2].f());
-        let y2 = try!(l[3].f());
+        let l = s.slice_atom_num("area", 4)?;
+        let x1 = l[0].f()?;
+        let y1 = l[1].f()?;
+        let x2 = l[2].f()?;
+        let y2 = l[3].f()?;
         Ok(Area {
             x1: x1,
             y1: y1,
@@ -93,9 +93,9 @@ impl FromSexp for Result<Area> {
 impl FromSexp for Result<Vec<Layer>> {
     fn from_sexp(s: &Sexp) -> Result<Vec<Layer>> {
         let mut v = vec![];
-        let l = try!(s.slice_atom("layers"));
+        let l = s.slice_atom("layers")?;
         for x in l {
-            let layer = try!(Result::from_sexp(&x));
+            let layer = Result::from_sexp(&x)?;
             v.push(layer)
         }
         Ok(v)
@@ -104,18 +104,18 @@ impl FromSexp for Result<Vec<Layer>> {
 
 impl FromSexp for Result<Layer> {
     fn from_sexp(s: &Sexp) -> Result<Layer> {
-        let l = try!(s.list());
+        let l = s.list()?;
         // println!("making layer from {}", s);
         if l.len() != 3 && l.len() != 4 {
             return str_error(format!("expecting 3 or 4 elements in layer: {}", s));
         }
-        let num = try!(l[0].i());
-        let layer = try!(footprint::Layer::from_string(try!(l[1].string()).clone()));
-        let layer_type = try!(Result::from_sexp(&l[2]));
+        let num = l[0].i()?;
+        let layer = footprint::Layer::from_string(l[1].string()?.clone())?;
+        let layer_type = Result::from_sexp(&l[2])?;
         let hide = if l.len() == 3 {
             false
         } else {
-            let h = try!(l[3].string());
+            let h = l[3].string()?;
             match &h[..] {
                 "hide" => true,
                 _ => false,
@@ -132,7 +132,7 @@ impl FromSexp for Result<Layer> {
 
 impl FromSexp for Result<LayerType> {
     fn from_sexp(s: &Sexp) -> Result<LayerType> {
-        let x = try!(s.string());
+        let x = s.string()?;
         match &x[..] {
             "signal" => Ok(LayerType::Signal),
             "user" => Ok(LayerType::User),
@@ -143,14 +143,14 @@ impl FromSexp for Result<LayerType> {
 
 impl FromSexp for Result<SetupElement> {
     fn from_sexp(s: &Sexp) -> Result<SetupElement> {
-        let l = try!(s.list());
+        let l = s.list()?;
         if l.len() != 2 && l.len() != 3 {
             return str_error(format!("expecting 2 or 3 elements in setup element: {}", s));
         }
-        let name = try!(l[0].string()).clone();
-        let value1 = try!(l[1].string()).clone();
+        let name = l[0].string()?.clone();
+        let value1 = l[1].string()?.clone();
         let value2 = match l.len() {
-            3 => Some(try!(l[2].string()).clone()),
+            3 => Some(l[2].string()?.clone()),
             _ => None,
         };
         Ok(SetupElement {
@@ -164,12 +164,12 @@ impl FromSexp for Result<SetupElement> {
 impl FromSexp for Result<NetClass> {
     fn from_sexp(s: &Sexp) -> Result<NetClass> {
         fn parse(e: &Sexp, name: &str) -> Result<f64> {
-            let l = try!(e.slice_atom(name));
+            let l = e.slice_atom(name)?;
             l[0].f().map_err(From::from)
         }
-        let l = try!(s.slice_atom("net_class"));
-        let name = try!(l[0].string()).clone();
-        let desc = try!(l[1].string()).clone();
+        let l = s.slice_atom("net_class")?;
+        let name = l[0].string()?.clone();
+        let desc = l[1].string()?.clone();
         let mut clearance = 0.1524;
         let mut trace_width = 0.2032;
         let mut via_dia = 0.675;
@@ -180,21 +180,21 @@ impl FromSexp for Result<NetClass> {
         let mut diff_pair_width = None;
         let mut nets = vec![];
         for x in &l[2..] {
-            let list_name = try!(x.list_name());
+            let list_name = x.list_name()?;
             let xn = &list_name[..];
             match xn {
                 "add_net" => {
-                    let l1 = try!(x.slice_atom("add_net"));
-                    nets.push(try!(l1[0].string()).clone())
+                    let l1 = x.slice_atom("add_net")?;
+                    nets.push(l1[0].string()?.clone())
                 }
-                "clearance" => clearance = try!(parse(x, xn)),
-                "trace_width" => trace_width = try!(parse(x, xn)),
-                "via_dia" => via_dia = try!(parse(x, xn)),
-                "via_drill" => via_drill = try!(parse(x, xn)),
-                "uvia_dia" => uvia_dia = try!(parse(x, xn)),
-                "uvia_drill" => uvia_drill = try!(parse(x, xn)),
-                "diff_pair_gap" => diff_pair_gap = Some(try!(parse(x, xn))),
-                "diff_pair_width" => diff_pair_width = Some(try!(parse(x, xn))),
+                "clearance" => clearance = parse(x, xn)?,
+                "trace_width" => trace_width = parse(x, xn)?,
+                "via_dia" => via_dia = parse(x, xn)?,
+                "via_drill" => via_drill = parse(x, xn)?,
+                "uvia_dia" => uvia_dia = parse(x, xn)?,
+                "uvia_drill" => uvia_drill = parse(x, xn)?,
+                "diff_pair_gap" => diff_pair_gap = Some(parse(x, xn)?),
+                "diff_pair_width" => diff_pair_width = Some(parse(x, xn)?),
                 _ => return str_error(format!("unknown net_class field {}", list_name)),
             }
         }
@@ -219,17 +219,17 @@ impl FromSexp for Result<Setup> {
     fn from_sexp(s: &Sexp) -> Result<Setup> {
         let mut elements = vec![];
         let mut pcbplotparams = vec![];
-        for v in try!(s.slice_atom("setup")) {
+        for v in s.slice_atom("setup")? {
             let n = v.list_name().unwrap().clone();
             match &n[..] {
                 "pcbplotparams" => {
-                    for y in try!(v.slice_atom("pcbplotparams")) {
-                        let p_e = try!(Result::from_sexp(&y));
+                    for y in v.slice_atom("pcbplotparams")? {
+                        let p_e = Result::from_sexp(&y)?;
                         pcbplotparams.push(p_e)
                     }
                 }
                 _ => {
-                    let setup_element = try!(Result::from_sexp(&v));
+                    let setup_element = Result::from_sexp(&v)?;
                     elements.push(setup_element)
                 }
             }
@@ -250,14 +250,14 @@ fn parse_other(e: &Sexp) -> Element {
 
 impl FromSexp for Result<GrText> {
     fn from_sexp(s: &Sexp) -> Result<GrText> {
-        let l = try!(s.slice_atom("gr_text"));
-        let value = try!(l[0].string()).clone();
+        let l = s.slice_atom("gr_text")?;
+        let value = l[0].string()?.clone();
         let mut layer = footprint::Layer::default();
         let mut tstamp = String::from("");
         let mut at = footprint::At::default();
         let mut effects = footprint::Effects::default();
         for x in &l[1..] {
-            let elem = try!(Result::from_sexp(x));
+            let elem = Result::from_sexp(x)?;
             match elem {
                 GrElement::At(x) => at = x,
                 GrElement::Layer(x) => layer = x,
@@ -278,21 +278,21 @@ impl FromSexp for Result<GrText> {
 
 impl FromSexp for Result<GrElement> {
     fn from_sexp(s: &Sexp) -> Result<GrElement> {
-        match &try!(s.list_name())[..] {
+        match &(s.list_name()?)[..] {
             "start" => wrap(s, Result::from_sexp, GrElement::Start),
             "end" => wrap(s, Result::from_sexp, GrElement::End),
             "angle" => {
-                let l2 = try!(s.slice_atom("angle"));
-                Ok(GrElement::Angle(try!(l2[0].f())))
+                let l2 = s.slice_atom("angle")?;
+                Ok(GrElement::Angle(l2[0].f()?))
             }
             "layer" => wrap(s, Result::from_sexp, GrElement::Layer),
             "width" => {
-                let l2 = try!(s.slice_atom("width"));
-                Ok(GrElement::Width(try!(l2[0].f())))
+                let l2 = s.slice_atom("width")?;
+                Ok(GrElement::Width(l2[0].f()?))
             }
             "tstamp" => {
-                let l2 = try!(s.slice_atom("tstamp"));
-                let sx = try!(l2[0].string()).clone();
+                let l2 = s.slice_atom("tstamp")?;
+                let sx = l2[0].string()?.clone();
                 Ok(GrElement::TStamp(sx))
             }
             "at" => wrap(s, Result::from_sexp, GrElement::At),
@@ -306,7 +306,7 @@ impl FromSexp for Result<GrElement> {
 impl FromSexp for Result<GrLine> {
     fn from_sexp(s: &Sexp) -> Result<GrLine> {
         // println!("GrLine: {}", s);
-        let l = try!(s.slice_atom("gr_line"));
+        let l = s.slice_atom("gr_line")?;
         let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
         let mut angle = 0.0_f64;
@@ -314,7 +314,7 @@ impl FromSexp for Result<GrLine> {
         let mut width = 0.0_f64;
         let mut tstamp = String::from("");
         for x in l {
-            let elem = try!(Result::from_sexp(x));
+            let elem = Result::from_sexp(x)?;
             match elem {
                 GrElement::Start(x) => start = x,
                 GrElement::End(x) => end = x,
@@ -338,7 +338,7 @@ impl FromSexp for Result<GrLine> {
 
 impl FromSexp for Result<GrArc> {
     fn from_sexp(s: &Sexp) -> Result<GrArc> {
-        let l = try!(s.slice_atom("gr_arc"));
+        let l = s.slice_atom("gr_arc")?;
         let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
         let mut angle = 0.0_f64;
@@ -346,7 +346,7 @@ impl FromSexp for Result<GrArc> {
         let mut width = 0.0_f64;
         let mut tstamp = String::from("");
         for x in l {
-            let elem = try!(Result::from_sexp(x));
+            let elem = Result::from_sexp(x)?;
             match elem {
                 GrElement::Start(x) => start = x,
                 GrElement::End(x) => end = x,
@@ -370,25 +370,25 @@ impl FromSexp for Result<GrArc> {
 
 impl FromSexp for Result<Dimension> {
     fn from_sexp(s: &Sexp) -> Result<Dimension> {
-        let l = try!(s.slice_atom_num("dimension", 11));
-        let name = try!(l[0].string()).clone();
+        let l = s.slice_atom_num("dimension", 11)?;
+        let name = l[0].string()?.clone();
         let width = {
-            let l2 = try!(l[1].slice_atom("width"));
-            try!(l2[0].f())
+            let l2 = l[1].slice_atom("width")?;
+            l2[0].f()?
         };
-        let layer = try!(Result::from_sexp(&l[2]));
+        let layer = Result::from_sexp(&l[2])?;
         let (i, tstamp) = match l[3].named_value_string("tstamp") {
             Ok(s) => (4, Some(s.clone())),
             _ => (3, None),
         };
-        let text = try!(Result::from_sexp(&l[i]));
-        let feature1 = try!(Result::from_sexp(try!(l[i + 1].named_value("feature1"))));
-        let feature2 = try!(Result::from_sexp(try!(l[i + 2].named_value("feature2"))));
-        let crossbar = try!(Result::from_sexp(try!(l[i + 3].named_value("crossbar"))));
-        let arrow1a = try!(Result::from_sexp(try!(l[i + 4].named_value("arrow1a"))));
-        let arrow1b = try!(Result::from_sexp(try!(l[i + 5].named_value("arrow1b"))));
-        let arrow2a = try!(Result::from_sexp(try!(l[i + 6].named_value("arrow2a"))));
-        let arrow2b = try!(Result::from_sexp(try!(l[i + 7].named_value("arrow2b"))));
+        let text = Result::from_sexp(&l[i])?;
+        let feature1 = Result::from_sexp(l[i + 1].named_value("feature1")?)?;
+        let feature2 = Result::from_sexp(l[i + 2].named_value("feature2")?)?;
+        let crossbar = Result::from_sexp(l[i + 3].named_value("crossbar")?)?;
+        let arrow1a = Result::from_sexp(l[i + 4].named_value("arrow1a")?)?;
+        let arrow1b = Result::from_sexp(l[i + 5].named_value("arrow1b")?)?;
+        let arrow2a = Result::from_sexp(l[i + 6].named_value("arrow2a")?)?;
+        let arrow2b = Result::from_sexp(l[i + 7].named_value("arrow2b")?)?;
         Ok(Dimension {
             name: name,
             width: width,
@@ -408,12 +408,12 @@ impl FromSexp for Result<Dimension> {
 
 impl FromSexp for Result<Zone> {
     fn from_sexp(s: &Sexp) -> Result<Zone> {
-        let l = try!(s.slice_atom("zone"));
+        let l = s.slice_atom("zone")?;
         if l.len() < 3 {
             return str_error(format!("expecting more elements in zone {}", s));
         }
-        let net = try!(l[0].named_value_i("net"));
-        let net_name = try!(l[1].named_value_string("net_name")).clone();
+        let net = l[0].named_value_i("net")?;
+        let net_name = l[1].named_value_string("net_name")?.clone();
         let mut other = vec![];
         for x in &l[2..] {
             other.push(x.clone())
@@ -428,48 +428,48 @@ impl FromSexp for Result<Zone> {
 
 impl FromSexp for Result<Layout> {
     fn from_sexp(s: &Sexp) -> Result<Layout> {
-        let l1 = try!(s.slice_atom("kicad_pcb"));
+        let l1 = s.slice_atom("kicad_pcb")?;
         let mut layout = Layout::default();
-        for ref e in l1 {
-            match &try!(e.list_name())[..] {
-                "version" => layout.version = try!(parse_version(e)),
-                "host" => layout.host = try!(Result::from_sexp(&e)),
-                "general" => layout.general = try!(Result::from_sexp(&e)),
-                "page" => layout.page = try!(parse_page(&e)),
-                "layers" => layout.layers = try!(Result::from_sexp(&e)),
+        for e in l1 {
+            match &(e.list_name()?)[..] {
+                "version" => layout.version = parse_version(e)?,
+                "host" => layout.host = Result::from_sexp(&e)?,
+                "general" => layout.general = Result::from_sexp(&e)?,
+                "page" => layout.page = parse_page(&e)?,
+                "layers" => layout.layers = Result::from_sexp(&e)?,
                 "module" => {
-                    let module = try!(wrap(e, Result::from_sexp, Element::Module));
+                    let module = wrap(e, Result::from_sexp, Element::Module)?;
                     layout.elements.push(module)
                 }
                 "net" => {
-                    let net = try!(wrap(e, Result::from_sexp, Element::Net));
+                    let net = wrap(e, Result::from_sexp, Element::Net)?;
                     layout.elements.push(net)
                 }
                 "net_class" => {
-                    let nc = try!(wrap(e, Result::from_sexp, Element::NetClass));
+                    let nc = wrap(e, Result::from_sexp, Element::NetClass)?;
                     layout.elements.push(nc)
                 }
                 "gr_text" => {
-                    let g = try!(wrap(e, Result::from_sexp, Element::GrText));
+                    let g = wrap(e, Result::from_sexp, Element::GrText)?;
                     layout.elements.push(g)
                 }
                 "gr_line" => {
-                    let g = try!(wrap(e, Result::from_sexp, Element::GrLine));
+                    let g = wrap(e, Result::from_sexp, Element::GrLine)?;
                     layout.elements.push(g)
                 }
                 "gr_arc" => {
-                    let g = try!(wrap(e, Result::from_sexp, Element::GrArc));
+                    let g = wrap(e, Result::from_sexp, Element::GrArc)?;
                     layout.elements.push(g)
                 }
                 "dimension" => {
-                    let g = try!(wrap(e, Result::from_sexp, Element::Dimension));
+                    let g = wrap(e, Result::from_sexp, Element::Dimension)?;
                     layout.elements.push(g)
                 }
                 "zone" => {
-                    let g = try!(wrap(e, Result::from_sexp, Element::Zone));
+                    let g = wrap(e, Result::from_sexp, Element::Zone)?;
                     layout.elements.push(g)
                 }
-                "setup" => layout.setup = try!(Result::from_sexp(&e)),
+                "setup" => layout.setup = Result::from_sexp(&e)?,
                 _ => {
                     // println!("unimplemented: {}", e);
                     layout.elements.push(parse_other(e))

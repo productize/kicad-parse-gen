@@ -150,7 +150,7 @@ impl fmt::Display for KicadFile {
 /// and matching it against the Expected type
 pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
     let pb = std::path::PathBuf::from(name);
-    let data = try!(read_file(name));
+    let data = read_file(name)?;
     let mut msg = String::new();
     match footprint::parse(&data) {
         Ok(module) => return Ok(KicadFile::Module(module)),
@@ -197,7 +197,7 @@ pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
 
 /// read a file, expecting it to be a Kicad module file
 pub fn read_module(name: &str) -> Result<footprint::Module> {
-    match try!(read_kicad_file(name, Expected::Module)) {
+    match read_kicad_file(name, Expected::Module)? {
         KicadFile::Module(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name)),
     }
@@ -205,7 +205,7 @@ pub fn read_module(name: &str) -> Result<footprint::Module> {
 
 /// read a file, expecting it to be a Kicad schematic
 pub fn read_schematic(name: &str) -> Result<schematic::Schematic> {
-    match try!(read_kicad_file(name, Expected::Schematic)) {
+    match read_kicad_file(name, Expected::Schematic)? {
         KicadFile::Schematic(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name)),
     }
@@ -213,7 +213,7 @@ pub fn read_schematic(name: &str) -> Result<schematic::Schematic> {
 
 /// read a file, expecting it to be a Kicad layout file
 pub fn read_layout(name: &str) -> Result<layout::Layout> {
-    match try!(read_kicad_file(name, Expected::Layout)) {
+    match read_kicad_file(name, Expected::Layout)? {
         KicadFile::Layout(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name)),
     }
@@ -221,13 +221,13 @@ pub fn read_layout(name: &str) -> Result<layout::Layout> {
 
 /// write out a kicad Layout to a file
 pub fn write_layout(layout: &layout::Layout, name: &str) -> Result<()> {
-    let s = try!(layout::layout_to_string(layout, 0));
+    let s = layout::layout_to_string(layout, 0)?;
     write_file(name, &s)
 }
 
 /// read a file, expecting it to be a Kicad symbol library file
 pub fn read_symbol_lib(name: &str) -> Result<symbol_lib::SymbolLib> {
-    match try!(read_kicad_file(name, Expected::SymbolLib)) {
+    match read_kicad_file(name, Expected::SymbolLib)? {
         KicadFile::SymbolLib(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name)),
     }
@@ -235,7 +235,7 @@ pub fn read_symbol_lib(name: &str) -> Result<symbol_lib::SymbolLib> {
 
 /// read a file, expecting it to be a Kicad project file
 pub fn read_project(name: &str) -> Result<project::Project> {
-    match try!(read_kicad_file(name, Expected::Project)) {
+    match read_kicad_file(name, Expected::Project)? {
         KicadFile::Project(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name)),
     }
@@ -283,7 +283,7 @@ fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> Result<Y>
     where F: Fn(&Sexp) -> Result<X>,
           G: Fn(X) -> Y
 {
-    Ok(wrapper(try!(make(s))))
+    Ok(wrapper(make(s)?))
 }
 
 /// Kicad error handling code and types

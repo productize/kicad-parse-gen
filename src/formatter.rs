@@ -84,10 +84,10 @@ impl KicadFormatter {
 
     fn indent<W: io::Write>(&self, writer: &mut W, nls: i64) -> Result<()> {
         for _ in 0..nls {
-            try!(writer.write_all(b"\n"));
+            writer.write_all(b"\n")?;
         }
         for _ in 0..self.indent {
-            try!(writer.write_all(&self.ind));
+            writer.write_all(&self.ind)?;
         }
         Ok(())
     }
@@ -268,7 +268,7 @@ impl Formatter for KicadFormatter {
         if let Some(ref want_indent) = want_indent {
             self.indent += 1;
             if want_indent.newline_before > 0 {
-                try!(self.indent(writer, want_indent.newline_before));
+                self.indent(writer, want_indent.newline_before)?;
             }
         }
 
@@ -298,9 +298,9 @@ impl Formatter for KicadFormatter {
     {
         // get rid of the space if we will be putting a newline next
         if self.want_indent(value).is_none() {
-            try!(writer.write_all(b" "));
+            writer.write_all(b" ")?;
         } else if let Sexp::String(_) = *value {
-            try!(writer.write_all(b" "));
+            writer.write_all(b" ")?;
         }
         Ok(())
 
@@ -313,23 +313,23 @@ impl Formatter for KicadFormatter {
             if let Some(indent) = want_indent {
                 self.indent -= 1;
                 if indent.closing_on_new_line {
-                    try!(self.indent_plus(writer, 1));
+                    self.indent_plus(writer, 1)?;
                 }
                 // special handling of toplevel module...
                 // which doesn't work, because it is not indented
                 if &s == "module" && self.stack.is_empty() {
-                    try!(writer.write_all(b"\n"));
+                    writer.write_all(b"\n")?;
                 }
-                try!(writer.write_all(b")"));
+                writer.write_all(b")")?;
                 for _ in 0..indent.newline_after {
-                    try!(writer.write_all(b"\n"));
+                    writer.write_all(b"\n")?;
                 }
                 return Ok(());
             } else if self.stack.is_empty() && (&s == "module" || &s == "kicad_pcb") {
-                try!(writer.write_all(b"\n"));
+                writer.write_all(b"\n")?;
             }
         }
-        try!(writer.write_all(b")"));
+        writer.write_all(b")")?;
         Ok(())
     }
 }

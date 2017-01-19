@@ -117,7 +117,7 @@ impl Schematic {
             }
         }
         for sheet in &self.sheets {
-            let schematic = try!(parse_file_for_sheet(&self, sheet));
+            let schematic = parse_file_for_sheet(&self, sheet)?;
             if let Ok(c) = schematic.component_by_reference(reference) {
                 return Ok(c);
             }
@@ -133,20 +133,20 @@ impl Schematic {
 
 impl fmt::Display for Schematic {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        try!(writeln!(f, "EESchema Schematic File Version 2"));
+        writeln!(f, "EESchema Schematic File Version 2")?;
         for v in &self.libraries[..] {
-            try!(writeln!(f, "LIBS:{}", v))
+            writeln!(f, "LIBS:{}", v)?
         }
-        try!(writeln!(f, "{}", self.eelayer));
-        try!(writeln!(f, "EELAYER END"));
-        try!(write!(f, "{}", self.description));
+        writeln!(f, "{}", self.eelayer)?;
+        writeln!(f, "EELAYER END")?;
+        write!(f, "{}", self.description)?;
         for v in &self.elements[..] {
-            try!(write!(f, "{}", v))
+            write!(f, "{}", v)?
         }
         for v in &self.sheets[..] {
-            try!(write!(f, "{}", v))
+            write!(f, "{}", v)?
         }
-        try!(writeln!(f, "$EndSCHEMATC"));
+        writeln!(f, "$EndSCHEMATC")?;
         Ok(())
     }
 }
@@ -255,17 +255,17 @@ impl Default for Description {
 
 impl fmt::Display for Description {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        try!(writeln!(f, "$Descr {} {} {}", self.size, self.dimx, self.dimy));
-        try!(writeln!(f, "encoding utf-8"));
-        try!(writeln!(f, "Sheet {} {}", self.sheet, self.sheet_count));
-        try!(writeln!(f, "Title \"{}\"", self.title));
-        try!(writeln!(f, "Date \"{}\"", self.date));
-        try!(writeln!(f, "Rev \"{}\"", self.rev));
-        try!(writeln!(f, "Comp \"{}\"", self.comp));
-        try!(writeln!(f, "Comment1 \"{}\"", self.comment1));
-        try!(writeln!(f, "Comment2 \"{}\"", self.comment2));
-        try!(writeln!(f, "Comment3 \"{}\"", self.comment3));
-        try!(writeln!(f, "Comment4 \"{}\"", self.comment4));
+        writeln!(f, "$Descr {} {} {}", self.size, self.dimx, self.dimy)?;
+        writeln!(f, "encoding utf-8")?;
+        writeln!(f, "Sheet {} {}", self.sheet, self.sheet_count)?;
+        writeln!(f, "Title \"{}\"", self.title)?;
+        writeln!(f, "Date \"{}\"", self.date)?;
+        writeln!(f, "Rev \"{}\"", self.rev)?;
+        writeln!(f, "Comp \"{}\"", self.comp)?;
+        writeln!(f, "Comment1 \"{}\"", self.comment1)?;
+        writeln!(f, "Comment2 \"{}\"", self.comment2)?;
+        writeln!(f, "Comment3 \"{}\"", self.comment3)?;
+        writeln!(f, "Comment4 \"{}\"", self.comment4)?;
         writeln!(f, "$EndDescr")
     }
 }
@@ -608,7 +608,7 @@ impl ComponentField {
         if v.len() != 10 && v.len() != 11 {
             return str_error(format!("expecting 10 or 11 parts got {} in {}", v.len(), p.here()));
         }
-        let i = try!(i64_from_string(p, &v[1]));
+        let i = i64_from_string(p, &v[1])?;
         let name = if v.len() == 11 {
             v[10].clone()
         } else {
@@ -623,15 +623,15 @@ impl ComponentField {
         let c = ComponentField {
             i: i,
             value: v[2].clone(),
-            orientation: try!(Orientation::new(char_at(&v[3], 0))),
-            x: try!(f64_from_string(p, &v[4])),
-            y: try!(f64_from_string(p, &v[5])),
-            size: try!(i64_from_string(p, &v[6])),
-            visible: try!(bool_from_string(&v[7], "0000", "0001")),
-            hjustify: try!(Justify::new(char_at(&v[8], 0))),
-            vjustify: try!(Justify::new(char_at(&v[9], 0))),
-            italic: try!(bool_from(char_at(&v[9], 1), 'I', 'N')),
-            bold: try!(bool_from(char_at(&v[9], 2), 'B', 'N')),
+            orientation: Orientation::new(char_at(&v[3], 0))?,
+            x: f64_from_string(p, &v[4])?,
+            y: f64_from_string(p, &v[5])?,
+            size: i64_from_string(p, &v[6])?,
+            visible: bool_from_string(&v[7], "0000", "0001")?,
+            hjustify: Justify::new(char_at(&v[8], 0))?,
+            vjustify: Justify::new(char_at(&v[9], 0))?,
+            italic: bool_from(char_at(&v[9], 1), 'I', 'N')?,
+            bold: bool_from(char_at(&v[9], 2), 'B', 'N')?,
             name: name,
         };
         Ok(c)
@@ -733,14 +733,14 @@ impl Default for Sheet {
 
 impl fmt::Display for Sheet {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        try!(writeln!(f, "$Sheet"));
-        try!(writeln!(f, "S {} {} {} {}", self.x, self.y, self.dimx, self.dimy));
-        try!(writeln!(f, "U {}", self.unique));
-        try!(writeln!(f, "F0 \"{}\" {}", self.name, self.name_size));
-        try!(writeln!(f, "F1 \"{}\" {}", self.filename, self.filename_size));
+        writeln!(f, "$Sheet")?;
+        writeln!(f, "S {} {} {} {}", self.x, self.y, self.dimx, self.dimy)?;
+        writeln!(f, "U {}", self.unique)?;
+        writeln!(f, "F0 \"{}\" {}", self.name, self.name_size)?;
+        writeln!(f, "F1 \"{}\" {}", self.filename, self.filename_size)?;
         let mut i = 2;
         for label in &self.labels[..] {
-            try!(writeln!(f, "F{} {}", i, label));
+            writeln!(f, "F{} {}", i, label)?;
             i += 1;
         }
         writeln!(f, "$EndSheet")
@@ -896,8 +896,8 @@ fn bool_from<T: PartialEq + fmt::Display>(i: T, t: T, f: T) -> Result<bool> {
 fn word_and_qstring<F>(d: &mut Description, name: &'static str, s: &str, setter: F) -> Result<()>
     where F: Fn(&mut Description, String) -> ()
 {
-    let v = try!(parse_split_quote_aware_n(2, s));
-    try!(assume_string(name, &v[0]));
+    let v = parse_split_quote_aware_n(2, s)?;
+    assume_string(name, &v[0])?;
     setter(d, v[1].clone());
     Ok(())
 }
@@ -905,41 +905,41 @@ fn word_and_qstring<F>(d: &mut Description, name: &'static str, s: &str, setter:
 
 fn parse_description(p: &mut ParseState) -> Result<Description> {
     let mut d = Description::default();
-    let v = try!(parse_split_quote_aware_n(4, &p.here()));
+    let v = parse_split_quote_aware_n(4, &p.here())?;
     d.size = v[1].clone();
-    d.dimx = try!(i64_from_string(p, &v[2]));
-    d.dimy = try!(i64_from_string(p, &v[3]));
+    d.dimx = i64_from_string(p, &v[2])?;
+    d.dimy = i64_from_string(p, &v[3])?;
     p.next(); // $Descr
     p.next(); // encoding
-    let v = try!(parse_split_quote_aware_n(3, &p.here()));
+    let v = parse_split_quote_aware_n(3, &p.here())?;
     if v[0] != "Sheet" {
         return str_error(String::from("Expecting 'Sheet'"));
     };
-    d.sheet = try!(i64_from_string(p, &v[1]));
-    d.sheet_count = try!(i64_from_string(p, &v[2]));
+    d.sheet = i64_from_string(p, &v[1])?;
+    d.sheet_count = i64_from_string(p, &v[2])?;
     p.next(); // Sheet
-    try!(word_and_qstring(&mut d, "Title", &p.here(), |d, x| d.title = x));
+    word_and_qstring(&mut d, "Title", &p.here(), |d, x| d.title = x)?;
     p.next();
-    try!(word_and_qstring(&mut d, "Date", &p.here(), |d, x| d.date = x));
+    word_and_qstring(&mut d, "Date", &p.here(), |d, x| d.date = x)?;
     p.next();
-    try!(word_and_qstring(&mut d, "Rev", &p.here(), |d, x| d.rev = x));
+    word_and_qstring(&mut d, "Rev", &p.here(), |d, x| d.rev = x)?;
     p.next();
-    try!(word_and_qstring(&mut d, "Comp", &p.here(), |d, x| d.comp = x));
+    word_and_qstring(&mut d, "Comp", &p.here(), |d, x| d.comp = x)?;
     p.next();
-    try!(word_and_qstring(&mut d, "Comment1", &p.here(), |d, x| d.comment1 = x));
+    word_and_qstring(&mut d, "Comment1", &p.here(), |d, x| d.comment1 = x)?;
     p.next();
-    try!(word_and_qstring(&mut d, "Comment2", &p.here(), |d, x| d.comment2 = x));
+    word_and_qstring(&mut d, "Comment2", &p.here(), |d, x| d.comment2 = x)?;
     p.next();
-    try!(word_and_qstring(&mut d, "Comment3", &p.here(), |d, x| d.comment3 = x));
+    word_and_qstring(&mut d, "Comment3", &p.here(), |d, x| d.comment3 = x)?;
     p.next();
-    try!(word_and_qstring(&mut d, "Comment4", &p.here(), |d, x| d.comment4 = x));
+    word_and_qstring(&mut d, "Comment4", &p.here(), |d, x| d.comment4 = x)?;
     p.next();
-    try!(assume_string("$EndDescr", &p.here()));
+    assume_string("$EndDescr", &p.here())?;
     Ok(d)
 }
 
 fn parse_component_l(p: &mut ParseState, d: &mut Component) -> Result<()> {
-    let v = try!(parse_split_quote_aware_n(3, &p.here()));
+    let v = parse_split_quote_aware_n(3, &p.here())?;
     d.set_name(v[1].clone());
     d.set_reference(v[2].clone());
     Ok(())
@@ -956,9 +956,9 @@ fn parse_component_ar(p: &mut ParseState, d: &mut Component) -> Result<()> {
 }
 
 fn parse_component_p(p: &mut ParseState, d: &mut Component) -> Result<()> {
-    let v = try!(parse_split_quote_aware_n(3, &p.here()));
-    d.x = try!(i64_from_string(p, &v[1]));
-    d.y = try!(i64_from_string(p, &v[2]));
+    let v = parse_split_quote_aware_n(3, &p.here())?;
+    d.x = i64_from_string(p, &v[1])?;
+    d.y = i64_from_string(p, &v[2])?;
     Ok(())
 }
 
@@ -968,7 +968,7 @@ fn parse_component_f(p: &mut ParseState, d: &mut Component) -> Result<()> {
     // for i in &v[..] {
     //    println!("'{}'", i)
     // }
-    let f = try!(ComponentField::new(p, &v));
+    let f = ComponentField::new(p, &v)?;
     d.add_field(f);
     Ok(())
 }
@@ -980,10 +980,10 @@ fn parse_component_rotation(p: &mut ParseState, d: &mut Component) -> Result<()>
     if v.len() != 4 {
         return str_error(format!("expecting 4 elements in {}", s));
     }
-    let a1 = try!(i64_from_string(p, &String::from(v[0])));
-    let b1 = try!(i64_from_string(p, &String::from(v[1])));
-    let c1 = try!(i64_from_string(p, &String::from(v[2])));
-    let d1 = try!(i64_from_string(p, &String::from(v[3])));
+    let a1 = i64_from_string(p, &String::from(v[0]))?;
+    let b1 = i64_from_string(p, &String::from(v[1]))?;
+    let c1 = i64_from_string(p, &String::from(v[2]))?;
+    let d1 = i64_from_string(p, &String::from(v[3]))?;
     let rot = ComponentRotation {
         a: a1,
         b: b1,
@@ -1003,12 +1003,12 @@ fn parse_component(p: &mut ParseState) -> Result<Component> {
             break;
         }
         match s.split_whitespace().next() {
-            Some("L") => try!(parse_component_l(p, &mut d)),
-            Some("U") => try!(parse_component_u(p, &mut d)),
-            Some("P") => try!(parse_component_p(p, &mut d)),
-            Some("F") => try!(parse_component_f(p, &mut d)),
-            Some("1") | Some("0") => try!(parse_component_rotation(p, &mut d)),
-            Some("AR") => try!(parse_component_ar(p, &mut d)),
+            Some("L") => parse_component_l(p, &mut d)?,
+            Some("U") => parse_component_u(p, &mut d)?,
+            Some("P") => parse_component_p(p, &mut d)?,
+            Some("F") => parse_component_f(p, &mut d)?,
+            Some("1") | Some("0") => parse_component_rotation(p, &mut d)?,
+            Some("AR") => parse_component_ar(p, &mut d)?,
             _ => println!("skipping unknown component line {}", s),
         }
         p.next()
@@ -1018,17 +1018,17 @@ fn parse_component(p: &mut ParseState) -> Result<Component> {
 
 // S 5250 2300 950  3100
 fn parse_sheet_s(p: &mut ParseState, s: &mut Sheet) -> Result<()> {
-    let v = try!(parse_split_quote_aware_n(5, &p.here()));
-    s.x = try!(i64_from_string(p, &v[1]));
-    s.y = try!(i64_from_string(p, &v[2]));
-    s.dimx = try!(i64_from_string(p, &v[3]));
-    s.dimy = try!(i64_from_string(p, &v[4]));
+    let v = parse_split_quote_aware_n(5, &p.here())?;
+    s.x = i64_from_string(p, &v[1])?;
+    s.y = i64_from_string(p, &v[2])?;
+    s.dimx = i64_from_string(p, &v[3])?;
+    s.dimy = i64_from_string(p, &v[4])?;
     Ok(())
 }
 
 // U 5655A9F3
 fn parse_sheet_u(p: &mut ParseState, s: &mut Sheet) -> Result<()> {
-    let v = try!(parse_split_quote_aware_n(2, &p.here()));
+    let v = parse_split_quote_aware_n(2, &p.here())?;
     s.unique = v[1].clone();
     Ok(())
 }
@@ -1058,13 +1058,13 @@ fn parse_label_side(s: &str) -> Result<LabelSide> {
 // F3 "P0.02/AIN0" I L 5250 2450 60
 fn parse_sheet_label(p: &ParseState, s: &str) -> Result<SheetLabel> {
     let mut l = SheetLabel::default();
-    let v = try!(parse_split_quote_aware_n(7, s));
+    let v = parse_split_quote_aware_n(7, s)?;
     l.name = v[1].clone();
-    l.form = try!(parse_label_form(&v[2]));
-    l.side = try!(parse_label_side(&v[3]));
-    l.x = try!(i64_from_string(p, &v[4]));
-    l.y = try!(i64_from_string(p, &v[5]));
-    l.size = try!(i64_from_string(p, &v[6]));
+    l.form = parse_label_form(&v[2])?;
+    l.side = parse_label_side(&v[3])?;
+    l.x = i64_from_string(p, &v[4])?;
+    l.y = i64_from_string(p, &v[5])?;
+    l.size = i64_from_string(p, &v[6])?;
     Ok(l)
 }
 
@@ -1072,17 +1072,17 @@ fn parse_sheet_f(p: &mut ParseState, s: &mut Sheet, f: &str) -> Result<()> {
     // s.u = p.here();
     let mut f = String::from(f);
     f.remove(0);
-    let i = try!(i64_from_string(p, &f));
+    let i = i64_from_string(p, &f)?;
     if i == 0 {
-        let name_size = try!(parse_split_quote_aware_n(3, &p.here()));
+        let name_size = parse_split_quote_aware_n(3, &p.here())?;
         s.name = name_size[1].clone();
-        s.name_size = try!(i64_from_string(p, &name_size[2]));
+        s.name_size = i64_from_string(p, &name_size[2])?;
     } else if i == 1 {
-        let filename_size = try!(parse_split_quote_aware_n(3, &p.here()));
+        let filename_size = parse_split_quote_aware_n(3, &p.here())?;
         s.filename = filename_size[1].clone();
-        s.filename_size = try!(i64_from_string(p, &filename_size[2]));
+        s.filename_size = i64_from_string(p, &filename_size[2])?;
     } else {
-        let label_el = try!(parse_sheet_label(p, &p.here()));
+        let label_el = parse_sheet_label(p, &p.here())?;
         s.labels.push(label_el)
     }
     Ok(())
@@ -1098,11 +1098,11 @@ fn parse_sheet(p: &mut ParseState) -> Result<Sheet> {
             break;
         }
         match st.split_whitespace().next() {
-            Some("S") => try!(parse_sheet_s(p, &mut s)),
-            Some("U") => try!(parse_sheet_u(p, &mut s)),
+            Some("S") => parse_sheet_s(p, &mut s)?,
+            Some("U") => parse_sheet_u(p, &mut s)?,
             Some(x) => {
                 if x.starts_with('F') {
-                    try!(parse_sheet_f(p, &mut s, x))
+                    parse_sheet_f(p, &mut s, x)?
                 } else {
                     println!("skipping unknown sheet line {}", st)
                 }
@@ -1141,15 +1141,15 @@ pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
         {
             match p.here().split_whitespace().next() {
                 Some("$Descr") => {
-                    let d = try!(parse_description(p));
+                    let d = parse_description(p)?;
                     sch.set_description(d)
                 }
                 Some("$Comp") => {
-                    let d = try!(parse_component(p));
+                    let d = parse_component(p)?;
                     sch.append_component(d)
                 }
                 Some("$Sheet") => {
-                    let d = try!(parse_sheet(p));
+                    let d = parse_sheet(p)?;
                     sch.append_sheet(d)
                 }
                 Some("$EndSCHEMATC") => (),
@@ -1171,26 +1171,26 @@ pub fn parse_str(s: &str) -> Result<Schematic> {
 /// parse a file as a Kicad schematic
 pub fn parse_file(filename: &PathBuf) -> Result<Schematic> {
     let name = filename.to_str().unwrap();
-    let s = try!(read_file(name));
+    let s = read_file(name)?;
     parse(Some(filename.clone()), &s[..])
 }
 
 /// get the filename for a sheet in a schematic
 pub fn filename_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<PathBuf> {
-    let path = try!(match schematic.filename {
+    let path = match schematic.filename {
         Some(ref path) => Ok(path),
         None => Err("can't load sheet when there is no filename for the schematic".to_string()),
-    });
-    let dir = try!(match path.parent() {
+    }?;
+    let dir = match path.parent() {
         Some(dir) => Ok(dir),
         None => Err("can't load sheet when I don't know the dir of the schematic".to_string()),
-    });
+    }?;
     Ok(dir.join(&sheet.filename))
 }
 
 
 /// parse a file as a Kicad schematic for a sheet
 pub fn parse_file_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<Schematic> {
-    let f = try!(filename_for_sheet(schematic, sheet));
+    let f = filename_for_sheet(schematic, sheet)?;
     parse_file(&f)
 }

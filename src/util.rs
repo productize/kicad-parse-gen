@@ -8,22 +8,22 @@ use Result;
 
 /// read a file
 pub fn read_file(name: &str) -> Result<String> {
-    let mut f = try!(File::open(name));
+    let mut f = File::open(name)?;
     let mut s = String::new();
-    try!(f.read_to_string(&mut s));
+    f.read_to_string(&mut s)?;
     Ok(s)
 }
 
 /// write a file
 pub fn write_file(name: &str, data: &str) -> Result<()> {
-    let mut f = try!(match File::create(name) {
+    let mut f = match File::create(name) {
         Ok(f) => Ok(f),
         Err(err) => Err(format!("create error in file '{}': {}", name, err)),
-    });
-    try!(match write!(&mut f, "{}", data) {
+    }?;
+    match write!(&mut f, "{}", data) {
         Ok(f) => Ok(f),
         Err(err) => Err(format!("write error in file '{}': {}", name, err)),
-    });
+    }?;
 
     Ok(())
 

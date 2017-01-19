@@ -95,11 +95,11 @@ impl SymbolLib {
 
 impl fmt::Display for SymbolLib {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        try!(writeln!(f, "EESchema-LIBRARY Version 2.3"));
-        try!(writeln!(f, "#encoding utf-8"));
-        try!(writeln!(f, "#"));
+        writeln!(f, "EESchema-LIBRARY Version 2.3")?;
+        writeln!(f, "#encoding utf-8")?;
+        writeln!(f, "#")?;
         for i in &self.symbols {
-            try!(write!(f, "{}", i))
+            write!(f, "{}", i)?
         }
         writeln!(f, "#End Library")
     }
@@ -136,25 +136,25 @@ impl Symbol {
 
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        try!(writeln!(f, "# {}", &&self.fields[1].value));
-        try!(writeln!(f, "#"));
-        try!(writeln!(f, "DEF {} {} 0 {} {} {} {} {} {}",
+        writeln!(f, "# {}", &&self.fields[1].value)?;
+        writeln!(f, "#")?;
+        writeln!(f, "DEF {} {} 0 {} {} {} {} {} {}",
                      self.name, self.reference, self.text_offset,
                      if self.draw_pinnumber { "Y" } else { "N" },
                      if self.draw_pinname { "Y" } else { "N" },
                      self.unit_count,
                      if self.unit_locked { "L" } else { "F" },
                      if self.is_power { "P" } else { "N" },
-                     ));
+                     )?;
         for field in &self.fields {
-            try!(writeln!(f, "{}", field))
+            writeln!(f, "{}", field)?
         }
-        try!(writeln!(f, "DRAW"));
+        writeln!(f, "DRAW")?;
         for draw in &self.draw {
-            try!(writeln!(f, "{}", draw))
+            writeln!(f, "{}", draw)?
         }
-        try!(writeln!(f, "ENDDRAW"));
-        try!(writeln!(f, "ENDDEF"));
+        writeln!(f, "ENDDRAW")?;
+        writeln!(f, "ENDDEF")?;
         writeln!(f, "#")
     }
 }
@@ -180,16 +180,16 @@ impl Default for Field {
 
 impl fmt::Display for Field {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        try!(write!(f, "F{} \"{}\" {} {} {} {} {} {} {}{}{}",
+        write!(f, "F{} \"{}\" {} {} {} {} {} {} {}{}{}",
                self.i, self.value, self.x, self.y, self.dimension,
                self.orientation,
                if self.visible { "V" } else { "I" },
                self.hjustify, self.vjustify,
                if self.italic { "I" } else { "N" },
                if self.bold { "I" } else { "N" },
-                    ));
+                    )?;
         if self.i > 3 {
-            try!(write!(f, " \"{}\"", self.name))
+            write!(f, " \"{}\"", self.name)?
         };
         Ok(())
     }
@@ -278,21 +278,21 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
     if v.len() != 10 {
         return str_error(format!("unexpected elements in {}", s));
     }
-    try!(assume_string("DEF", &v[0]));
+    assume_string("DEF", &v[0])?;
     let mut s = Symbol::new(v[1].clone(), v[2].clone());
-    s.text_offset = try!(f64_from_string(p, &v[4]));
-    s.draw_pinnumber = try!(bool_from_string(&v[5], "Y", "N"));
-    s.draw_pinname = try!(bool_from_string(&v[6], "Y", "N"));
-    s.unit_count = try!(i64_from_string(p, &v[7]));
-    s.unit_locked = try!(bool_from_string(&v[8], "L", "F"));
-    s.is_power = try!(bool_from_string(&v[9], "P", "N"));
+    s.text_offset = f64_from_string(p, &v[4])?;
+    s.draw_pinnumber = bool_from_string(&v[5], "Y", "N")?;
+    s.draw_pinname = bool_from_string(&v[6], "Y", "N")?;
+    s.unit_count = i64_from_string(p, &v[7])?;
+    s.unit_locked = bool_from_string(&v[8], "L", "F")?;
+    s.is_power = bool_from_string(&v[9], "P", "N")?;
     // TODO fields
     // TODO draw
     p.next();
     loop {
         let s2 = p.here();
         if char_at(&s2, 0) == 'F' {
-            let f = try!(parse_field(p, &s2));
+            let f = parse_field(p, &s2)?;
             s.fields.push(f);
             p.next();
         } else {
@@ -342,7 +342,7 @@ fn parse_field(p: &mut ParseState, line: &str) -> Result<Field> {
     if v.len() != 9 && v.len() != 10 {
         return str_error(format!("unexpected elements in {}", line));
     }
-    f.i = try!(i64_from_string(p, &String::from(&v[0][1..])));
+    f.i = i64_from_string(p, &String::from(&v[0][1..]))?;
     let name = if v.len() == 10 {
         v[9].clone()
     } else {
@@ -355,15 +355,15 @@ fn parse_field(p: &mut ParseState, line: &str) -> Result<Field> {
         }
     };
     f.value = v[1].clone();
-    f.x = try!(f64_from_string(p, &v[2]));
-    f.y = try!(f64_from_string(p, &v[3]));
-    f.dimension = try!(i64_from_string(p, &v[4]));
-    f.orientation = try!(schematic::Orientation::new(char_at(&v[5], 0)));
-    f.visible = try!(bool_from_string(&v[6], "V", "I"));
-    f.hjustify = try!(schematic::Justify::new(char_at(&v[7], 0)));
-    f.vjustify = try!(schematic::Justify::new(char_at(&v[8], 0)));
-    f.italic = try!(bool_from(char_at(&v[8], 1), 'I', 'N'));
-    f.bold = try!(bool_from(char_at(&v[8], 2), 'B', 'N'));
+    f.x = f64_from_string(p, &v[2])?;
+    f.y = f64_from_string(p, &v[3])?;
+    f.dimension = i64_from_string(p, &v[4])?;
+    f.orientation = schematic::Orientation::new(char_at(&v[5], 0))?;
+    f.visible = bool_from_string(&v[6], "V", "I")?;
+    f.hjustify = schematic::Justify::new(char_at(&v[7], 0))?;
+    f.vjustify = schematic::Justify::new(char_at(&v[8], 0))?;
+    f.italic = bool_from(char_at(&v[8], 1), 'I', 'N')?;
+    f.bold = bool_from(char_at(&v[8], 2), 'B', 'N')?;
     f.name = name;
     Ok(f)
 }
@@ -380,7 +380,7 @@ fn parse(s: &str) -> Result<SymbolLib> {
         if &p.here() == "#End Library" {
             break;
         }
-        let s = try!(parse_symbol(p));
+        let s = parse_symbol(p)?;
         // println!("new symbol: {}", &s);
         lib.symbols.push(s)
     }
@@ -395,6 +395,6 @@ pub fn parse_str(s: &str) -> Result<SymbolLib> {
 /// parse a file to a symbol lib
 pub fn parse_file(filename: &PathBuf) -> Result<SymbolLib> {
     let name = filename.to_str().unwrap();
-    let s = try!(read_file(name));
+    let s = read_file(name)?;
     parse(&s[..])
 }

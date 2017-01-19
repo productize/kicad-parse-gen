@@ -26,7 +26,7 @@ pub fn module_to_string(module: &Module, indent_level: i64) -> Result<String> {
 
 impl fmt::Display for Layer {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        try!(match self.side {
+        match self.side {
             LayerSide::Front => write!(f, "F."),
             LayerSide::Back => write!(f, "B."),
             LayerSide::Dwgs => write!(f, "Dwgs."),
@@ -38,7 +38,7 @@ impl fmt::Display for Layer {
             LayerSide::In2 => write!(f, "In2."),
             LayerSide::Both => write!(f, "*."),
             LayerSide::None => Ok(()),
-        });
+        }?;
         match self.t {
             LayerType::Cu => write!(f, "Cu"),
             LayerType::Paste => write!(f, "Paste"),
