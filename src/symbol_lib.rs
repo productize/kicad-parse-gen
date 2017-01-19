@@ -145,7 +145,8 @@ impl fmt::Display for Symbol {
                      self.unit_count,
                      if self.unit_locked { "L" } else { "F" },
                      if self.is_power { "P" } else { "N" },
-                     )?;
+                     )
+            ?;
         for field in &self.fields {
             writeln!(f, "{}", field)?
         }
@@ -187,7 +188,8 @@ impl fmt::Display for Field {
                self.hjustify, self.vjustify,
                if self.italic { "I" } else { "N" },
                if self.bold { "I" } else { "N" },
-                    )?;
+                    )
+            ?;
         if self.i > 3 {
             write!(f, " \"{}\"", self.name)?
         };

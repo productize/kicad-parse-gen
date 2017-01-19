@@ -27,18 +27,19 @@ pub fn module_to_string(module: &Module, indent_level: i64) -> Result<String> {
 impl fmt::Display for Layer {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match self.side {
-            LayerSide::Front => write!(f, "F."),
-            LayerSide::Back => write!(f, "B."),
-            LayerSide::Dwgs => write!(f, "Dwgs."),
-            LayerSide::Cmts => write!(f, "Cmts."),
-            LayerSide::Eco1 => write!(f, "Eco1."),
-            LayerSide::Eco2 => write!(f, "Eco2."),
-            LayerSide::Edge => write!(f, "Edge."),
-            LayerSide::In1 => write!(f, "In1."),
-            LayerSide::In2 => write!(f, "In2."),
-            LayerSide::Both => write!(f, "*."),
-            LayerSide::None => Ok(()),
-        }?;
+                LayerSide::Front => write!(f, "F."),
+                LayerSide::Back => write!(f, "B."),
+                LayerSide::Dwgs => write!(f, "Dwgs."),
+                LayerSide::Cmts => write!(f, "Cmts."),
+                LayerSide::Eco1 => write!(f, "Eco1."),
+                LayerSide::Eco2 => write!(f, "Eco2."),
+                LayerSide::Edge => write!(f, "Edge."),
+                LayerSide::In1 => write!(f, "In1."),
+                LayerSide::In2 => write!(f, "In2."),
+                LayerSide::Both => write!(f, "*."),
+                LayerSide::None => Ok(()),
+            }
+            ?;
         match self.t {
             LayerType::Cu => write!(f, "Cu"),
             LayerType::Paste => write!(f, "Paste"),

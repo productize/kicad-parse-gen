@@ -78,17 +78,18 @@ impl FromSexp for Result<Font> {
         for part in &parts[..] {
             // println!("part: {}", part);
             match *part {
-                Part::Xy(ref xy) if xy.t == XyType::Size => {
-                    font.size.x = xy.x;
-                    font.size.y = xy.y;
-                    Ok(())
+                    Part::Xy(ref xy) if xy.t == XyType::Size => {
+                        font.size.x = xy.x;
+                        font.size.y = xy.y;
+                        Ok(())
+                    }
+                    Part::Thickness(ref t) => {
+                        font.thickness = *t;
+                        Ok(())
+                    }
+                    ref x => Err(format!("unknown element in font: {:?}", x)),
                 }
-                Part::Thickness(ref t) => {
-                    font.thickness = *t;
-                    Ok(())
-                }
-                ref x => Err(format!("unknown element in font: {:?}", x)),
-            }?
+                ?
         }
         Ok(font)
     }
@@ -134,14 +135,15 @@ impl FromSexp for Result<Xy> {
     fn from_sexp(s: &Sexp) -> Result<Xy> {
         let name = s.list_name()?;
         let t = match &name[..] {
-            "xy" => Ok(XyType::Xy),
-            "start" => Ok(XyType::Start),
-            "end" => Ok(XyType::End),
-            "size" => Ok(XyType::Size),
-            "center" => Ok(XyType::Center),
-            "rect_delta" => Ok(XyType::RectDelta),
-            ref x => str_error(format!("unknown XyType {}", x)),
-        }?;
+                "xy" => Ok(XyType::Xy),
+                "start" => Ok(XyType::Start),
+                "end" => Ok(XyType::End),
+                "size" => Ok(XyType::Size),
+                "center" => Ok(XyType::Center),
+                "rect_delta" => Ok(XyType::RectDelta),
+                ref x => str_error(format!("unknown XyType {}", x)),
+            }
+            ?;
         let v = s.slice_atom_num(&name, 2)?;
         let x = v[0].f()?;
         let y = v[1].f()?;

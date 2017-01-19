@@ -438,7 +438,11 @@ impl Component {
     }
 
     /// update or add name and value of a component field
-    pub fn add_or_update_field(&mut self, template: &ComponentField, name: &str, value: &str) -> FieldUpdate {
+    pub fn add_or_update_field(&mut self,
+                               template: &ComponentField,
+                               name: &str,
+                               value: &str)
+                               -> FieldUpdate {
         match self.get_field_value(name) {
             Some(old_value) => {
                 if old_value == value {
@@ -447,11 +451,11 @@ impl Component {
                     self.update_field(name, value);
                     FieldUpdate::Update(old_value.into())
                 }
-            },
+            }
             None => {
                 self.add_new_field(template, name, value);
                 FieldUpdate::New
-            },
+            }
         }
     }
 
@@ -481,13 +485,19 @@ impl fmt::Display for Component {
         for x in &self.fields[..] {
             writeln!(f, "{}", x)?
         }
-        writeln!(f, "\t{:4} {:4} {:4}", "1", format!("{}", self.x), (format!("{}", self.y)))?;
         writeln!(f,
-                      "\t{:4} {:4} {:4} {:4}",
-                      format!("{}", self.rotation.a),
-                      format!("{}", self.rotation.b),
-                      format!("{}", self.rotation.c),
-                      format!("{}", self.rotation.d))?;
+                 "\t{:4} {:4} {:4}",
+                 "1",
+                 format!("{}", self.x),
+                 (format!("{}", self.y)))
+            ?;
+        writeln!(f,
+                 "\t{:4} {:4} {:4} {:4}",
+                 format!("{}", self.rotation.a),
+                 format!("{}", self.rotation.b),
+                 format!("{}", self.rotation.c),
+                 format!("{}", self.rotation.d))
+            ?;
         writeln!(f, "$EndComp")
     }
 }
@@ -661,27 +671,30 @@ impl fmt::Display for ComponentField {
         write!(f, "F {} \"{}\" {} ", self.i, self.value, self.orientation)?;
         write!(f, "{} {} {}  ", self.x, self.y, self.size)?;
         write!(f,
-                    "{} ",
-                    if self.visible {
-                        "0000"
-                    } else {
-                        "0001"
-                    })?;
+               "{} ",
+               if self.visible {
+                   "0000"
+               } else {
+                   "0001"
+               })
+            ?;
         write!(f, "{} {}", self.hjustify, self.vjustify)?;
         write!(f,
-                    "{}",
-                    if self.italic {
-                        'I'
-                    } else {
-                        'N'
-                    })?;
+               "{}",
+               if self.italic {
+                   'I'
+               } else {
+                   'N'
+               })
+            ?;
         write!(f,
-                    "{}",
-                    if self.bold {
-                        'B'
-                    } else {
-                        'N'
-                    })?;
+               "{}",
+               if self.bold {
+                   'B'
+               } else {
+                   'N'
+               })
+            ?;
         if self.i > 3 {
             write!(f, " \"{}\"", self.name)?
         };
@@ -1132,7 +1145,7 @@ pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
         p.next();
     }
     if !p.here().starts_with("EELAYER ") {
-        return str_error(format!("expecting EELAYER, got {}", p.here()))
+        return str_error(format!("expecting EELAYER, got {}", p.here()));
     }
     sch.eelayer = p.here();
     p.next();
@@ -1178,13 +1191,15 @@ pub fn parse_file(filename: &PathBuf) -> Result<Schematic> {
 /// get the filename for a sheet in a schematic
 pub fn filename_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<PathBuf> {
     let path = match schematic.filename {
-        Some(ref path) => Ok(path),
-        None => Err("can't load sheet when there is no filename for the schematic".to_string()),
-    }?;
+            Some(ref path) => Ok(path),
+            None => Err("can't load sheet when there is no filename for the schematic".to_string()),
+        }
+        ?;
     let dir = match path.parent() {
-        Some(dir) => Ok(dir),
-        None => Err("can't load sheet when I don't know the dir of the schematic".to_string()),
-    }?;
+            Some(dir) => Ok(dir),
+            None => Err("can't load sheet when I don't know the dir of the schematic".to_string()),
+        }
+        ?;
     Ok(dir.join(&sheet.filename))
 }
 
