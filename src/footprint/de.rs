@@ -7,9 +7,10 @@ use footprint::data::*;
 use FromSexp;
 use Part;
 use wrap;
+use from_sexp;
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
-impl FromSexp for Result<At> {
+impl FromSexp for At {
     fn from_sexp(s: &Sexp) -> Result<At> {
         let v = s.slice_atom("at")?;
         match v.len() {
@@ -29,7 +30,7 @@ impl FromSexp for Result<At> {
     }
 }
 
-impl FromSexp for Result<Layer> {
+impl FromSexp for Layer {
     fn from_sexp(s: &Sexp) -> Result<Layer> {
         let v = s.slice_atom("layer")?;
         let layer = v[0].string()?;
@@ -38,7 +39,7 @@ impl FromSexp for Result<Layer> {
     }
 }
 
-impl FromSexp for Result<Effects> {
+impl FromSexp for Effects {
     fn from_sexp(s: &Sexp) -> Result<Effects> {
         // let v = s.slice_atom_num("effects", 1)?;
         // TODO investigate why the above doesn't work !?
@@ -46,9 +47,9 @@ impl FromSexp for Result<Effects> {
         if v.len() < 1 {
             return str_error(format!("Expected at least one element in {}", s));
         }
-        let font = Result::from_sexp(&v[0])?;
+        let font = from_sexp(&v[0])?;
         let justify = if v.len() > 1 {
-            Some(Result::from_sexp(&v[1])?)
+            Some(from_sexp(&v[1])?)
         } else {
             None
         };
@@ -56,7 +57,7 @@ impl FromSexp for Result<Effects> {
     }
 }
 
-impl FromSexp for Result<Justify> {
+impl FromSexp for Justify {
     fn from_sexp(s: &Sexp) -> Result<Justify> {
         let v = s.slice_atom("justify")?;
         if v.len() < 1 {
@@ -70,7 +71,7 @@ impl FromSexp for Result<Justify> {
     }
 }
 
-impl FromSexp for Result<Font> {
+impl FromSexp for Font {
     fn from_sexp(s: &Sexp) -> Result<Font> {
         let v = s.slice_atom("font")?;
         let parts = parse_parts(&v)?;
@@ -95,7 +96,7 @@ impl FromSexp for Result<Font> {
     }
 }
 
-impl FromSexp for Result<Layers> {
+impl FromSexp for Layers {
     fn from_sexp(s: &Sexp) -> Result<Layers> {
         let mut l = Layers::default();
         let v = s.slice_atom("layers")?;
@@ -119,19 +120,19 @@ fn parse_part_float<F>(e: &Sexp, make: F) -> Result<Part>
     Ok(make(f))
 }
 
-impl FromSexp for Result<Vec<Xy>> {
+impl FromSexp for Vec<Xy> {
     fn from_sexp(s: &Sexp) -> Result<Vec<Xy>> {
         let v = s.slice_atom("pts")?;
         let mut pts = vec![];
         for e in &v[1..] {
-            let p = Result::from_sexp(e)?;
+            let p = from_sexp(e)?;
             pts.push(p)
         }
         Ok(pts)
     }
 }
 
-impl FromSexp for Result<Xy> {
+impl FromSexp for Xy {
     fn from_sexp(s: &Sexp) -> Result<Xy> {
         let name = s.list_name()?;
         let t = match &name[..] {
@@ -151,12 +152,12 @@ impl FromSexp for Result<Xy> {
     }
 }
 
-impl FromSexp for Result<Pts> {
+impl FromSexp for Pts {
     fn from_sexp(s: &Sexp) -> Result<Pts> {
         let v = s.slice_atom("pts")?;
         let mut r = vec![];
         for x in v {
-            let xy = Result::from_sexp(x)?;
+            let xy = from_sexp(x)?;
             r.push(xy)
         }
         Ok(Pts { elements: r })
@@ -164,7 +165,7 @@ impl FromSexp for Result<Pts> {
 }
 
 
-impl FromSexp for Result<Xyz> {
+impl FromSexp for Xyz {
     fn from_sexp(s: &Sexp) -> Result<Xyz> {
         let v = s.slice_atom_num("xyz", 3)?;
         let x = v[0].f()?;
@@ -174,7 +175,7 @@ impl FromSexp for Result<Xyz> {
     }
 }
 
-impl FromSexp for Result<Net> {
+impl FromSexp for Net {
     fn from_sexp(s: &Sexp) -> Result<Net> {
         let v = s.slice_atom_num("net", 2)?;
         let num = v[0].i()?;
@@ -186,7 +187,7 @@ impl FromSexp for Result<Net> {
     }
 }
 
-impl FromSexp for Result<Drill> {
+impl FromSexp for Drill {
     fn from_sexp(s: &Sexp) -> Result<Drill> {
         let mut drill = Drill::default();
         let v = s.slice_atom("drill")?;
@@ -221,7 +222,7 @@ impl FromSexp for Result<Drill> {
     }
 }
 
-impl FromSexp for Result<Part> {
+impl FromSexp for Part {
     fn from_sexp(s: &Sexp) -> Result<Part> {
         match s.string() {
             Ok(ref sx) => {
@@ -233,19 +234,19 @@ impl FromSexp for Result<Part> {
             _ => {
                 let name = &(s.list_name()?)[..];
                 match name {
-                    "at" => wrap(s, Result::from_sexp, Part::At),
-                    "layer" => wrap(s, Result::from_sexp, Part::Layer),
-                    "effects" => wrap(s, Result::from_sexp, Part::Effects),
-                    "layers" => wrap(s, Result::from_sexp, Part::Layers),
+                    "at" => wrap(s, from_sexp, Part::At),
+                    "layer" => wrap(s, from_sexp, Part::Layer),
+                    "effects" => wrap(s, from_sexp, Part::Effects),
+                    "layers" => wrap(s, from_sexp, Part::Layers),
                     "width" => parse_part_float(s, Part::Width),
                     "angle" => parse_part_float(s, Part::Angle),
                     "start" | "end" | "size" | "center" | "rect_delta" => {
-                        wrap(s, Result::from_sexp, Part::Xy)
+                        wrap(s, from_sexp, Part::Xy)
                     }
-                    "pts" => wrap(s, Result::from_sexp, Part::Pts),
+                    "pts" => wrap(s, from_sexp, Part::Pts),
                     "thickness" => parse_part_float(s, Part::Thickness),
-                    "net" => wrap(s, Result::from_sexp, Part::Net),
-                    "drill" => wrap(s, Result::from_sexp, Part::Drill),
+                    "net" => wrap(s, from_sexp, Part::Net),
+                    "drill" => wrap(s, from_sexp, Part::Drill),
                     "solder_paste_margin" => parse_part_float(s, Part::SolderPasteMargin),
                     "solder_mask_margin" => parse_part_float(s, Part::SolderMaskMargin),
                     "clearance" => parse_part_float(s, Part::Clearance),
@@ -259,7 +260,7 @@ impl FromSexp for Result<Part> {
 fn parse_parts(v: &[Sexp]) -> Result<Vec<Part>> {
     let mut res = Vec::new();
     for e in v {
-        let p = Result::from_sexp(e)?;
+        let p = from_sexp(e)?;
         res.push(p);
     }
     Ok(res)
@@ -279,7 +280,7 @@ fn parse_float_element(s: &Sexp) -> Result<f64> {
     Ok(f)
 }
 
-impl FromSexp for Result<FpText> {
+impl FromSexp for FpText {
     fn from_sexp(s: &Sexp) -> Result<FpText> {
         let v = s.slice_atom("fp_text")?;
         let name = v[0].string()?;
@@ -299,7 +300,7 @@ impl FromSexp for Result<FpText> {
     }
 }
 
-impl FromSexp for Result<Pad> {
+impl FromSexp for Pad {
     fn from_sexp(s: &Sexp) -> Result<Pad> {
         let v = s.slice_atom("pad")?;
         if v.len() < 3 {
@@ -331,7 +332,7 @@ impl FromSexp for Result<Pad> {
     }
 }
 
-impl FromSexp for Result<FpPoly> {
+impl FromSexp for FpPoly {
     fn from_sexp(s: &Sexp) -> Result<FpPoly> {
         let v = s.slice_atom("fp_poly")?;
         let mut fp_poly = FpPoly::default();
@@ -348,7 +349,7 @@ impl FromSexp for Result<FpPoly> {
     }
 }
 
-impl FromSexp for Result<FpLine> {
+impl FromSexp for FpLine {
     fn from_sexp(s: &Sexp) -> Result<FpLine> {
         let v = s.slice_atom("fp_line")?;
         let mut fp_line = FpLine::default();
@@ -366,7 +367,7 @@ impl FromSexp for Result<FpLine> {
     }
 }
 
-impl FromSexp for Result<FpCircle> {
+impl FromSexp for FpCircle {
     fn from_sexp(s: &Sexp) -> Result<FpCircle> {
         let v = s.slice_atom("fp_circle")?;
         let mut fp_circle = FpCircle::default();
@@ -384,7 +385,7 @@ impl FromSexp for Result<FpCircle> {
     }
 }
 
-impl FromSexp for Result<FpArc> {
+impl FromSexp for FpArc {
     fn from_sexp(s: &Sexp) -> Result<FpArc> {
         let v = s.slice_atom("fp_arc")?;
         let mut fp_arc = FpArc::default();
@@ -404,15 +405,13 @@ impl FromSexp for Result<FpArc> {
 }
 
 
-fn parse_sublist<X>(s: &Sexp, name: &'static str) -> Result<X>
-    where Result<X>: FromSexp
-{
+fn parse_sublist<X:FromSexp>(s: &Sexp, name: &'static str) -> Result<X> {
     let x = &(s.slice_atom_num(name, 1)?)[0];
-    Result::from_sexp(x)
+    X::from_sexp(x)
 }
 
 
-impl FromSexp for Result<Model> {
+impl FromSexp for Model {
     fn from_sexp(s: &Sexp) -> Result<Model> {
         let v = s.slice_atom_num("model", 4)?;
         let name = v[0].string()?.clone();
@@ -429,7 +428,7 @@ impl FromSexp for Result<Model> {
     }
 }
 
-impl FromSexp for Result<Element> {
+impl FromSexp for Element {
     fn from_sexp(s: &Sexp) -> Result<Element> {
         match *s {
             Sexp::String(ref s) => {
@@ -446,17 +445,17 @@ impl FromSexp for Result<Element> {
                     "descr" => wrap(s, parse_string_element, Element::Descr),
                     "tags" => wrap(s, parse_string_element, Element::Tags),
                     "attr" => wrap(s, parse_string_element, Element::Attr),
-                    "fp_text" => wrap(s, Result::from_sexp, Element::FpText),
-                    "pad" => wrap(s, Result::from_sexp, Element::Pad),
-                    "fp_poly" => wrap(s, Result::from_sexp, Element::FpPoly),
-                    "fp_line" => wrap(s, Result::from_sexp, Element::FpLine),
-                    "fp_circle" => wrap(s, Result::from_sexp, Element::FpCircle),
-                    "fp_arc" => wrap(s, Result::from_sexp, Element::FpArc),
+                    "fp_text" => wrap(s, from_sexp, Element::FpText),
+                    "pad" => wrap(s, from_sexp, Element::Pad),
+                    "fp_poly" => wrap(s, from_sexp, Element::FpPoly),
+                    "fp_line" => wrap(s, from_sexp, Element::FpLine),
+                    "fp_circle" => wrap(s, from_sexp, Element::FpCircle),
+                    "fp_arc" => wrap(s, from_sexp, Element::FpArc),
                     "tedit" => wrap(s, parse_string_element, Element::TEdit),
                     "tstamp" => wrap(s, parse_string_element, Element::TStamp),
                     "path" => wrap(s, parse_string_element, Element::Path),
-                    "at" => wrap(s, Result::from_sexp, Element::At),
-                    "model" => wrap(s, Result::from_sexp, Element::Model),
+                    "at" => wrap(s, from_sexp, Element::At),
+                    "model" => wrap(s, from_sexp, Element::Model),
                     _ => str_error(format!("unknown element in module: {}", name)),
                 }
             }
@@ -465,7 +464,7 @@ impl FromSexp for Result<Element> {
     }
 }
 
-impl FromSexp for Result<Module> {
+impl FromSexp for Module {
     fn from_sexp(s: &Sexp) -> Result<Module> {
         let v = s.slice_atom("module")?;
         if v.len() < 1 {
@@ -474,7 +473,7 @@ impl FromSexp for Result<Module> {
         let name = v[0].string()?;
         let mut module = Module::new(name.clone());
         for e in &v[1..] {
-            let el = Result::from_sexp(&e)?;
+            let el = from_sexp(&e)?;
             module.append(el)
         }
         Ok(module)

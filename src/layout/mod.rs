@@ -9,7 +9,7 @@ use symbolic_expressions;
 use symbolic_expressions::IntoSexp;
 use str_error;
 use formatter::KicadFormatter;
-use FromSexp;
+use from_sexp;
 
 pub use layout::data::*;
 
@@ -23,7 +23,7 @@ pub fn layout_to_string(layout: &Layout, indent_level: i64) -> Result<String> {
 /// parse a &str to a Kicad layout
 pub fn parse(s: &str) -> Result<Layout> {
     match symbolic_expressions::parser::parse_str(s) {
-        Ok(s) => Result::from_sexp(&s),
+        Ok(s) => from_sexp(&s),
         Err(x) => str_error(format!("ParseError: {:?}", x)),
     }
 }

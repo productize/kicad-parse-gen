@@ -12,7 +12,7 @@ use str_error;
 use symbolic_expressions;
 use symbolic_expressions::IntoSexp;
 use formatter::KicadFormatter;
-use FromSexp;
+use from_sexp;
 
 // pub use footprint;
 pub use footprint::data::*;
@@ -59,7 +59,7 @@ impl fmt::Display for Layer {
 /// parse a &str to a Kicad Module
 pub fn parse(s: &str) -> Result<Module> {
     match symbolic_expressions::parser::parse_str(s) {
-        Ok(s) => Result::from_sexp(&s),
+        Ok(s) => from_sexp(&s),
         Err(x) => str_error(format!("ParseError: {:?}", x)),
     }
 }

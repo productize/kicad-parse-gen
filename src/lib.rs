@@ -12,9 +12,14 @@ pub use symbolic_expressions::Sexp;
 pub use error::*;
 
 /// convert from a symbolic-expression to something
-pub trait FromSexp {
+pub trait FromSexp where Self:Sized {
     /// convert from a symbolic-expression to something
-    fn from_sexp(&Sexp) -> Self;
+    fn from_sexp(&Sexp) -> Result<Self>;
+}
+
+/// convert from a symbolic-expression to something (dispatcher)
+pub fn from_sexp<T:FromSexp>(s:&Sexp) -> Result<T> {
+    T::from_sexp(s)
 }
 
 /// read file utility wrapper function
