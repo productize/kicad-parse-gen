@@ -1,13 +1,1 @@
 language: rust
-sudo: required
-after_success: |
-  [ $TRAVIS_BRANCH = master ] &&
-  [ $TRAVIS_PULL_REQUEST = false ] &&
-  cargo doc &&
-  echo "<meta http-equiv=refresh content=0;url=kicad_parse_gen/index.html>" > target/doc/index.html &&
-  sudo pip install ghp-import &&
-  ghp-import -n target/doc &&
-  git push -fq https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages
-env:
-  global:
-    secure: qWUBPktaxeDdHzMFwLwZ8GCBP4i4yer113bspvPqSrX0/fZhpkAjYOJ2SCV9BtC6djO2YuYY+3URhGHiarshKN0hYastVRXUYMAeVym34NI5Aqi8QEwocj1INvtLAna+NDaUCrdlyGudqnCWXJwtoXSYogIxvAZeB7jLyozkueJCcuu9WnmoMcokJRcnNAlZIAceDCx9BFY4vmkkhhK1I641JhQGOAKxS8ONOeOcWaQuxLafAgttA8gp2HEfAuDp15EWdMI1vi3aFTmo43c3vgHRS9vlGUYSxDEZprUlsZDkcmwVAnVBUh8aRuTNXR7EmTCd3yZZAPVvUaYqdejrxW4oCO3N5SUMtOQBf8b2jZ4pU70p/AzHYVQeXT1kf+FV+CVTCp0E4GbOZ1iA9FquzsBpvy55XG+wcs7viMKzDGUvaO1uS2w979EZL+K2oxBBtUWDJoAJlDuaGfpk7RzUAGk02EZYtrdNGFCvTHIbEQ1zP4jF2OYFyRB3x9kO23AUSmkyNZdy8ffZxkLGXbQB4MErSdWy768GYDClJIlU6TfJ2Z1g8P6KOQvNF8OgEeN8hOuFqKxVzjZ3kEIYB+ax2kDt8wGvF6pl8qxmw3coWcgU5DMO7tvzNrPIAZhy8WfptCtrhHZ4ym4mQoveohbrMRyXQufGMWwA6zpYrSRIegc=
