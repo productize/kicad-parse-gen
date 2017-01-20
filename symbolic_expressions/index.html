@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `symbolic_expressions` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, symbolic_expressions">
+
+    <title>symbolic_expressions - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'symbolic_expressions', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>symbolic_expressions</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-0' class='srclink' href='../src/symbolic_expressions/lib.rs.html#3-24' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>symbolic-expressions parsing and generating library</p>
+</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='parser/index.html'
+                                  title='symbolic_expressions::parser'>parser</a></td>
+                           <td class='docblock-short'>
+                                <p>symbolic-expression parser code: data -&gt; symbolic-expression</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='ser/index.html'
+                                  title='symbolic_expressions::ser'>ser</a></td>
+                           <td class='docblock-short'>
+                                <p>symbolic-expression serialization code: symbolic-expression -&gt; data</p>
+                           </td>
+                       </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.ParseError.html'
+                                  title='symbolic_expressions::ParseError'>ParseError</a></td>
+                           <td class='docblock-short'>
+                                <p>detailed symbolic-expression parse error information</p>
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.Error.html'
+                                  title='symbolic_expressions::Error'>Error</a></td>
+                           <td class='docblock-short'>
+                                <p>Error type for symbolic-expressions</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.Sexp.html'
+                                  title='symbolic_expressions::Sexp'>Sexp</a></td>
+                           <td class='docblock-short'>
+                                <p>a symbolic-expression
+Can be a string or a list or nothing</p>
+                           </td>
+                       </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.Formatter.html'
+                                  title='symbolic_expressions::Formatter'>Formatter</a></td>
+                           <td class='docblock-short'>
+                                <p>trait for formatting the serialization of a symbolic-expression</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.IntoSexp.html'
+                                  title='symbolic_expressions::IntoSexp'>IntoSexp</a></td>
+                           <td class='docblock-short'>
+                                <p>like Into trait but works from a ref avoiding consumption or expensive clone</p>
+                           </td>
+                       </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.encode_string.html'
+                                  title='symbolic_expressions::encode_string'>encode_string</a></td>
+                           <td class='docblock-short'>
+                                <p>encode a string according to the guidelines given by Kicad</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.parse_error.html'
+                                  title='symbolic_expressions::parse_error'>parse_error</a></td>
+                           <td class='docblock-short'>
+                                <p>utility function that creates a symbolic-expressions Error Result for a parser error</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.str_error.html'
+                                  title='symbolic_expressions::str_error'>str_error</a></td>
+                           <td class='docblock-short'>
+                                <p>utility function that creates a symbolic-expressions Error Result from a String</p>
+                           </td>
+                       </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.Result.html'
+                                  title='symbolic_expressions::Result'>Result</a></td>
+                           <td class='docblock-short'>
+                                <p>symbolic-expressions Result type</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.Rules.html'
+                                  title='symbolic_expressions::Rules'>Rules</a></td>
+                           <td class='docblock-short'>
+                                <p>datatype used by the example Formatter RulesFormatter</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "symbolic_expressions";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

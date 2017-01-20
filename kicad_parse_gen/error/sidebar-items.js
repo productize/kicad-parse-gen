@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Error","encapsulating Error type"]],"fn":[["parse_error","create a parse error"],["str_error","create an other error"]],"type":[["Result","result type type alias"]]});

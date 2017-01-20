@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["parse_str","parse a &str to a project"]],"struct":[["Project","a Kicad project"]]});

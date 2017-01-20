@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Component` struct in crate `kicad_parse_gen`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Component">
+
+    <title>kicad_parse_gen::schematic::Component - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../index.html'>kicad_parse_gen</a>::<wbr><a href='index.html'>schematic</a></p><script>window.sidebarCurrent = {name: 'Component', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>kicad_parse_gen</a>::<wbr><a href='index.html'>schematic</a>::<wbr><a class='struct' href=''>Component</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-2642' class='srclink' href='../../src/kicad_parse_gen/src/schematic.rs.html#295-312' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Component {
+    pub name: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>,
+    pub reference: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>,
+    pub u: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>,
+    pub x: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a>,
+    pub y: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a>,
+    pub ar_path: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;,
+    pub fields: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='struct' href='../../kicad_parse_gen/schematic/struct.ComponentField.html' title='kicad_parse_gen::schematic::ComponentField'>ComponentField</a>&gt;,
+    pub rotation: <a class='struct' href='../../kicad_parse_gen/schematic/struct.ComponentRotation.html' title='kicad_parse_gen::schematic::ComponentRotation'>ComponentRotation</a>,
+}</pre><div class='docblock'><p>a schematic component</p>
+</div><h2 class='fields'>Fields</h2><span id='structfield.name' class='structfield'>
+                           <span id='name.v' class='invisible'>
+                           <code>name: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code>
+                           </span></span><span class='stab '></span><div class='docblock'><p>name</p>
+</div><span id='structfield.reference' class='structfield'>
+                           <span id='reference.v' class='invisible'>
+                           <code>reference: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code>
+                           </span></span><span class='stab '></span><div class='docblock'><p>reference</p>
+</div><span id='structfield.u' class='structfield'>
+                           <span id='u.v' class='invisible'>
+                           <code>u: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code>
+                           </span></span><span class='stab '></span><div class='docblock'><p>u</p>
+</div><span id='structfield.x' class='structfield'>
+                           <span id='x.v' class='invisible'>
+                           <code>x: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a></code>
+                           </span></span><span class='stab '></span><div class='docblock'><p>X coordinate</p>
+</div><span id='structfield.y' class='structfield'>
+                           <span id='y.v' class='invisible'>
+                           <code>y: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a></code>
+                           </span></span><span class='stab '></span><div class='docblock'><p>Y coordinate</p>
+</div><span id='structfield.ar_path' class='structfield'>
+                           <span id='ar_path.v' class='invisible'>
+                           <code>ar_path: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code>
+                           </span></span><span class='stab '></span><div class='docblock'><p>ARPath</p>
+</div><span id='structfield.fields' class='structfield'>
+                           <span id='fields.v' class='invisible'>
+                           <code>fields: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='struct' href='../../kicad_parse_gen/schematic/struct.ComponentField.html' title='kicad_parse_gen::schematic::ComponentField'>ComponentField</a>&gt;</code>
+                           </span></span><span class='stab '></span><div class='docblock'><p>component fields</p>
+</div><span id='structfield.rotation' class='structfield'>
+                           <span id='rotation.v' class='invisible'>
+                           <code>rotation: <a class='struct' href='../../kicad_parse_gen/schematic/struct.ComponentRotation.html' title='kicad_parse_gen::schematic::ComponentRotation'>ComponentRotation</a></code>
+                           </span></span><span class='stab '></span><div class='docblock'><p>rotation</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../../kicad_parse_gen/schematic/struct.Component.html' title='kicad_parse_gen::schematic::Component'>Component</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-798' class='srclink' href='../../src/kicad_parse_gen/src/schematic.rs.html#355-474' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.get_field_value' class='method'><span id='get_field_value.v' class='invisible'><code>fn <a href='#method.get_field_value' class='fnname'>get_field_value</a>(&amp;self, name: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></span></h4>
+<div class='docblock'><p>get a component field value by name</p>
+</div><h4 id='method.get_field' class='method'><span id='get_field.v' class='invisible'><code>fn <a href='#method.get_field' class='fnname'>get_field</a>(&amp;self, name: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../../kicad_parse_gen/schematic/struct.ComponentField.html' title='kicad_parse_gen::schematic::ComponentField'>ComponentField</a>&gt;</code></span></h4>
+<div class='docblock'><p>get a component field by name</p>
+</div><h4 id='method.get_available_field_num' class='method'><span id='get_available_field_num.v' class='invisible'><code>fn <a href='#method.get_available_field_num' class='fnname'>get_available_field_num</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a></code></span></h4>
+<div class='docblock'><p>get the first free component field number</p>
+</div><h4 id='method.fields_hash' class='method'><span id='fields_hash.v' class='invisible'><code>fn <a href='#method.fields_hash' class='fnname'>fields_hash</a>(&amp;self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html' title='std::collections::hash::map::HashMap'>HashMap</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>, <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></span></h4>
+<div class='docblock'><p>get the component fields as a hashmap</p>
+</div><h4 id='method.update_reference' class='method'><span id='update_reference.v' class='invisible'><code>fn <a href='#method.update_reference' class='fnname'>update_reference</a>(&amp;mut self, r: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>)</code></span></h4>
+<div class='docblock'><p>update the reference of a component</p>
+</div><h4 id='method.update_name' class='method'><span id='update_name.v' class='invisible'><code>fn <a href='#method.update_name' class='fnname'>update_name</a>(&amp;mut self, n: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>)</code></span></h4>
+<div class='docblock'><p>update the name of a component</p>
+</div><h4 id='method.update_field' class='method'><span id='update_field.v' class='invisible'><code>fn <a href='#method.update_field' class='fnname'>update_field</a>(&amp;mut self, name: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>, value: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>)</code></span></h4>
+<div class='docblock'><p>update name and value of a component field</p>
+</div><h4 id='method.add_or_update_field' class='method'><span id='add_or_update_field.v' class='invisible'><code>fn <a href='#method.add_or_update_field' class='fnname'>add_or_update_field</a>(&amp;mut self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; template: &amp;<a class='struct' href='../../kicad_parse_gen/schematic/struct.ComponentField.html' title='kicad_parse_gen::schematic::ComponentField'>ComponentField</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; name: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; value: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class='enum' href='../../kicad_parse_gen/schematic/enum.FieldUpdate.html' title='kicad_parse_gen::schematic::FieldUpdate'>FieldUpdate</a></code></span></h4>
+<div class='docblock'><p>update or add name and value of a component field</p>
+</div><h4 id='method.add_new_field' class='method'><span id='add_new_field.v' class='invisible'><code>fn <a href='#method.add_new_field' class='fnname'>add_new_field</a>(&amp;mut self, template: &amp;<a class='struct' href='../../kicad_parse_gen/schematic/struct.ComponentField.html' title='kicad_parse_gen::schematic::ComponentField'>ComponentField</a>, name: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>, value: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>)</code></span></h4>
+<div class='docblock'><p>add a new component field based on an existing one but
+with a new name and value</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../../kicad_parse_gen/schematic/struct.Component.html' title='kicad_parse_gen::schematic::Component'>Component</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2651' class='srclink' href='../../src/kicad_parse_gen/src/schematic.rs.html#294' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../../kicad_parse_gen/schematic/struct.Component.html' title='kicad_parse_gen::schematic::Component'>Component</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2664' class='srclink' href='../../src/kicad_parse_gen/src/schematic.rs.html#294' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class='method'><span id='clone.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='struct' href='../../kicad_parse_gen/schematic/struct.Component.html' title='kicad_parse_gen::schematic::Component'>Component</a></code></span></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class='method'><span id='clone_from.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></span></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../../kicad_parse_gen/schematic/struct.Component.html' title='kicad_parse_gen::schematic::Component'>Component</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-788' class='srclink' href='../../src/kicad_parse_gen/src/schematic.rs.html#314-332' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.default' class='method'><span id='default.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; <a class='struct' href='../../kicad_parse_gen/schematic/struct.Component.html' title='kicad_parse_gen::schematic::Component'>Component</a></code></span></h4>
+<div class='docblock'><p>Returns the &quot;default value&quot; for a type. <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html' title='core::fmt::Display'>Display</a> for <a class='struct' href='../../kicad_parse_gen/schematic/struct.Component.html' title='kicad_parse_gen::schematic::Component'>Component</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-851' class='srclink' href='../../src/kicad_parse_gen/src/schematic.rs.html#476-503' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt-1' class='method'><span id='fmt.v-1' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html' title='core::fmt::Error'>Error</a>&gt;</code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "kicad_parse_gen";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

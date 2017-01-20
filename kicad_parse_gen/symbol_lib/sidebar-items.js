@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["parse_file","parse a file to a symbol lib"],["parse_str","parse a &str to a symbol lib"]],"struct":[["Field","a field"],["Symbol","a symbol"],["SymbolLib","a Kicad symbolic file"]]});
