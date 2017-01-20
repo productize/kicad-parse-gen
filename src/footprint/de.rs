@@ -405,7 +405,7 @@ impl FromSexp for FpArc {
 }
 
 
-fn parse_sublist<X:FromSexp>(s: &Sexp, name: &'static str) -> Result<X> {
+fn parse_sublist<X: FromSexp>(s: &Sexp, name: &'static str) -> Result<X> {
     let x = &(s.slice_atom_num(name, 1)?)[0];
     X::from_sexp(x)
 }
