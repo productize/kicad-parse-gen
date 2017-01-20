@@ -160,12 +160,11 @@ impl fmt::Display for KicadFile {
 pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
     let pb = std::path::PathBuf::from(name);
     let data = read_file(name)?;
-    let mut msg = String::new();
     match footprint::parse(&data) {
         Ok(module) => return Ok(KicadFile::Module(module)),
         Err(x) => {
             if expected == Expected::Module {
-                msg = format!("{}", x)
+                return Err(x)
             }
         }
     }
@@ -173,7 +172,7 @@ pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
         Ok(sch) => return Ok(KicadFile::Schematic(sch)),
         Err(x) => {
             if expected == Expected::Schematic {
-                msg = format!("{}", x)
+                return Err(x)
             }
         }
     }
@@ -181,7 +180,7 @@ pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
         Ok(layout) => return Ok(KicadFile::Layout(layout)),
         Err(x) => {
             if expected == Expected::Layout {
-                msg = format!("{}", x)
+                return Err(x)
             }
         }
     }
@@ -189,7 +188,7 @@ pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
         Ok(sl) => return Ok(KicadFile::SymbolLib(sl)),
         Err(x) => {
             if expected == Expected::SymbolLib {
-                msg = format!("{}", x)
+                return Err(x)
             }
         }
     }
@@ -197,11 +196,11 @@ pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
         Ok(p) => return Ok(KicadFile::Project(p)),
         Err(x) => {
             if expected == Expected::Project {
-                msg = format!("{}", x)
+                return Err(x)
             }
         }
     }
-    Ok(KicadFile::Unknown(format!("{}: {}", name, msg)))
+    Ok(KicadFile::Unknown(name.into()))
 }
 
 /// read a file, expecting it to be a Kicad module file

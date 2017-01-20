@@ -6,6 +6,7 @@ use symbolic_expressions;
 error_chain! {
 
     errors {
+        /// kicad parse error
         Parse(s: String) {
             description("parse error")
             display("parse error: '{}'", s)
@@ -17,7 +18,7 @@ error_chain! {
     }
     
     links {
-        SymbolicExpression(symbolic_expressions::Error, symbolic_expressions::ErrorKind);
+        SymbolicExpression(symbolic_expressions::Error, symbolic_expressions::ErrorKind) #[doc = "symbolic expression library error"];
     }
 }
 
