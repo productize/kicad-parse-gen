@@ -5,6 +5,8 @@
 #![warn(missing_docs)]
 
 extern crate symbolic_expressions;
+#[macro_use]
+extern crate error_chain;
 
 use std::fmt;
 
