@@ -345,7 +345,8 @@ impl Into<bool> for FieldUpdate {
     /// was the field updated
     fn into(self) -> bool {
         match self {
-            FieldUpdate::New | FieldUpdate::Update(_) => true,
+            FieldUpdate::New |
+            FieldUpdate::Update(_) => true,
             FieldUpdate::Same => false,
         }
     }
