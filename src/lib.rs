@@ -164,7 +164,7 @@ pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
         Ok(module) => return Ok(KicadFile::Module(module)),
         Err(x) => {
             if expected == Expected::Module {
-                return Err(x)
+                return Err(x);
             }
         }
     }
@@ -172,7 +172,7 @@ pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
         Ok(sch) => return Ok(KicadFile::Schematic(sch)),
         Err(x) => {
             if expected == Expected::Schematic {
-                return Err(x)
+                return Err(x);
             }
         }
     }
@@ -180,7 +180,7 @@ pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
         Ok(layout) => return Ok(KicadFile::Layout(layout)),
         Err(x) => {
             if expected == Expected::Layout {
-                return Err(x)
+                return Err(x);
             }
         }
     }
@@ -188,7 +188,7 @@ pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
         Ok(sl) => return Ok(KicadFile::SymbolLib(sl)),
         Err(x) => {
             if expected == Expected::SymbolLib {
-                return Err(x)
+                return Err(x);
             }
         }
     }
@@ -196,7 +196,7 @@ pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
         Ok(p) => return Ok(KicadFile::Project(p)),
         Err(x) => {
             if expected == Expected::Project {
-                return Err(x)
+                return Err(x);
             }
         }
     }

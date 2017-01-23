@@ -6,17 +6,17 @@ use symbolic_expressions;
 error_chain! {
 
     errors {
-        /// kicad parse error
+/// kicad parse error
         Parse(s: String) {
             description("parse error")
             display("parse error: '{}'", s)
         }
     }
-    
+
     foreign_links {
         Io(io::Error) #[doc = "IO error"];
     }
-    
+
     links {
         SymbolicExpression(symbolic_expressions::Error, symbolic_expressions::ErrorKind) #[doc = "symbolic expression library error"];
     }

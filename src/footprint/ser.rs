@@ -102,15 +102,14 @@ impl IntoSexp for Justify {
 
 impl IntoSexp for Xy {
     fn into_sexp(&self) -> Sexp {
-        let mut v = Sexp::start(
-            match self.t {
-                XyType::Xy => "xy",
-                XyType::Start => "start",
-                XyType::End => "end",
-                XyType::Size => "size",
-                XyType::Center => "center",
-                XyType::RectDelta => "rect_delta",
-            });
+        let mut v = Sexp::start(match self.t {
+            XyType::Xy => "xy",
+            XyType::Start => "start",
+            XyType::End => "end",
+            XyType::Size => "size",
+            XyType::Center => "center",
+            XyType::RectDelta => "rect_delta",
+        });
         v.push(self.x);
         v.push(self.y);
         v
@@ -153,21 +152,23 @@ impl IntoSexp for Drill {
 impl IntoSexp for PadType {
     fn into_sexp(&self) -> Sexp {
         match *self {
-            PadType::Smd => "smd",
-            PadType::Pth => "thru_hole",
-            PadType::NpPth => "np_thru_hole",
-        }.into()
+                PadType::Smd => "smd",
+                PadType::Pth => "thru_hole",
+                PadType::NpPth => "np_thru_hole",
+            }
+            .into()
     }
 }
 
 impl IntoSexp for PadShape {
     fn into_sexp(&self) -> Sexp {
         match *self {
-            PadShape::Rect => "rect",
-            PadShape::Circle => "circle",
-            PadShape::Oval => "oval",
-            PadShape::Trapezoid => "trapezoid",
-        }.into()
+                PadShape::Rect => "rect",
+                PadShape::Circle => "circle",
+                PadShape::Oval => "oval",
+                PadShape::Trapezoid => "trapezoid",
+            }
+            .into()
     }
 }
 
