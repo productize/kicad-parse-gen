@@ -258,8 +258,8 @@ impl Formatter for KicadFormatter {
     {
         let mut ele = String::new();
         // if first element is string
-        if let Some(ref sexp) = value {
-            if let Sexp::String(ref s) = **sexp {
+        if let Some(sexp) = value {
+            if let Sexp::String(ref s) = *sexp {
                 ele.push_str(s);
             }
         }

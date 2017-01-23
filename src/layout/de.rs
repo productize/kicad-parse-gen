@@ -112,7 +112,7 @@ impl FromSexp for Layer {
             return str_error(format!("expecting 3 or 4 elements in layer: {}", s));
         }
         let num = l[0].i()?;
-        let layer = footprint::Layer::from_string(&l[1].string()?)?;
+        let layer = footprint::Layer::from_string(l[1].string()?)?;
         let layer_type = from_sexp(&l[2])?;
         let hide = if l.len() == 3 {
             false
@@ -226,7 +226,7 @@ impl FromSexp for Setup {
             match &n[..] {
                 "pcbplotparams" => {
                     for y in v.slice_atom("pcbplotparams")? {
-                        let p_e = from_sexp(&y)?;
+                        let p_e = from_sexp(y)?;
                         pcbplotparams.push(p_e)
                     }
                 }
@@ -435,10 +435,10 @@ impl FromSexp for Layout {
         for e in l1 {
             match &(e.list_name()?)[..] {
                 "version" => layout.version = parse_version(e)?,
-                "host" => layout.host = from_sexp(&e)?,
+                "host" => layout.host = from_sexp(e)?,
                 "general" => layout.general = from_sexp(&e)?,
                 "page" => layout.page = parse_page(&e)?,
-                "layers" => layout.layers = from_sexp(&e)?,
+                "layers" => layout.layers = from_sexp(e)?,
                 "module" => {
                     let module = wrap(e, from_sexp, Element::Module)?;
                     layout.elements.push(module)

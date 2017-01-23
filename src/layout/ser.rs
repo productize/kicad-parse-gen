@@ -172,7 +172,7 @@ impl IntoSexp for Setup {
             v.push(k.into_sexp())
         }
         let mut v2 = Sexp::start("pcbplotparams");
-        for ref k in &self.pcbplotparams {
+        for k in &self.pcbplotparams {
             v2.push(k.into_sexp())
         }
         v.push(v2);
