@@ -451,7 +451,7 @@ pub struct Layer {
 
 impl Layer {
     /// create a layer from a String
-    pub fn from_string(s: String) -> Result<Layer> {
+    pub fn from_string(s: &str) -> Result<Layer> {
         let sp: Vec<&str> = s.split('.').collect();
         let mut side = LayerSide::None;
         let s_t = if sp.len() == 2 {

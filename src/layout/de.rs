@@ -112,7 +112,7 @@ impl FromSexp for Layer {
             return str_error(format!("expecting 3 or 4 elements in layer: {}", s));
         }
         let num = l[0].i()?;
-        let layer = footprint::Layer::from_string(l[1].string()?.clone())?;
+        let layer = footprint::Layer::from_string(&l[1].string()?)?;
         let layer_type = from_sexp(&l[2])?;
         let hide = if l.len() == 3 {
             false

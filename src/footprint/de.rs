@@ -34,7 +34,7 @@ impl FromSexp for Layer {
     fn from_sexp(s: &Sexp) -> Result<Layer> {
         let v = s.slice_atom("layer")?;
         let layer = v[0].string()?;
-        let layer = Layer::from_string(layer.clone())?;
+        let layer = Layer::from_string(&layer)?;
         Ok(layer)
     }
 }
@@ -102,7 +102,7 @@ impl FromSexp for Layers {
         let v = s.slice_atom("layers")?;
         for v1 in v {
             let x = v1.string()?;
-            let layer = Layer::from_string(x.clone())?;
+            let layer = Layer::from_string(&x)?;
             l.append(layer)
         }
         Ok(l)

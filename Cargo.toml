@@ -8,6 +8,6 @@ documentation = "https://docs.rs/kicad_parse_gen"
 description = "Kicad file format parser and generator library"
 
 [dependencies]
-symbolic_expressions = { git = "git://github.com/productize/symbolic-expressions.git" }
-#symbolic_expressions = "4.0"
+#symbolic_expressions = { git = "git://github.com/productize/symbolic-expressions.git" }
+symbolic_expressions = "4.0"
 error-chain = "0.8"
