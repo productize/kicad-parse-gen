@@ -8,35 +8,35 @@ use std::f64;
 impl IntoSexp for Module {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("module"));
-        v.push(Sexp::new_string(&self.name));
+        v.push("module".into());
+        v.push(self.name.clone().into());
         for e in &self.elements {
             v.push(e.into_sexp())
         }
-        Sexp::new_list(v)
+        v.into()
     }
 }
 
 impl IntoSexp for Element {
     fn into_sexp(&self) -> Sexp {
         match *self {
-            Element::SolderMaskMargin(ref s) => Sexp::new_named("solder_mask_margin", s),
-            Element::Layer(ref s) => Sexp::new_named("layer", s),
-            Element::Descr(ref s) => Sexp::new_named("descr", s),
-            Element::Tags(ref s) => Sexp::new_named("tags", s),
-            Element::Attr(ref s) => Sexp::new_named("attr", s),
+            Element::SolderMaskMargin(ref s) => ("solder_mask_margin", s).into(),
+            Element::Layer(ref s) => ("layer", s).into(),
+            Element::Descr(ref s) => ("descr", s).into(),
+            Element::Tags(ref s) => ("tags", s).into(),
+            Element::Attr(ref s) => ("attr", s).into(),
             Element::FpText(ref p) => p.into_sexp(),
             Element::Pad(ref pad) => pad.into_sexp(),
             Element::FpPoly(ref p) => p.into_sexp(),
             Element::FpLine(ref p) => p.into_sexp(),
             Element::FpCircle(ref p) => p.into_sexp(),
             Element::FpArc(ref p) => p.into_sexp(),
-            Element::TEdit(ref p) => Sexp::new_named("tedit", p),
-            Element::TStamp(ref p) => Sexp::new_named("tstamp", p),
-            Element::Path(ref p) => Sexp::new_named("path", p),
+            Element::TEdit(ref p) => ("tedit", p).into(),
+            Element::TStamp(ref p) => ("tstamp", p).into(),
+            Element::Path(ref p) => ("path", p).into(),
             Element::At(ref p) => p.into_sexp(),
             Element::Model(ref p) => p.into_sexp(),
-            Element::Locked => Sexp::new_string("locked"),
+            Element::Locked => "locked".into(),
         }
     }
 }
@@ -44,64 +44,64 @@ impl IntoSexp for Element {
 impl IntoSexp for FpText {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("fp_text"));
-        v.push(Sexp::new_string(&self.name));
-        v.push(Sexp::new_string(&self.value));
+        v.push("fp_text".into());
+        v.push(self.name.clone().into());
+        v.push(self.value.clone().into());
         v.push(self.at.into_sexp());
-        v.push(Sexp::new_named("layer", &self.layer));
+        v.push(("layer", &self.layer).into());
         if self.hide {
-            v.push(Sexp::new_string("hide"));
+            v.push("hide".into());
         }
         v.push(self.effects.into_sexp());
-        Sexp::new_list(v)
+        v.into()
     }
 }
 
 impl IntoSexp for At {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("at"));
-        v.push(Sexp::new_string(self.x));
-        v.push(Sexp::new_string(self.y));
+        v.push("at".into());
+        v.push(self.x.into());
+        v.push(self.y.into());
         if self.rot != 0.0 {
-            v.push(Sexp::new_string(self.rot));
+            v.push(self.rot.into());
         }
-        Sexp::new_list(v)
+        v.into()
     }
 }
 
 impl IntoSexp for Font {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("font"));
+        v.push("font".into());
         if self.size.x > 0.0 || self.size.y > 0.0 {
             let mut v1 = vec![];
-            v1.push(Sexp::new_string("size"));
-            v1.push(Sexp::new_string(self.size.x));
-            v1.push(Sexp::new_string(self.size.y));
-            v.push(Sexp::new_list(v1));
+            v1.push("size".into());
+            v1.push(self.size.x.into());
+            v1.push(self.size.y.into());
+            v.push(v1.into());
         }
-        v.push(Sexp::new_named("thickness", self.thickness));
-        Sexp::new_list(v)
+        v.push(("thickness", &self.thickness).into());
+        v.into()
     }
 }
 
 impl IntoSexp for Effects {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("effects"));
+        v.push("effects".into());
         v.push(self.font.into_sexp());
         if let Some(ref j) = self.justify {
             v.push(j.into_sexp())
         }
-        Sexp::new_list(v)
+        v.into()
     }
 }
 
 impl IntoSexp for Justify {
     fn into_sexp(&self) -> Sexp {
         match *self {
-            Justify::Mirror => Sexp::new_named("justify", "mirror"),
+            Justify::Mirror => ("justify", &"mirror").into(),
         }
     }
 }
@@ -109,28 +109,28 @@ impl IntoSexp for Justify {
 impl IntoSexp for Xy {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string(match self.t {
+        v.push(match self.t {
             XyType::Xy => "xy",
             XyType::Start => "start",
             XyType::End => "end",
             XyType::Size => "size",
             XyType::Center => "center",
             XyType::RectDelta => "rect_delta",
-        }));
-        v.push(Sexp::new_string(self.x));
-        v.push(Sexp::new_string(self.y));
-        Sexp::new_list(v)
+        }.into());
+        v.push(self.x.into());
+        v.push(self.y.into());
+        v.into()
     }
 }
 
 impl IntoSexp for Pts {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("pts"));
+        v.push("pts".into());
         for x in &self.elements {
             v.push(x.into_sexp())
         }
-        Sexp::new_list(v)
+        v.into()
     }
 }
 
@@ -138,70 +138,70 @@ impl IntoSexp for Pts {
 impl IntoSexp for Drill {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("drill"));
+        v.push("drill".into());
         if let Some(ref s) = self.shape {
-            v.push(Sexp::new_string(s))
+            v.push(s.clone().into())
         }
         if self.width > 0.0 {
-            v.push(Sexp::new_string(self.width));
+            v.push(self.width.into());
         }
         if self.height > 0.0 && (self.height - self.width).abs() > f64::EPSILON {
-            v.push(Sexp::new_string(self.height));
+            v.push(self.height.into());
         }
         if self.offset_x != 0.0 || self.offset_y != 0.0 {
             let mut v2 = vec![];
-            v2.push(Sexp::new_string("offset"));
-            v2.push(Sexp::new_string(self.offset_x));
-            v2.push(Sexp::new_string(self.offset_y));
-            v.push(Sexp::new_list(v2));
+            v2.push("offset".into());
+            v2.push(self.offset_x.into());
+            v2.push(self.offset_y.into());
+            v.push(v2.into());
         }
-        Sexp::new_list(v)
+        v.into()
     }
 }
 
 impl IntoSexp for PadType {
     fn into_sexp(&self) -> Sexp {
-        Sexp::new_string(match *self {
+        match *self {
             PadType::Smd => "smd",
             PadType::Pth => "thru_hole",
             PadType::NpPth => "np_thru_hole",
-        })
+        }.into()
     }
 }
 
 impl IntoSexp for PadShape {
     fn into_sexp(&self) -> Sexp {
-        Sexp::new_string(match *self {
+        match *self {
             PadShape::Rect => "rect",
             PadShape::Circle => "circle",
             PadShape::Oval => "oval",
             PadShape::Trapezoid => "trapezoid",
-        })
+        }.into()
     }
 }
 
 impl IntoSexp for Layer {
     fn into_sexp(&self) -> Sexp {
-        Sexp::new_string(&self)
+        format!("{}", self).into()
     }
 }
 
 impl IntoSexp for Layers {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("layers"));
+        v.push("layers".into());
         for layer in &self.layers {
             v.push(layer.into_sexp())
         }
-        Sexp::new_list(v)
+        v.into()
     }
 }
 
 impl IntoSexp for Pad {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("pad"));
-        v.push(Sexp::new_string(&self.name));
+        v.push("pad".into());
+        v.push(self.name.clone().into());
         v.push(self.t.into_sexp());
         v.push(self.shape.into_sexp());
         v.push(self.at.into_sexp());
@@ -217,73 +217,73 @@ impl IntoSexp for Pad {
             v.push(net.into_sexp());
         }
         if let Some(ref spm) = self.solder_paste_margin {
-            v.push(Sexp::new_named("solder_paste_margin", spm));
+            v.push(("solder_paste_margin", spm).into());
         }
         if let Some(ref spm) = self.solder_mask_margin {
-            v.push(Sexp::new_named("solder_mask_margin", spm));
+            v.push(("solder_mask_margin", spm).into());
         }
         if let Some(ref spm) = self.clearance {
-            v.push(Sexp::new_named("clearance", spm));
+            v.push(("clearance", spm).into());
         }
-        Sexp::new_list(v)
+        v.into()
     }
 }
 
 impl IntoSexp for FpPoly {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("fp_poly"));
+        v.push("fp_poly".into());
         v.push(self.pts.into_sexp());
-        v.push(Sexp::new_named("layer", &self.layer));
-        v.push(Sexp::new_named("width", self.width));
-        Sexp::new_list(v)
+        v.push(("layer", &self.layer).into());
+        v.push(("width", &self.width).into());
+        v.into()
     }
 }
 
 impl IntoSexp for FpLine {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("fp_line"));
+        v.push("fp_line".into());
         v.push(self.start.into_sexp());
         v.push(self.end.into_sexp());
-        v.push(Sexp::new_named("layer", &self.layer));
-        v.push(Sexp::new_named("width", self.width));
-        Sexp::new_list(v)
+        v.push(("layer", &self.layer).into());
+        v.push(("width", &self.width).into());
+        v.into()
     }
 }
 
 impl IntoSexp for FpCircle {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("fp_circle"));
+        v.push("fp_circle".into());
         v.push(self.center.into_sexp());
         v.push(self.end.into_sexp());
-        v.push(Sexp::new_named("layer", &self.layer));
-        v.push(Sexp::new_named("width", self.width));
-        Sexp::new_list(v)
+        v.push(("layer", &self.layer).into());
+        v.push(("width", &self.width).into());
+        v.into()
     }
 }
 
 impl IntoSexp for FpArc {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("fp_arc"));
+        v.push("fp_arc".into());
         v.push(self.start.into_sexp());
         v.push(self.end.into_sexp());
-        v.push(Sexp::new_named("angle", self.angle));
-        v.push(Sexp::new_named("layer", &self.layer));
-        v.push(Sexp::new_named("width", self.width));
-        Sexp::new_list(v)
+        v.push(("angle", &self.angle).into());
+        v.push(("layer", &self.layer).into());
+        v.push(("width", &self.width).into());
+        v.into()
     }
 }
 
 impl IntoSexp for Net {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("net"));
-        v.push(Sexp::new_string(self.num));
-        v.push(Sexp::new_string(&self.name));
-        Sexp::new_list(v)
+        v.push("net".into());
+        v.push(self.num.into());
+        v.push(self.name.clone().into());
+        v.into()
     }
 }
 
@@ -291,22 +291,22 @@ impl IntoSexp for Net {
 impl IntoSexp for Model {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("model"));
-        v.push(Sexp::new_string(&self.name));
-        v.push(Sexp::new_named_sexp("at", &self.at));
-        v.push(Sexp::new_named_sexp("scale", &self.scale));
-        v.push(Sexp::new_named_sexp("rotate", &self.rotate));
-        Sexp::new_list(v)
+        v.push("model".into());
+        v.push(self.name.clone().into());
+        v.push(("at", &self.at.into_sexp()).into());
+        v.push(("scale", &self.scale.into_sexp()).into());
+        v.push(("rotate", &self.rotate.into_sexp()).into());
+        v.into()
     }
 }
 
 impl IntoSexp for Xyz {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("xyz"));
-        v.push(Sexp::new_string(self.x));
-        v.push(Sexp::new_string(self.y));
-        v.push(Sexp::new_string(self.z));
-        Sexp::new_list(v)
+        v.push("xyz".into());
+        v.push(self.x.into());
+        v.push(self.y.into());
+        v.push(self.z.into());
+        v.into()
     }
 }

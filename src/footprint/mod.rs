@@ -1,4 +1,4 @@
-// (c) 2015-2016 Joost Yervante Damad <joost@productize.be>
+// (c) 2015-2017 Joost Yervante Damad <joost@productize.be>
 
 // extension: .kicad_mod
 // format: new-style
@@ -8,7 +8,6 @@ use std::result;
 
 // get from parent
 use Result;
-use str_error;
 use symbolic_expressions;
 use symbolic_expressions::IntoSexp;
 use formatter::KicadFormatter;
@@ -58,10 +57,8 @@ impl fmt::Display for Layer {
 
 /// parse a &str to a Kicad Module
 pub fn parse(s: &str) -> Result<Module> {
-    match symbolic_expressions::parser::parse_str(s) {
-        Ok(s) => from_sexp(&s),
-        Err(x) => str_error(format!("ParseError: {:?}", x)),
-    }
+    let t = symbolic_expressions::parser::parse_str(s)?;
+    from_sexp(&t)
 }
 
 mod data;

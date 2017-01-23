@@ -14,7 +14,7 @@ use layout::data::*;
 impl IntoSexp for Layout {
     fn into_sexp(&self) -> Sexp {
         let mut v = vec![];
-        v.push(Sexp::new_string("kicad_pcb"));
+        v.push("kicad_pcb".into());
 
         v.push(Sexp::new_named("version", self.version));
 
