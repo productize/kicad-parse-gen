@@ -1,6 +1,5 @@
-// (c) 2016 Joost Yervante Damad <joost@productize.be>
+// (c) 2016-2017 Joost Yervante Damad <joost@productize.be>
 
-use std::env;
 use std::path::PathBuf;
 
 extern crate kicad_parse_gen;
