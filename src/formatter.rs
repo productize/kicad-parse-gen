@@ -50,6 +50,7 @@ pub struct KicadFormatter {
     stack: Vec<Option<(String, Option<Indent>)>>,
     ind: Vec<u8>,
     pts_xy_count: i64,
+    seen_module: bool,
 }
 
 impl KicadFormatter {
@@ -59,6 +60,7 @@ impl KicadFormatter {
             stack: vec![],
             ind: vec![b' ', b' '], // two spaces
             pts_xy_count: 0,
+            seen_module: false,
         }
     }
 
@@ -110,14 +112,23 @@ impl KicadFormatter {
                 "at" | "descr" | "fp_line" | "fp_poly" | "pad" | "path" | "fp_circle" | "attr" => {
                     return Some(indent)
                 }
-                "model" | "fp_text" => {
+                "model" | "fp_text" | "gr_text" => {
                     indent.close_on_new_line();
                     return Some(indent);
                 }
                 _ => (),
             }
         }
-        if self.parent_is("fp_text") | self.parent_is("gr_text") {
+        if self.parent_is("dimension") {
+            match ele {
+                "gr_text" => {
+                    indent.close_on_new_line();
+                    return Some(indent);
+                },
+                _ => (),
+            }
+        }
+        if self.parent_is("fp_text") || self.parent_is("gr_text") {
             if let "effects" = ele {
                 return Some(indent);
             }
@@ -263,6 +274,18 @@ impl Formatter for KicadFormatter {
                 ele.push_str(s);
             }
         }
+
+        // special handling: ugly :(
+        // write an extra newline before the first element after the last module
+        if let "module" = &ele[..] {
+            self.seen_module = true;
+        } else {
+            if self.parent_is("kicad_pcb") && self.seen_module {
+                self.seen_module = false;
+                self.indent(writer, 1)?;
+            }
+        }
+        
         let exp = Sexp::String(ele.clone());
         let want_indent = self.want_indent(&exp);
         if let Some(ref want_indent) = want_indent {
