@@ -1,4 +1,4 @@
-// (c) 2016 Productize SPRL <joost@productize.be>
+// (c) 2016-2017 Productize SPRL <joost@productize.be>
 
 //! Kicad file format parser and generator library
 
