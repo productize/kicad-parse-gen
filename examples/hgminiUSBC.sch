@@ -1,26 +1,7 @@
 EESchema Schematic File Version 2
-LIBS:misc
-LIBS:button
-LIBS:crystal
-LIBS:logo
-LIBS:discrete
-LIBS:led
-LIBS:pad
-LIBS:passive
-LIBS:battery
-LIBS:module
-LIBS:antenna
-LIBS:ic_other
-LIBS:ic_memory
-LIBS:ic_power
-LIBS:ic_sensor
-LIBS:ic_micro
-LIBS:transistors
-LIBS:conn
 LIBS:power
-LIBS:connect
-LIBS:hgminiUSBC-cache
-EELAYER 25 0
+LIBS:conn
+EELAYER 26 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8

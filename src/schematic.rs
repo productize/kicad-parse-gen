@@ -669,7 +669,7 @@ impl ComponentField {
 impl fmt::Display for ComponentField {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "F {} \"{}\" {} ", self.i, self.value, self.orientation)?;
-        write!(f, "{} {} {}  ", self.x, self.y, self.size)?;
+        write!(f, "{:3} {:3} {:3} ", format!("{}", self.x), format!("{}", self.y), format!("{}", self.size))?;
         write!(f,
                "{} ",
                if self.visible {
