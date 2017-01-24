@@ -381,6 +381,21 @@ impl<'a> IterAtom<'a> {
         };
         Ok(x)
     }
+
+    /// expect remainder if iterator to be a `Vec<T>`
+    pub fn vec<T:FromSexp>(&mut self) -> Result<Vec<T>> {
+        let mut res = Vec::new();
+        loop {
+            match self.iter.next() {
+                None => break,
+                Some(e) => {
+                    let p = from_sexp(e)?;
+                    res.push(p);
+                }
+            }
+        }
+        Ok(res)
+    }
 }
 
 

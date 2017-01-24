@@ -33,8 +33,6 @@ impl FromSexp for Layer {
 
 impl FromSexp for Effects {
     fn from_sexp(s: &Sexp) -> Result<Effects> {
-        // let v = s.slice_atom_num("effects", 1)?;
-        // TODO investigate why the above doesn't work !?
         let mut i = IterAtom::new(s,"effects")?;
         let font = i.t("effects", "font")?;
         let justify = i.opt_t()?;
@@ -44,11 +42,8 @@ impl FromSexp for Effects {
 
 impl FromSexp for Justify {
     fn from_sexp(s: &Sexp) -> Result<Justify> {
-        let v = s.slice_atom("justify")?;
-        if v.len() < 1 {
-            return str_error(format!("Expected at least one element in {}", s));
-        }
-        let s = v[0].string()?;
+        let mut i = IterAtom::new(s, "justify")?;
+        let s = i.s("justify", "mirror")?;
         match &s[..] {
             "mirror" => Ok(Justify::Mirror),
             _ => str_error(format!("unknown justify: {}", s)),
@@ -58,8 +53,8 @@ impl FromSexp for Justify {
 
 impl FromSexp for Font {
     fn from_sexp(s: &Sexp) -> Result<Font> {
-        let v = s.slice_atom("font")?;
-        let parts = parse_parts(v)?;
+        let mut i = IterAtom::new(s, "font")?;
+        let parts = i.vec()?;
         let mut font = Font::default();
         for part in &parts[..] {
             // println!("part: {}", part);
@@ -84,8 +79,8 @@ impl FromSexp for Font {
 impl FromSexp for Layers {
     fn from_sexp(s: &Sexp) -> Result<Layers> {
         let mut l = Layers::default();
-        let v = s.slice_atom("layers")?;
-        for v1 in v {
+        let i = IterAtom::new(s, "layers")?;
+        for v1 in i.iter {
             let x = v1.string()?;
             let layer = Layer::from_string(x)?;
             l.append(layer)
@@ -107,12 +102,8 @@ fn parse_part_float<F>(e: &Sexp, make: F) -> Result<Part>
 
 impl FromSexp for Vec<Xy> {
     fn from_sexp(s: &Sexp) -> Result<Vec<Xy>> {
-        let v = s.slice_atom("pts")?;
-        let mut pts = vec![];
-        for e in &v[1..] {
-            let p = from_sexp(e)?;
-            pts.push(p)
-        }
+        let mut i = IterAtom::new(s, "pts")?;
+        let pts = i.vec()?;
         Ok(pts)
     }
 }
@@ -130,21 +121,17 @@ impl FromSexp for Xy {
                 x => str_error(format!("unknown XyType {}", x)),
             }
             ?;
-        let v = s.slice_atom_num(name, 2)?;
-        let x = v[0].f()?;
-        let y = v[1].f()?;
+        let mut i = IterAtom::new(s, name)?;
+        let x = i.f(name, "x")?;
+        let y = i.f(name, "y")?;
         Ok(Xy::new(x, y, t))
     }
 }
 
 impl FromSexp for Pts {
     fn from_sexp(s: &Sexp) -> Result<Pts> {
-        let v = s.slice_atom("pts")?;
-        let mut r = vec![];
-        for x in v {
-            let xy = from_sexp(x)?;
-            r.push(xy)
-        }
+        let mut i = IterAtom::new(s, "pts")?;
+        let r = i.vec()?;
         Ok(Pts { elements: r })
     }
 }
@@ -152,22 +139,22 @@ impl FromSexp for Pts {
 
 impl FromSexp for Xyz {
     fn from_sexp(s: &Sexp) -> Result<Xyz> {
-        let v = s.slice_atom_num("xyz", 3)?;
-        let x = v[0].f()?;
-        let y = v[1].f()?;
-        let z = v[2].f()?;
+        let mut i = IterAtom::new(s, "xyz")?;
+        let x = i.f("xyz", "x")?;
+        let y = i.f("xyz", "y")?;
+        let z = i.f("xyz", "z")?;
         Ok(Xyz::new(x, y, z))
     }
 }
 
 impl FromSexp for Net {
     fn from_sexp(s: &Sexp) -> Result<Net> {
-        let v = s.slice_atom_num("net", 2)?;
-        let num = v[0].i()?;
-        let name = v[1].string()?;
+        let mut i = IterAtom::new(s, "net")?;
+        let num = i.i("net", "num")?;
+        let name = i.s("net", "name")?;
         Ok(Net {
             num: num,
-            name: name.clone(),
+            name: name,
         })
     }
 }
@@ -198,9 +185,9 @@ impl FromSexp for Drill {
             }
             Sexp::Empty => (),
             Sexp::List(_) => {
-                let v2 = v[i].slice_atom("offset")?;
-                drill.offset_x = v2[0].f()?;
-                drill.offset_y = v2[1].f()?;
+                let mut i2 = IterAtom::new(&v[i], "offset")?;
+                drill.offset_x = i2.f("drill/offset", "x")?;
+                drill.offset_y = i2.f("drill/offset", "y")?;
             }
         }
         Ok(drill)
@@ -242,35 +229,24 @@ impl FromSexp for Part {
     }
 }
 
-fn parse_parts(v: &[Sexp]) -> Result<Vec<Part>> {
-    let mut res = Vec::new();
-    for e in v {
-        let p = from_sexp(e)?;
-        res.push(p);
-    }
-    Ok(res)
-}
-
 fn parse_string_element(s: &Sexp) -> Result<String> {
     let name = s.list_name()?;
-    let v = s.slice_atom_num(name, 1)?;
-    let s = v[0].string()?;
-    Ok(s.clone())
+    let mut i = IterAtom::new(s, name)?;
+    Ok(i.s(name, "element")?)
 }
 
 fn parse_float_element(s: &Sexp) -> Result<f64> {
     let name = s.list_name()?;
-    let v = s.slice_atom_num(name, 1)?;
-    let f = v[0].f()?;
-    Ok(f)
+    let mut i = IterAtom::new(s, name)?;
+    Ok(i.f(name, "element")?)
 }
 
 impl FromSexp for FpText {
     fn from_sexp(s: &Sexp) -> Result<FpText> {
-        let v = s.slice_atom("fp_text")?;
-        let name = v[0].string()?;
-        let value = v[1].string()?;
-        let parts = parse_parts(&v[2..])?;
+        let mut i = IterAtom::new(s, "fp_text")?;
+        let name = i.s("fp_text", "name")?;
+        let value = i.s("fp_text", "value")?;
+        let parts = i.vec()?;
         let mut fp = FpText::new(name.clone(), value.clone());
         for part in &parts[..] {
             match *part {
@@ -287,18 +263,15 @@ impl FromSexp for FpText {
 
 impl FromSexp for Pad {
     fn from_sexp(s: &Sexp) -> Result<Pad> {
-        let v = s.slice_atom("pad")?;
-        if v.len() < 3 {
-            return str_error("not enough elements in pad".to_string());
-        }
-        let name = v[0].string()?.clone();
-        let t = v[1].string()?;
-        let t = PadType::from_string(t)?;
-        let shape = v[2].string()?;
-        let shape = PadShape::from_string(shape)?;
+        let mut i = IterAtom::new(s, "pad")?;
+        let name = i.s("pad", "name")?;
+        let t = i.s("pad", "type")?;
+        let t = PadType::from_string(&t)?;
+        let shape = i.s("pad", "shape")?;
+        let shape = PadShape::from_string(&shape)?;
         let mut pad = Pad::new(name, t, shape);
         // println!("{}", pad);
-        let parts = parse_parts(&v[3..])?;
+        let parts = i.vec()?;
         for part in parts {
             match part {
                 Part::At(ref at) => pad.at.clone_from(at),
@@ -319,9 +292,9 @@ impl FromSexp for Pad {
 
 impl FromSexp for FpPoly {
     fn from_sexp(s: &Sexp) -> Result<FpPoly> {
-        let v = s.slice_atom("fp_poly")?;
+        let mut i = IterAtom::new(s, "fp_poly")?;
         let mut fp_poly = FpPoly::default();
-        let parts = parse_parts(v)?;
+        let parts = i.vec()?;
         for part in &parts[..] {
             match *part {
                 Part::Pts(ref pts) => fp_poly.pts.clone_from(pts),
@@ -336,9 +309,9 @@ impl FromSexp for FpPoly {
 
 impl FromSexp for FpLine {
     fn from_sexp(s: &Sexp) -> Result<FpLine> {
-        let v = s.slice_atom("fp_line")?;
+        let mut i = IterAtom::new(s, "fp_line")?;
         let mut fp_line = FpLine::default();
-        let parts = parse_parts(v)?;
+        let parts = i.vec()?;
         for part in &parts[..] {
             match *part {
                 Part::Xy(ref xy) if xy.t == XyType::Start => fp_line.start.clone_from(xy),
@@ -354,9 +327,9 @@ impl FromSexp for FpLine {
 
 impl FromSexp for FpCircle {
     fn from_sexp(s: &Sexp) -> Result<FpCircle> {
-        let v = s.slice_atom("fp_circle")?;
+        let mut i = IterAtom::new(s, "fp_circle")?;
         let mut fp_circle = FpCircle::default();
-        let parts = parse_parts(&v)?;
+        let parts = i.vec()?;
         for part in &parts[..] {
             match *part {
                 Part::Xy(ref xy) if xy.t == XyType::Center => fp_circle.center.clone_from(xy),
@@ -372,9 +345,9 @@ impl FromSexp for FpCircle {
 
 impl FromSexp for FpArc {
     fn from_sexp(s: &Sexp) -> Result<FpArc> {
-        let v = s.slice_atom("fp_arc")?;
+        let mut i = IterAtom::new(s, "fp_arc")?;
         let mut fp_arc = FpArc::default();
-        let parts = parse_parts(v)?;
+        let parts = i.vec()?;
         for part in &parts[..] {
             match *part {
                 Part::Xy(ref xy) if xy.t == XyType::Start => fp_arc.start.clone_from(xy),
