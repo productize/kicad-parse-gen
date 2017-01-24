@@ -9,6 +9,7 @@ extern crate symbolic_expressions;
 extern crate error_chain;
 
 use std::fmt;
+use std::slice::Iter;
 
 pub use symbolic_expressions::Sexp;
 pub use error::*;
@@ -293,6 +294,96 @@ fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> Result<Y>
 {
     Ok(wrapper(make(s)?))
 }
+
+/// Atom iterator wrapper
+pub struct IterAtom<'a> {
+    iter:Iter<'a,Sexp>,
+}
+
+/*
+impl<'a> From<Iter<'a, Sexp>> for IterAtom<'a> {
+    fn from(i:Iter<'a, Sexp>) -> IterAtom<'a> {
+        IterAtom { iter: i }
+    }
+}
+*/
+
+impl<'a> IterAtom<'a> {
+
+    fn new(s:&'a Sexp, name:&str) -> Result<IterAtom<'a>> {
+        let i = s.iter_atom(name)?;
+        Ok(IterAtom { iter: i })
+    }
+    
+    fn expect<T,F>(&mut self, sname:&str, name:&str, get:F) -> Result<T>
+        where F:Fn(&Sexp) -> Result<T>
+    {
+        match self.iter.next() {
+            Some(x) => get(x),
+            None => return Err(format!("missing {} field in {}",name, sname).into()),
+        }
+    }
+
+    fn optional<T,F>(&mut self, or:T, get:F) -> Result<T>
+        where F:Fn(&Sexp) -> Result<T>
+    {
+        let x = match self.iter.next() {
+            Some(x) => get(x)?,
+            None => or,
+        };
+        Ok(x)
+    }
+    
+    /// expect an integer while iterating a `Sexp` list
+    pub fn i(&mut self, sname:&str, name:&str) -> Result<i64>
+    {
+        self.expect(sname, name, |x| x.i().map_err(From::from))
+    }
+
+    /// expect a float while iterating a `Sexp` list
+    pub fn f(&mut self, sname:&str, name:&str) -> Result<f64> {
+        self.expect(sname, name, |x| x.f().map_err(From::from))
+    }
+
+    /// expect a String while iterating a `Sexp` list
+    pub fn s(&mut self, sname:&str, name:&str) -> Result<String> {
+        self.expect(sname, name, |x| x.string().map(|y| y.clone()).map_err(From::from))
+    }
+    
+    /// expect a `Sexp` while iterating a `Sexp` list
+    pub fn t<T:FromSexp>(&mut self, sname:&str, name:&str) -> Result<T> {
+        self.expect(sname, name, |x| T::from_sexp(x))
+    }
+
+    /// optional integer while iterating a `Sexp` list
+    pub fn opt_i(&mut self, or:i64) -> Result<i64> {
+        self.optional(or, |x| x.i().map_err(From::from))
+    }
+
+    /// optional float while iterating a `Sexp` list
+    pub fn opt_f(&mut self, or:f64) -> Result<f64> {
+        self.optional(or, |x| x.f().map_err(From::from))
+    }
+    
+    /// optional String while iterating a `Sexp` list
+    pub fn opt_s(&mut self, or:String) -> Result<String> {
+        self.optional(or, |x| x.string().map(|y| y.clone()).map_err(From::from))
+    }
+    
+    /// optional `Sexp` while iterating a `Sexp` list
+    pub fn opt_t<T:FromSexp>(&mut self) -> Result<Option<T>> {
+        let x = match self.iter.next() {
+            Some(x) => {
+                let t:T = T::from_sexp(x)?;
+                Some(t)
+            },
+            None => None,
+        };
+        Ok(x)
+    }
+}
+
+
 
 /// Kicad error handling code and types
 pub mod error;

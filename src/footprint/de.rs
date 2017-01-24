@@ -2,39 +2,31 @@
 
 use Sexp;
 use str_error;
-use Result;
+//use Result;
 use footprint::data::*;
 use FromSexp;
 use Part;
 use wrap;
 use from_sexp;
+use Result;
+use IterAtom;
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
 impl FromSexp for At {
     fn from_sexp(s: &Sexp) -> Result<At> {
-        let v = s.slice_atom("at")?;
-        match v.len() {
-            2 => {
-                let x = v[0].f()?;
-                let y = v[1].f()?;
-                Ok(At::new(x, y, 0.0))
-            }
-            3 => {
-                let x = v[0].f()?;
-                let y = v[1].f()?;
-                let rot = v[2].f()?;
-                Ok(At::new(x, y, rot))
-            }
-            _ => str_error("at with wrong length".to_string()),
-        }
+        let mut i = IterAtom::new(s, "at")?;
+        let x = i.f("at", "x")?;
+        let y = i.f("at", "y")?;
+        let rot = i.opt_f(0.0)?;
+        Ok(At::new(x, y, rot))
     }
 }
 
 impl FromSexp for Layer {
     fn from_sexp(s: &Sexp) -> Result<Layer> {
-        let v = s.slice_atom("layer")?;
-        let layer = v[0].string()?;
-        let layer = Layer::from_string(layer)?;
+        let mut i = IterAtom::new(s, "layer")?;
+        let layer = i.s("layer", "layername")?;
+        let layer = Layer::from_string(&layer)?;
         Ok(layer)
     }
 }
@@ -43,16 +35,9 @@ impl FromSexp for Effects {
     fn from_sexp(s: &Sexp) -> Result<Effects> {
         // let v = s.slice_atom_num("effects", 1)?;
         // TODO investigate why the above doesn't work !?
-        let v = s.slice_atom("effects")?;
-        if v.len() < 1 {
-            return str_error(format!("Expected at least one element in {}", s));
-        }
-        let font = from_sexp(&v[0])?;
-        let justify = if v.len() > 1 {
-            Some(from_sexp(&v[1])?)
-        } else {
-            None
-        };
+        let mut i = IterAtom::new(s,"effects")?;
+        let font = i.t("effects", "font")?;
+        let justify = i.opt_t()?;
         Ok(Effects::from_font(font, justify))
     }
 }

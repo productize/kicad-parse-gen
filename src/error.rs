@@ -2,6 +2,7 @@
 
 use std::io;
 use symbolic_expressions;
+use std::num;
 
 error_chain! {
 
@@ -15,6 +16,8 @@ error_chain! {
 
     foreign_links {
         Io(io::Error) #[doc = "IO error"];
+        Float(num::ParseFloatError) #[doc = "Float error"];
+        Int(num::ParseIntError) #[doc = "Int error"];
     }
 
     links {
