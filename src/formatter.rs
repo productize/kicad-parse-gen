@@ -51,6 +51,7 @@ pub struct KicadFormatter {
     ind: Vec<u8>,
     pts_xy_count: i64,
     seen_module: bool,
+    seen_segment: bool,
 }
 
 impl KicadFormatter {
@@ -61,6 +62,7 @@ impl KicadFormatter {
             ind: vec![b' ', b' '], // two spaces
             pts_xy_count: 0,
             seen_module: false,
+            seen_segment: false,
         }
     }
 
@@ -282,6 +284,14 @@ impl Formatter for KicadFormatter {
         } else {
             if self.parent_is("kicad_pcb") && self.seen_module {
                 self.seen_module = false;
+                self.indent(writer, 1)?;
+            }
+        }
+
+        // write an extra newline before the first segment
+        if !self.seen_segment {
+            if let "segment" = &ele[..] {
+                self.seen_segment = true;
                 self.indent(writer, 1)?;
             }
         }
