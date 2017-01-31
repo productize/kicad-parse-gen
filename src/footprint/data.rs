@@ -36,6 +36,19 @@ impl Module {
         }
         false
     }
+
+        /// check if a Module has a reference Element with the specified name
+    pub fn get_reference(&self) -> Option<&String> {
+        for element in &self.elements[..] {
+            if let Element::FpText(ref fp_text) = *element {
+                if fp_text.name == "reference" {
+                    return Some(&fp_text.value);
+                }
+            }
+        }
+        None
+    }
+    
     /// update the name of the reference element specified by name, if found
     pub fn set_reference(&mut self, reference: &str, reference2: &str) {
         // println!("debug: searching '{}'", reference);
