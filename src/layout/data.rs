@@ -363,6 +363,20 @@ impl Layout {
         None
     }
 
+    /// get list of contained modules
+    pub fn get_modules(&self) -> Vec<&footprint::Module> {
+        let mut v = vec![];
+        for e in &self.elements {
+            match *e {
+                Element::Module(ref m) => {
+                    v.push(m)
+                }
+                _ => ()
+            }
+        }
+        v
+    }
+    
     /// modify a module
     pub fn modify_module<F>(&mut self, reference: &str, fun: F) -> Result<()>
         where F: Fn(&mut footprint::Module) -> ()
