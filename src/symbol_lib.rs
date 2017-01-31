@@ -44,6 +44,8 @@ pub struct Symbol {
     pub is_power: bool,
     /// fields
     pub fields: Vec<Field>,
+    /// aliases
+    pub aliases: Vec<String>,
     /// draw
     pub draw: Vec<String>, // TODO parse draw
 }
@@ -118,6 +120,7 @@ impl Symbol {
             unit_locked: false,
             is_power: false,
             fields: vec![],
+            aliases: vec![],
             draw: vec![],
         }
     }
@@ -149,6 +152,14 @@ impl fmt::Display for Symbol {
             ?;
         for field in &self.fields {
             writeln!(f, "{}", field)?
+        }
+        if !self.aliases.is_empty() {
+            write!(f, "ALIAS")?;
+            for alias in &self.aliases {
+                write!(f, " ")?;
+                write!(f, "{}", alias)?;
+            }
+            writeln!(f, "")?;
         }
         writeln!(f, "DRAW")?;
         for draw in &self.draw {
@@ -288,8 +299,6 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
     s.unit_count = i64_from_string(p, &v[7])?;
     s.unit_locked = bool_from_string(&v[8], "L", "F")?;
     s.is_power = bool_from_string(&v[9], "P", "N")?;
-    // TODO fields
-    // TODO draw
     p.next();
     loop {
         let s2 = p.here();
@@ -312,6 +321,14 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
             p.next()
         }
     }
+    if p.here().starts_with("ALIAS") {
+        let v = parse_split_quote_aware(&p.here());
+        for alias in v.into_iter().skip(1) {
+            s.aliases.push(alias)
+        }
+        p.next();
+    }
+    // TODO draw
     assume_line!(p, "DRAW");
     while !p.eof() {
         let s2 = p.here();
