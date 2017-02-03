@@ -18,15 +18,17 @@ pub fn read_file<P>(path: P) -> Result<String>
 }
 
 /// write a file
-pub fn write_file(name: &str, data: &str) -> Result<()> {
-    let mut f = match File::create(name) {
+pub fn write_file<P>(name: P, data: &str) -> Result<()>
+    where P:AsRef<Path>
+{
+    let mut f = match File::create(&name) {
             Ok(f) => Ok(f),
-            Err(err) => Err(format!("create error in file '{}': {}", name, err)),
+            Err(err) => Err(format!("create error in file '{}': {}", name.as_ref().display(), err)),
         }
         ?;
     match write!(&mut f, "{}", data) {
             Ok(f) => Ok(f),
-            Err(err) => Err(format!("write error in file '{}': {}", name, err)),
+            Err(err) => Err(format!("write error in file '{}': {}", name.as_ref().display(), err)),
         }
         ?;
 
