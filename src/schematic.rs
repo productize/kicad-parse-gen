@@ -5,7 +5,7 @@
 
 use std::fmt;
 use std::str::FromStr;
-use std::path::PathBuf;
+use std::path::{Path,PathBuf};
 use std::collections::HashMap;
 use std::result;
 
@@ -392,6 +392,7 @@ impl Component {
         }
         None
     }
+    
     /// get a component field by name
     pub fn get_field(&self, name: &str) -> Option<ComponentField> {
         for field in &self.fields[..] {
@@ -401,6 +402,7 @@ impl Component {
         }
         None
     }
+    
     /// get the first free component field number
     pub fn get_available_field_num(&self) -> i64 {
         let mut i: i64 = 0;
@@ -1199,10 +1201,9 @@ pub fn parse_str(s: &str) -> Result<Schematic> {
 }
 
 /// parse a file as a Kicad schematic
-pub fn parse_file(filename: &PathBuf) -> Result<Schematic> {
-    let name = filename.to_str().unwrap();
-    let s = read_file(name)?;
-    parse(Some(filename.clone()), &s[..])
+pub fn parse_file(filename: &Path) -> Result<Schematic> {
+    let s = read_file(filename)?;
+    parse(Some(PathBuf::from(filename)), &s[..])
 }
 
 /// get the filename for a sheet in a schematic
