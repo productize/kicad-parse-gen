@@ -10,6 +10,7 @@ extern crate error_chain;
 
 use std::fmt;
 use std::slice::Iter;
+use std::path::{PathBuf,Path};
 
 pub use symbolic_expressions::Sexp;
 pub use error::*;
@@ -112,7 +113,7 @@ fn parse_split_quote_aware_n(n: usize, s: &str) -> Result<Vec<String>> {
 #[derive(Debug)]
 pub enum KicadFile {
     /// unknown file, probably no kicad file
-    Unknown(String),
+    Unknown(PathBuf),
     /// a Kicad module, also know as a footprint
     Module(footprint::Module),
     /// a Kicad schematic file
@@ -146,7 +147,7 @@ pub enum Expected {
 impl fmt::Display for KicadFile {
     fn fmt(&self, f: &mut fmt::Formatter) -> std::result::Result<(), fmt::Error> {
         match *self {
-            KicadFile::Unknown(ref x) => write!(f, "unknown: {}", x),
+            KicadFile::Unknown(ref x) => write!(f, "unknown: {}", x.to_str().unwrap()),
             KicadFile::Module(_) => write!(f, "module"),
             KicadFile::Schematic(_) => write!(f, "schematic"),
             KicadFile::Layout(_) => write!(f, "layout"),
@@ -158,8 +159,9 @@ impl fmt::Display for KicadFile {
 
 /// try to read a file, trying to parse it as the different formats
 /// and matching it against the Expected type
-pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
-    let pb = std::path::PathBuf::from(name);
+pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile>
+{
+    
     let data = read_file(name)?;
     match footprint::parse(&data) {
         Ok(module) => return Ok(KicadFile::Module(module)),
@@ -169,7 +171,7 @@ pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
             }
         }
     }
-    match schematic::parse(Some(pb), &data) {
+    match schematic::parse(Some(PathBuf::from(name)), &data) {
         Ok(sch) => return Ok(KicadFile::Schematic(sch)),
         Err(x) => {
             if expected == Expected::Schematic {
@@ -201,30 +203,33 @@ pub fn read_kicad_file(name: &str, expected: Expected) -> Result<KicadFile> {
             }
         }
     }
-    Ok(KicadFile::Unknown(name.into()))
+    Ok(KicadFile::Unknown(PathBuf::from(name)))
 }
 
 /// read a file, expecting it to be a Kicad module file
-pub fn read_module(name: &str) -> Result<footprint::Module> {
+pub fn read_module(name: &Path) -> Result<footprint::Module>
+{
     match read_kicad_file(name, Expected::Module)? {
         KicadFile::Module(mo) => Ok(mo),
-        x => str_error(format!("unexpected {} in {}", x, name)),
+        x => str_error(format!("unexpected {} in {}", x, name.display())),
     }
 }
 
 /// read a file, expecting it to be a Kicad schematic
-pub fn read_schematic(name: &str) -> Result<schematic::Schematic> {
+pub fn read_schematic(name: &Path) -> Result<schematic::Schematic>
+{
     match read_kicad_file(name, Expected::Schematic)? {
         KicadFile::Schematic(mo) => Ok(mo),
-        x => str_error(format!("unexpected {} in {}", x, name)),
+        x => str_error(format!("unexpected {} in {}", x, name.display())),
     }
 }
 
 /// read a file, expecting it to be a Kicad layout file
-pub fn read_layout(name: &str) -> Result<layout::Layout> {
+pub fn read_layout(name: &Path) -> Result<layout::Layout>
+{
     match read_kicad_file(name, Expected::Layout)? {
         KicadFile::Layout(mo) => Ok(mo),
-        x => str_error(format!("unexpected {} in {}", x, name)),
+        x => str_error(format!("unexpected {} in {}", x, name.display())),
     }
 }
 
@@ -235,18 +240,20 @@ pub fn write_layout(layout: &layout::Layout, name: &str) -> Result<()> {
 }
 
 /// read a file, expecting it to be a Kicad symbol library file
-pub fn read_symbol_lib(name: &str) -> Result<symbol_lib::SymbolLib> {
+pub fn read_symbol_lib(name: &Path) -> Result<symbol_lib::SymbolLib>
+{
     match read_kicad_file(name, Expected::SymbolLib)? {
         KicadFile::SymbolLib(mo) => Ok(mo),
-        x => str_error(format!("unexpected {} in {}", x, name)),
+        x => str_error(format!("unexpected {} in {}", x, name.display())),
     }
 }
 
 /// read a file, expecting it to be a Kicad project file
-pub fn read_project(name: &str) -> Result<project::Project> {
+pub fn read_project(name: &Path) -> Result<project::Project>
+{
     match read_kicad_file(name, Expected::Project)? {
         KicadFile::Project(mo) => Ok(mo),
-        x => str_error(format!("unexpected {} in {}", x, name)),
+        x => str_error(format!("unexpected {} in {}", x, name.display())),
     }
 }
 

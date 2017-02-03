@@ -3,12 +3,15 @@
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
+use std::path::Path;
 
 use Result;
 
 /// read a file
-pub fn read_file(name: &str) -> Result<String> {
-    let mut f = File::open(name)?;
+pub fn read_file<P>(path: P) -> Result<String>
+    where P:AsRef<Path>
+{
+    let mut f = File::open(path)?;
     let mut s = String::new();
     f.read_to_string(&mut s)?;
     Ok(s)
