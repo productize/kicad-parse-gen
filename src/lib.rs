@@ -234,7 +234,7 @@ pub fn read_layout(name: &Path) -> Result<layout::Layout>
 }
 
 /// write out a kicad Layout to a file
-pub fn write_layout(layout: &layout::Layout, name: &str) -> Result<()> {
+pub fn write_layout(layout: &layout::Layout, name: &Path) -> Result<()> {
     let s = layout::layout_to_string(layout, 0)?;
     write_file(name, &s)
 }
