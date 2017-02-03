@@ -104,6 +104,23 @@ impl Schematic {
         v
     }
 
+    /// return all components including from sub-sheets
+    pub fn all_components(&self) -> Result<Vec<Component>> {
+        let mut v = vec![];
+        for x in &self.elements {
+            match *x {
+                Element::Component(ref c) => v.push(c.clone()),
+                Element::Other(_) => (),
+            }
+        }
+        for sheet in &self.sheets {
+            let schematic = parse_file_for_sheet(&self, sheet)?;
+            let mut v2 = schematic.all_components()?;
+            v.append(&mut v2)
+        }
+        Ok(v)
+    }
+    
     /// get a component by reference
     pub fn component_by_reference(&self, reference: &str) -> Result<Component> {
         for x in &self.elements {
