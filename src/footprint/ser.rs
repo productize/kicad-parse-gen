@@ -96,6 +96,8 @@ impl IntoSexp for Justify {
     fn into_sexp(&self) -> Sexp {
         match *self {
             Justify::Mirror => ("justify", &"mirror").into(),
+            Justify::Left => ("justify", &"left").into(),
+            Justify::Right => ("justify", &"right").into(),
         }
     }
 }

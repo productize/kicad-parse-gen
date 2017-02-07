@@ -265,6 +265,10 @@ impl Effects {
 pub enum Justify {
     /// the text is mirrored
     Mirror,
+    /// the text is left-justified
+    Left,
+    /// the text is right-justified
+    Right,
 }
 
 /// the type of X-Y element

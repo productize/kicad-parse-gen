@@ -46,6 +46,8 @@ impl FromSexp for Justify {
         let s = i.s("justify", "mirror")?;
         match &s[..] {
             "mirror" => Ok(Justify::Mirror),
+            "left" => Ok(Justify::Left),
+            "right" => Ok(Justify::Right),
             _ => str_error(format!("unknown justify: {}", s)),
         }
     }
