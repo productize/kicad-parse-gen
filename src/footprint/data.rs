@@ -1,8 +1,8 @@
-// (c) 2016 Productize SPRL <joost@productize.be>
+// (c) 2016-2017 Productize SPRL <joost@productize.be>
 
 use str_error;
 use Result;
-use BoundingBox;
+use layout::BoundingBox;
 
 /// a Kicad module, with a name and a list of elements
 #[derive(Debug,Clone)]

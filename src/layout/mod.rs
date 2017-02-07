@@ -13,6 +13,12 @@ use from_sexp;
 
 pub use layout::data::*;
 
+/// calculate the bounding box of a layout item
+pub trait BoundingBox {
+    /// calculate the bounding box of a layout item
+    fn bounding_box(&self) -> (f64, f64, f64, f64);
+}
+
 /// convert a Kicad layout to a String
 pub fn layout_to_string(layout: &Layout, indent_level: i64) -> Result<String> {
     let formatter = KicadFormatter::new(indent_level);

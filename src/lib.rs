@@ -289,12 +289,6 @@ enum GrElement {
     Effects(footprint::Effects),
 }
 
-/// calculate the bounding box of an item
-pub trait BoundingBox {
-    /// calculate the bounding box of an item
-    fn bounding_box(&self) -> (f64, f64, f64, f64);
-}
-
 fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> Result<Y>
     where F: Fn(&Sexp) -> Result<X>,
           G: Fn(X) -> Y

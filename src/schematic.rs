@@ -15,7 +15,12 @@ use util::read_file;
 use str_error;
 use parse_split_quote_aware;
 use parse_split_quote_aware_n;
-use BoundingBox;
+
+/// calculate the bounding box of a schematic item
+pub trait BoundingBox {
+    /// calculate the bounding box of an item
+    fn bounding_box(&self) -> (i64, i64, i64, i64);
+}
 
 /// a Kicad schematic
 #[derive(Debug,Default)]
@@ -748,8 +753,8 @@ pub struct Sheet {
 }
 
 impl BoundingBox for Sheet {
-    fn bounding_box(&self) -> (f64,f64,f64,f64) {
-        (self.x as f64, self.y as f64, (self.x + self.dimx) as f64, (self.y + self.dimy) as f64)
+    fn bounding_box(&self) -> (i64,i64,i64,i64) {
+        (self.x, self.y-100, self.x + self.dimx, self.y + self.dimy+100)
     }
 }
 
