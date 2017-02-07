@@ -15,6 +15,7 @@ use util::read_file;
 use str_error;
 use parse_split_quote_aware;
 use parse_split_quote_aware_n;
+use BoundingBox;
 
 /// a Kicad schematic
 #[derive(Debug,Default)]
@@ -744,6 +745,12 @@ pub struct Sheet {
     pub filename_size: i64,
     /// sheet labels
     pub labels: Vec<SheetLabel>, // starting at F2
+}
+
+impl BoundingBox for Sheet {
+    fn bounding_box(&self) -> (f64,f64,f64,f64) {
+        (self.x as f64, self.y as f64, (self.x + self.dimx) as f64, (self.y + self.dimy) as f64)
+    }
 }
 
 impl Default for Sheet {
