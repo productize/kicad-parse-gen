@@ -73,19 +73,19 @@ pub struct Zone {
     pub priority: u64,
     /// connect pads
     pub connect_pads: ConnectPads,
-    /*
     /// minimum thickness
-    min_thickness: f64,
+    pub min_thickness: f64,
+    /*
     /// keepout
-    keepout: Option<Keepout>,
+    pub keepout: Option<Keepout>,
     /// fill
     pub fill: Fill,
     /// polygons
-    polygons: Vec<footprint::Pts>,
+    pub polygons: Vec<footprint::Pts>,
     /// filled polygons
-    filled_polygons: Vec<footprint::Pts>,
+    pub filled_polygons: Vec<footprint::Pts>,
     /// filled segments
-    fill_segments: Option<footprint::Pts>,
+    pub fill_segments: Option<footprint::Pts>,
     */
     /// other (uninterpreted symbolic-expressions)
     pub other: Vec<Sexp>,

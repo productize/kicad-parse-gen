@@ -100,6 +100,7 @@ impl IntoSexp for Zone {
             v.push(("priority", &self.priority));
         }
         v.push(self.connect_pads.into_sexp());
+        v.push(("min_thickness", &self.min_thickness));
         for o in &self.other {
             v.push(o.clone());
         }

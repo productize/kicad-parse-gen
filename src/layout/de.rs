@@ -460,7 +460,7 @@ impl FromSexp for Dimension {
 impl FromSexp for Zone {
     fn from_sexp(s: &Sexp) -> Result<Zone> {
         let l = s.slice_atom("zone")?;
-        if l.len() < 5 {
+        if l.len() < 7 {
             return str_error(format!("expecting more elements in zone {}", s));
         }
         let net = l[0].named_value_i("net")?;
@@ -473,8 +473,9 @@ impl FromSexp for Zone {
             Err(_) => (5, 0_u64),
         };
         let connect_pads = from_sexp(&l[i])?;
+        let min_thickness = l[i+1].named_value_f("min_thickness")?;
         let mut other = vec![];
-        for x in &l[(i+1)..] {
+        for x in &l[(i+2)..] {
             debug!("'zone': not parsing {}", x);
             other.push(x.clone())
         }
@@ -486,6 +487,7 @@ impl FromSexp for Zone {
             hatch: hatch,
             priority: priority,
             connect_pads:connect_pads,
+            min_thickness:min_thickness,
             other: other,
         })
     }
