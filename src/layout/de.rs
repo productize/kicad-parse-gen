@@ -460,23 +460,38 @@ impl FromSexp for Dimension {
 impl FromSexp for Zone {
     fn from_sexp(s: &Sexp) -> Result<Zone> {
         let l = s.slice_atom("zone")?;
-        if l.len() < 3 {
+        if l.len() < 5 {
             return str_error(format!("expecting more elements in zone {}", s));
         }
         let net = l[0].named_value_i("net")?;
         let net_name = l[1].named_value_string("net_name")?.clone();
+        let layer = from_sexp(&l[2])?;
+        let tstamp = l[3].named_value_string("tstamp")?.clone();
+        let hatch = from_sexp(&l[4])?;
         let mut other = vec![];
-        for x in &l[2..] {
+        for x in &l[5..] {
+            debug!("'zone': not parsing {}", x);
             other.push(x.clone())
         }
         Ok(Zone {
             net: net,
             net_name: net_name,
+            layer: layer,
+            tstamp: tstamp,
+            hatch: hatch,
             other: other,
         })
     }
 }
 
+impl FromSexp for ZoneHatch {
+    fn from_sexp(s: &Sexp) -> Result<ZoneHatch> {
+        let l = s.slice_atom_num("hatch", 2)?;
+        let style = l[0].string()?.clone();
+        let pitch = l[1].f()?;
+        Ok(ZoneHatch { style:style, pitch:pitch })
+    }
+}
 
 impl FromSexp for Segment {
     fn from_sexp(s: &Sexp) -> Result<Segment> {

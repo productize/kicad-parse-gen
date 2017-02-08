@@ -63,6 +63,12 @@ pub struct Zone {
     pub net: i64,
     /// net name of the zone
     pub net_name: String,
+    /// layer
+    pub layer: footprint::Layer,
+    /// tstamp
+    pub tstamp: String,
+    /// hatch
+    pub hatch: ZoneHatch,
     /// other (uninterpreted symbolic-expressions)
     pub other: Vec<Sexp>,
 }
@@ -71,6 +77,14 @@ impl Adjust for Zone {
     fn adjust(&mut self, _x:f64, _y:f64) {
         panic!("adjust not possible due to zone not fully implemented")
     }
+}
+/// a zone region
+#[derive(Clone,Debug)]
+pub struct ZoneHatch {
+    /// hatching style
+    pub style:String,
+    /// hatching pitch
+    pub pitch:f64,
 }
 
 /// build host info

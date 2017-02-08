@@ -19,7 +19,7 @@ fn parse_and_compare() {
     let layout = kicad::read_layout(&file_name).unwrap();
     let s = kicad::layout::layout_to_string(&layout, 0).unwrap();
 
-    //kicad::write_file("/tmp/dump.kicad_pcb", &s).unwrap();
+    kicad::write_file("/tmp/dump.kicad_pcb", &s).unwrap();
 
     // very inefficient...
     let (n, d) = difference::diff(&content, &s, "\n");

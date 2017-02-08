@@ -93,9 +93,21 @@ impl IntoSexp for Zone {
         let mut v = Sexp::start("zone");
         v.push(("net", &self.net));
         v.push(("net_name", &self.net_name));
+        v.push(("layer", &self.layer));
+        v.push(("tstamp", &self.tstamp));
+        v.push(self.hatch.into_sexp());
         for o in &self.other {
             v.push(o.clone());
         }
+        v
+    }
+}
+
+impl IntoSexp for ZoneHatch {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = Sexp::start("hatch");
+        v.push(&self.style);
+        v.push(self.pitch);
         v
     }
 }
