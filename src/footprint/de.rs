@@ -224,6 +224,7 @@ impl FromSexp for Part {
                     "solder_paste_margin" => parse_part_float(s, Part::SolderPasteMargin),
                     "solder_mask_margin" => parse_part_float(s, Part::SolderMaskMargin),
                     "clearance" => parse_part_float(s, Part::Clearance),
+                    "thermal_gap" => parse_part_float(s, Part::ThermalGap),
                     x => str_error(format!("unknown part {}", x)),
                 }
             }
@@ -285,6 +286,7 @@ impl FromSexp for Pad {
                 Part::SolderPasteMargin(n) => pad.solder_paste_margin = Some(n),
                 Part::SolderMaskMargin(n) => pad.solder_mask_margin = Some(n),
                 Part::Clearance(n) => pad.clearance = Some(n),
+                Part::ThermalGap(n) => pad.thermal_gap = Some(n),
                 ref x => return str_error(format!("pad: unknown {:?}", x)),
             }
         }

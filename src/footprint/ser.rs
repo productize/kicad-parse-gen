@@ -217,6 +217,9 @@ impl IntoSexp for Pad {
         if let Some(ref spm) = self.clearance {
             v.push(("clearance", spm));
         }
+        if let Some(ref spm) = self.thermal_gap {
+            v.push(("thermal_gap", spm));
+        }
         v
     }
 }

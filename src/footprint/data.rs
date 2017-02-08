@@ -548,6 +548,8 @@ pub struct Pad {
     pub solder_mask_margin: Option<f64>,
     /// clearance
     pub clearance: Option<f64>,
+    /// thermal gap
+    pub thermal_gap: Option<f64>,
 }
 
 impl Pad {
@@ -566,6 +568,7 @@ impl Pad {
             solder_paste_margin: None,
             solder_mask_margin: None,
             clearance: None,
+            thermal_gap: None,
         }
     }
 

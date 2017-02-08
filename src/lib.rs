@@ -277,6 +277,7 @@ enum Part {
     SolderPasteMargin(f64),
     SolderMaskMargin(f64),
     Clearance(f64),
+    ThermalGap(f64),
 }
 
 // put here so it is accessible to all subfiles privately
