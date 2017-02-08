@@ -44,7 +44,8 @@ pub enum Element {
     Dimension(Dimension),
     /// segment
     Segment(Segment),
-    // Via,
+    /// via
+    Via(Via),
     // FilledPolygon,
     /// zone
     Zone(Zone),
@@ -285,6 +286,23 @@ pub struct Segment {
     pub status: Option<String>,
 }
 
+/// via
+// (via (at 132.1948 121.2202) (size 0.675) (drill 0.25) (layers F.Cu B.Cu) (net 19))
+#[derive(Clone,Debug)]
+pub struct Via {
+    /// at
+    pub at: footprint::At,
+    /// size
+    pub size: f64,
+    /// drill
+    pub drill: f64,
+    /// layers
+    pub layers: footprint::Layers,
+    /// net
+    pub net: i64,
+}
+
+
 impl Default for Layout {
     fn default() -> Layout {
         Layout {
@@ -371,6 +389,7 @@ impl Layout {
                         return Some(m);
                     }
                 }
+                Element::Via(_) |
                 Element::Segment(_) |
                 Element::Net(_) |
                 Element::NetClass(_) |
@@ -410,6 +429,7 @@ impl Layout {
                         return Ok(fun(m));
                     }
                 }
+                Element::Via(_) |
                 Element::Segment(_) |
                 Element::Net(_) |
                 Element::NetClass(_) |

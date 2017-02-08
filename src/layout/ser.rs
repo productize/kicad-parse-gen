@@ -82,6 +82,7 @@ impl IntoSexp for Element {
             Element::Dimension(ref s) => s.into_sexp(),
             Element::Zone(ref s) => s.into_sexp(),
             Element::Segment(ref s) => s.into_sexp(),
+            Element::Via(ref s) => s.into_sexp(),
         }
     }
 }
@@ -255,6 +256,23 @@ impl IntoSexp for Segment {
         if let Some(ref status) = self.status {
             v.push(("status", status))
         }
+        v
+    }
+}
+
+
+// (via (at 132.1948 121.2202) (size 0.675) (drill 0.25) (layers F.Cu B.Cu) (net 19))
+
+impl IntoSexp for Via {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = Sexp::start("via");
+        v.push(self.at.into_sexp());
+        v.push(("size", &self.size));
+        if self.drill != 0.0 {
+            v.push(("drill", &self.drill));
+        }
+        v.push(self.layers.into_sexp());
+        v.push(("net", &self.net));
         v
     }
 }

@@ -292,6 +292,14 @@ impl FromSexp for GrElement {
                 let l2 = s.slice_atom("width")?;
                 Ok(GrElement::Width(l2[0].f()?))
             }
+            "size" => {
+                let l2 = s.slice_atom("size")?;
+                Ok(GrElement::Size(l2[0].f()?))
+            }
+            "drill" => {
+                let l2 = s.slice_atom("drill")?;
+                Ok(GrElement::Drill(l2[0].f()?))
+            }
             "tstamp" => {
                 let l2 = s.slice_atom("tstamp")?;
                 let sx = l2[0].string()?.clone();
@@ -307,6 +315,7 @@ impl FromSexp for GrElement {
                 Ok(GrElement::Net(l2[0].i()?))
             },
             "at" => wrap(s, from_sexp, GrElement::At),
+            "layers" => wrap(s, from_sexp, GrElement::Layers),
             "effects" => wrap(s, from_sexp, GrElement::Effects),
             x => str_error(format!("unknown element {} in {}", x, s)),
         }
@@ -473,6 +482,35 @@ impl FromSexp for Segment {
         })
     }
 }
+impl FromSexp for Via {
+    fn from_sexp(s: &Sexp) -> Result<Via> {
+        let l = s.slice_atom("via")?;
+        let mut at = footprint::At::default();
+        let mut size = 0.0_f64;
+        let mut drill = 0.0_f64;
+        let mut layers = footprint::Layers::default();
+        let mut net = 0;
+        for x in l {
+            let elem = from_sexp(x)?;
+            match elem {
+                GrElement::At(x) => at = x,
+                GrElement::Size(x) => size = x,
+                GrElement::Net(x) => net = x,
+                GrElement::Drill(x) => drill = x,
+                GrElement::Layers(x) => layers = x,
+                _ => (), // TODO
+            }
+        }
+        Ok(Via {
+            at: at,
+            size: size,
+            drill: drill,
+            layers: layers,
+            net: net,
+        })
+    }
+}
+
 impl FromSexp for Layout {
     fn from_sexp(s: &Sexp) -> Result<Layout> {
         let l1 = s.slice_atom("kicad_pcb")?;
@@ -518,6 +556,10 @@ impl FromSexp for Layout {
                 }
                 "segment" => {
                     let g = wrap(e, from_sexp, Element::Segment)?;
+                    layout.elements.push(g)
+                }
+                "via" => {
+                    let g = wrap(e, from_sexp, Element::Via)?;
                     layout.elements.push(g)
                 }
                 "setup" => layout.setup = from_sexp(&e)?,

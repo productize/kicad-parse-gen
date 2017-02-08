@@ -286,11 +286,14 @@ enum GrElement {
     Angle(f64),
     Layer(footprint::Layer),
     Width(f64),
+    Size(f64),
+    Drill(f64),
     TStamp(String),
     At(footprint::At),
     Effects(footprint::Effects),
     Net(i64),
     Status(String),
+    Layers(footprint::Layers),
 }
 
 fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> Result<Y>
