@@ -40,6 +40,8 @@ pub enum Element {
     GrLine(GrLine),
     /// arc
     GrArc(GrArc),
+    /// circle
+    GrCircle(GrCircle),
     /// dimension
     Dimension(Dimension),
     /// segment
@@ -200,7 +202,7 @@ pub struct GrText {
     /// text effects
     pub effects: footprint::Effects,
     /// timestamp
-    pub tstamp: String,
+    pub tstamp: Option<String>,
 }
 
 /// line
@@ -217,7 +219,7 @@ pub struct GrLine {
     /// width
     pub width: f64,
     /// time stamp
-    pub tstamp: String,
+    pub tstamp: Option<String>,
 }
 
 /// arc
@@ -234,7 +236,24 @@ pub struct GrArc {
     /// width
     pub width: f64,
     /// timestamp
-    pub tstamp: String,
+    pub tstamp: Option<String>,
+}
+
+/// gr_circle
+// (gr_circle (center 178.6 68.8) (end 176.1 68.7) (layer Eco2.User) (width 0.2))
+
+#[derive(Clone,Debug)]
+pub struct GrCircle {
+    /// center point
+    pub center: footprint::Xy,
+    /// end point
+    pub end: footprint::Xy,
+    /// layer
+    pub layer: footprint::Layer,
+    /// width
+    pub width: f64,
+    /// timestamp
+    pub tstamp: Option<String>,
 }
 
 /// dimension
@@ -396,6 +415,7 @@ impl Layout {
                 Element::GrText(_) |
                 Element::GrLine(_) |
                 Element::GrArc(_) |
+                Element::GrCircle(_) |
                 Element::Dimension(_) |
                 Element::Zone(_) |
                 Element::Other(_) => (),
@@ -436,6 +456,7 @@ impl Layout {
                 Element::GrText(_) |
                 Element::GrLine(_) |
                 Element::GrArc(_) |
+                Element::GrCircle(_) |
                 Element::Dimension(_) |
                 Element::Zone(_) |
                 Element::Other(_) => (),

@@ -255,7 +255,7 @@ impl FromSexp for GrText {
         let l = s.slice_atom("gr_text")?;
         let value = l[0].string()?.clone();
         let mut layer = footprint::Layer::default();
-        let mut tstamp = String::from("");
+        let mut tstamp = None;
         let mut at = footprint::At::default();
         let mut effects = footprint::Effects::default();
         for x in &l[1..] {
@@ -263,7 +263,7 @@ impl FromSexp for GrText {
             match elem {
                 GrElement::At(x) => at = x,
                 GrElement::Layer(x) => layer = x,
-                GrElement::TStamp(x) => tstamp = x,
+                GrElement::TStamp(x) => tstamp = Some(x),
                 GrElement::Effects(x) => effects = x,
                 _ => (), // TODO
             }
@@ -283,6 +283,7 @@ impl FromSexp for GrElement {
         match &(s.list_name()?)[..] {
             "start" => wrap(s, from_sexp, GrElement::Start),
             "end" => wrap(s, from_sexp, GrElement::End),
+            "center" => wrap(s, from_sexp, GrElement::Center),
             "angle" => {
                 let l2 = s.slice_atom("angle")?;
                 Ok(GrElement::Angle(l2[0].f()?))
@@ -332,7 +333,7 @@ impl FromSexp for GrLine {
         let mut angle = 0.0_f64;
         let mut layer = footprint::Layer::default();
         let mut width = 0.0_f64;
-        let mut tstamp = String::from("");
+        let mut tstamp = None;
         for x in l {
             let elem = from_sexp(x)?;
             match elem {
@@ -340,7 +341,7 @@ impl FromSexp for GrLine {
                 GrElement::End(x) => end = x,
                 GrElement::Angle(x) => angle = x,
                 GrElement::Layer(x) => layer = x,
-                GrElement::TStamp(x) => tstamp = x,
+                GrElement::TStamp(x) => tstamp = Some(x),
                 GrElement::Width(x) => width = x,
                 _ => (), // TODO
             }
@@ -364,7 +365,7 @@ impl FromSexp for GrArc {
         let mut angle = 0.0_f64;
         let mut layer = footprint::Layer::default();
         let mut width = 0.0_f64;
-        let mut tstamp = String::from("");
+        let mut tstamp = None;
         for x in l {
             let elem = from_sexp(x)?;
             match elem {
@@ -372,7 +373,7 @@ impl FromSexp for GrArc {
                 GrElement::End(x) => end = x,
                 GrElement::Angle(x) => angle = x,
                 GrElement::Layer(x) => layer = x,
-                GrElement::TStamp(x) => tstamp = x,
+                GrElement::TStamp(x) => tstamp = Some(x),
                 GrElement::Width(x) => width = x,
                 _ => (), // TODO
             }
@@ -387,6 +388,36 @@ impl FromSexp for GrArc {
         })
     }
 }
+
+impl FromSexp for GrCircle {
+    fn from_sexp(s: &Sexp) -> Result<GrCircle> {
+        let l = s.slice_atom("gr_circle")?;
+        let mut center = footprint::Xy::new_empty(footprint::XyType::Center);
+        let mut end = footprint::Xy::new_empty(footprint::XyType::End);
+        let mut layer = footprint::Layer::default();
+        let mut width = 0.0_f64;
+        let mut tstamp = None;
+        for x in l {
+            let elem = from_sexp(x)?;
+            match elem {
+                GrElement::Center(x) => center = x,
+                GrElement::End(x) => end = x,
+                GrElement::Layer(x) => layer = x,
+                GrElement::TStamp(x) => tstamp = Some(x),
+                GrElement::Width(x) => width = x,
+                _ => (), // TODO
+            }
+        }
+        Ok(GrCircle {
+            center: center,
+            end: end,
+            layer: layer,
+            width: width,
+            tstamp: tstamp,
+        })
+    }
+}
+
 
 impl FromSexp for Dimension {
     fn from_sexp(s: &Sexp) -> Result<Dimension> {
@@ -544,6 +575,10 @@ impl FromSexp for Layout {
                 }
                 "gr_arc" => {
                     let g = wrap(e, from_sexp, Element::GrArc)?;
+                    layout.elements.push(g)
+                }
+                "gr_circle" => {
+                    let g = wrap(e, from_sexp, Element::GrCircle)?;
                     layout.elements.push(g)
                 }
                 "dimension" => {

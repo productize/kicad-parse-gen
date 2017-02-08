@@ -79,6 +79,7 @@ impl IntoSexp for Element {
             Element::GrText(ref s) => s.into_sexp(),
             Element::GrLine(ref s) => s.into_sexp(),
             Element::GrArc(ref s) => s.into_sexp(),
+            Element::GrCircle(ref s) => s.into_sexp(),
             Element::Dimension(ref s) => s.into_sexp(),
             Element::Zone(ref s) => s.into_sexp(),
             Element::Segment(ref s) => s.into_sexp(),
@@ -189,6 +190,9 @@ impl IntoSexp for GrText {
         v.push(self.at.into_sexp());
         v.push(("layer", &self.layer));
         v.push(self.effects.into_sexp());
+        if let Some(ref tstamp) = self.tstamp {
+            v.push(("tstamp", tstamp));
+        }
         v
     }
 }
@@ -201,6 +205,9 @@ impl IntoSexp for GrLine {
         v.push(("angle", &self.angle));
         v.push(("layer", &self.layer));
         v.push(("width", &self.width));
+        if let Some(ref tstamp) = self.tstamp {
+            v.push(("tstamp", tstamp));
+        }
         v
     }
 }
@@ -213,9 +220,27 @@ impl IntoSexp for GrArc {
          v.push(("angle", &self.angle));
          v.push(("layer", &self.layer));
          v.push(("width", &self.width));
+         if let Some(ref tstamp) = self.tstamp {
+             v.push(("tstamp", tstamp));
+         }
+         v
+     }
+}
+
+impl IntoSexp for GrCircle {
+     fn into_sexp(&self) -> Sexp {
+         let mut v = Sexp::start("gr_circle");
+         v.push(self.center.into_sexp());
+         v.push(self.end.into_sexp());
+         v.push(("layer", &self.layer));
+         v.push(("width", &self.width));
+         if let Some(ref tstamp) = self.tstamp {
+             v.push(("tstamp", tstamp));
+         }
          v
      }
  }
+
 
 impl IntoSexp for Dimension {
     fn into_sexp(&self) -> Sexp {
@@ -223,11 +248,8 @@ impl IntoSexp for Dimension {
         v.push(&self.name);
         v.push(("width", &self.width));
         v.push(("layer", &self.layer));
-        match self.tstamp {
-            None => (),
-            Some(ref tstamp) => {
-                v.push(("tstamp", tstamp));
-            }
+        if let Some(ref tstamp) = self.tstamp {
+            v.push(("tstamp", tstamp));
         }
         v.push(self.text.into_sexp());
         v.push(("feature1", self.feature1.into_sexp()));

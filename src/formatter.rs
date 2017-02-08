@@ -171,7 +171,7 @@ impl KicadFormatter {
         indent.before();
         if self.parent_is("kicad_pcb") {
             match ele {
-                "page" | "gr_circle" => {
+                "page" => {
                     indent.before_double();
                     return Some(indent);
                 }
@@ -180,7 +180,7 @@ impl KicadFormatter {
                     indent.close_on_new_line();
                     return Some(indent);
                 }
-                "net" | "gr_line" | "gr_arc" | "segment" | "via" => return Some(indent),
+                "net" | "gr_circle" | "gr_line" | "gr_arc" | "segment" | "via" => return Some(indent),
                 "layers" | "gr_text" | "dimension" => {
                     indent.close_on_new_line();
                     return Some(indent);

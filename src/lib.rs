@@ -284,6 +284,7 @@ enum Part {
 enum GrElement {
     Start(footprint::Xy),
     End(footprint::Xy),
+    Center(footprint::Xy),
     Angle(f64),
     Layer(footprint::Layer),
     Width(f64),
