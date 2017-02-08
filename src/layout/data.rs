@@ -75,9 +75,9 @@ pub struct Zone {
     pub connect_pads: ConnectPads,
     /// minimum thickness
     pub min_thickness: f64,
-    /*
     /// keepout
     pub keepout: Option<Keepout>,
+    /*
     /// fill
     pub fill: Fill,
     /// polygons
@@ -112,6 +112,18 @@ pub struct ConnectPads {
     pub connection:Option<String>,
     /// clearance
     pub clearance: f64,
+}
+
+/// keepout of a zone
+//  (keepout (tracks not_allowed) (vias not_allowed) (copperpour allowed))
+#[derive(Clone,Debug)]
+pub struct Keepout {
+    /// tracks
+    pub tracks: bool,
+    /// vias
+    pub vias: bool,
+    /// copperpour
+    pub copperpour: bool,
 }
 
 /// build host info

@@ -101,6 +101,9 @@ impl IntoSexp for Zone {
         }
         v.push(self.connect_pads.into_sexp());
         v.push(("min_thickness", &self.min_thickness));
+        if let Some(ref keepout) = self.keepout {
+            v.push(keepout.into_sexp());
+        }
         for o in &self.other {
             v.push(o.clone());
         }
@@ -124,6 +127,24 @@ impl IntoSexp for ConnectPads {
             v.push(connection);
         }
         v.push(("clearance", &self.clearance));
+        v
+    }
+}
+
+fn allowed(a:bool) -> String {
+    if a {
+        "allowed".into()
+    } else {
+        "not_allowed".into()
+    }
+}
+
+impl IntoSexp for Keepout {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = Sexp::start("keepout");
+        v.push(("tracks", &allowed(self.tracks)));
+        v.push(("vias", &allowed(self.vias)));
+        v.push(("copperpour", &allowed(self.copperpour)));
         v
     }
 }

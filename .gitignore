@@ -16,3 +16,6 @@ Cargo.lock
 
 # kicad
 *.kicad_pcb
+
+# vi
+*.swp

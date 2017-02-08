@@ -12,6 +12,7 @@ extern crate log;
 
 use std::fmt;
 use std::slice::Iter;
+use std::iter::Peekable;
 use std::path::{PathBuf,Path};
 
 pub use symbolic_expressions::Sexp;
@@ -307,7 +308,7 @@ fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> Result<Y>
 
 /// Atom iterator wrapper
 pub struct IterAtom<'a> {
-    iter:Iter<'a,Sexp>,
+    iter:Peekable<Iter<'a,Sexp>>,
 }
 
 /*
@@ -321,7 +322,7 @@ impl<'a> From<Iter<'a, Sexp>> for IterAtom<'a> {
 impl<'a> IterAtom<'a> {
 
     fn new(s:&'a Sexp, name:&str) -> Result<IterAtom<'a>> {
-        let i = s.iter_atom(name)?;
+        let i = s.iter_atom(name)?.peekable();
         Ok(IterAtom { iter: i })
     }
     
@@ -359,6 +360,11 @@ impl<'a> IterAtom<'a> {
     pub fn s(&mut self, sname:&str, name:&str) -> Result<String> {
         self.expect(sname, name, |x| x.string().map(|y| y.clone()).map_err(From::from))
     }
+
+    /// expect a list contained String while iterating a `Sexp` list
+    pub fn sl(&mut self, sname:&str, name:&str) -> Result<String> {
+        self.expect(sname, name, |x| x.named_value_string(name).map(|y| y.clone()).map_err(From::from))
+    }
     
     /// expect a `Sexp` while iterating a `Sexp` list
     pub fn t<T:FromSexp>(&mut self, sname:&str, name:&str) -> Result<T> {
@@ -392,7 +398,7 @@ impl<'a> IterAtom<'a> {
         Ok(x)
     }
 
-    /// expect remainder if iterator to be a `Vec<T>`
+    /// expect remainder of iterator to be a `Vec<T>`
     pub fn vec<T:FromSexp>(&mut self) -> Result<Vec<T>> {
         let mut res = Vec::new();
         loop {
@@ -405,6 +411,30 @@ impl<'a> IterAtom<'a> {
             }
         }
         Ok(res)
+    }
+
+    /// maybe a `Sexp` while iterating a `Sexp` list
+    pub fn maybe_t<T:FromSexp>(&mut self) -> Option<T> {
+        let res = match self.iter.peek() {
+            None => None,
+            Some(ref s) => {
+                match T::from_sexp(s) {
+                    Ok(t) => {
+                        Some(t)
+                    }
+                    Err(_) => {
+                        None
+                    }
+                }
+            }
+        };
+        match res {
+            Some(x) => {
+                let _ = self.iter.next();
+                Some(x)
+            },
+            x => x,
+        }
     }
 }
 

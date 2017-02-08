@@ -12,8 +12,11 @@ use str_error;
 use FromSexp;
 use GrElement;
 use from_sexp;
+use IterAtom;
 
 use layout::data::*;
+
+// TODO: switch more to IterAtom like in footprint/de.rs
 
 fn parse_version(e: &Sexp) -> Result<i64> {
     let l = e.slice_atom("version")?;
@@ -23,6 +26,51 @@ fn parse_version(e: &Sexp) -> Result<i64> {
 fn parse_page(e: &Sexp) -> Result<String> {
     let l = e.slice_atom("page")?;
     Ok(l[0].string()?.clone())
+}
+
+struct TStamp(String);
+
+impl FromSexp for TStamp {
+    fn from_sexp(s: &Sexp) -> Result<TStamp> {
+        let mut i = IterAtom::new(s, "tstamp")?;
+        Ok(TStamp(i.s("tstamp", "value")?))
+    }
+}
+
+struct ZoneNetName(String);
+
+impl FromSexp for ZoneNetName {
+    fn from_sexp(s: &Sexp) -> Result<ZoneNetName> {
+        let mut i = IterAtom::new(s, "net_name")?;
+        Ok(ZoneNetName(i.s("net_name", "value")?))
+    }
+}
+
+struct MinThickness(f64);
+
+impl FromSexp for MinThickness {
+    fn from_sexp(s: &Sexp) -> Result<MinThickness> {
+        let mut i = IterAtom::new(s, "min_thickness")?;
+        Ok(MinThickness(i.f("min_thickness", "value")?))
+    }
+}
+
+struct Priority(i64);
+
+impl FromSexp for Priority {
+    fn from_sexp(s: &Sexp) -> Result<Priority> {
+        let mut i = IterAtom::new(s, "priority")?;
+        Ok(Priority(i.i("priority", "value")?))
+    }
+}
+
+struct ZoneNet(i64);
+
+impl FromSexp for ZoneNet {
+    fn from_sexp(s: &Sexp) -> Result<ZoneNet> {
+        let mut i = IterAtom::new(s, "net")?;
+        Ok(ZoneNet(i.i("net", "value")?))
+    }
 }
 
 impl FromSexp for Net {
@@ -459,35 +507,34 @@ impl FromSexp for Dimension {
 
 impl FromSexp for Zone {
     fn from_sexp(s: &Sexp) -> Result<Zone> {
-        let l = s.slice_atom("zone")?;
-        if l.len() < 7 {
-            return str_error(format!("expecting more elements in zone {}", s));
-        }
-        let net = l[0].named_value_i("net")?;
-        let net_name = l[1].named_value_string("net_name")?.clone();
-        let layer = from_sexp(&l[2])?;
-        let tstamp = l[3].named_value_string("tstamp")?.clone();
-        let hatch = from_sexp(&l[4])?;
-        let (i, priority) = match l[5].named_value_i("priority") {
-            Ok(priority) => (6, priority as u64),
-            Err(_) => (5, 0_u64),
+        let mut i = IterAtom::new(s, "zone")?;
+        let net:ZoneNet = i.t("zone", "net")?;
+        let net_name:ZoneNetName = i.t("zone", "net_name")?;
+        let layer = i.t("zone", "layer")?;
+        let tstamp:TStamp = i.t("zone", "tstamp")?;
+        let hatch = i.t("zone", "hatch")?;
+        let priority:Option<Priority> = i.maybe_t();
+        let priority = match priority {
+            Some(p) => p.0 as u64,
+            None => 0_u64,
         };
-        let connect_pads = from_sexp(&l[i])?;
-        let min_thickness = l[i+1].named_value_f("min_thickness")?;
-        let mut other = vec![];
-        for x in &l[(i+2)..] {
+        let connect_pads = i.t("zone", "connect_pads")?;
+        let min_thickness:MinThickness = i.t("zone", "min_thickness")?;
+        let keepout = i.maybe_t();
+        let other = i.iter.cloned().collect();
+        for x in &other {
             debug!("'zone': not parsing {}", x);
-            other.push(x.clone())
         }
         Ok(Zone {
-            net: net,
-            net_name: net_name,
+            net: net.0,
+            net_name: net_name.0,
             layer: layer,
-            tstamp: tstamp,
+            tstamp: tstamp.0,
             hatch: hatch,
             priority: priority,
             connect_pads:connect_pads,
-            min_thickness:min_thickness,
+            min_thickness:min_thickness.0,
+            keepout: keepout,
             other: other,
         })
     }
@@ -513,6 +560,15 @@ impl FromSexp for ConnectPads {
             return Err("unknown extra elements in connect_pads".into())
         };
         Ok(ConnectPads { connection:connection, clearance:clearance })
+    }
+}
+impl FromSexp for Keepout {
+    fn from_sexp(s: &Sexp) -> Result<Keepout> {
+        let l = s.slice_atom_num("keepout", 3)?;
+        let tracks = !l[0].named_value_string("tracks")?.starts_with("not");
+        let vias = !l[1].named_value_string("vias")?.starts_with("not");
+        let copperpour = !l[2].named_value_string("copperpour")?.starts_with("not");
+        Ok(Keepout { tracks:tracks, vias:vias, copperpour:copperpour })
     }
 }
 
