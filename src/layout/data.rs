@@ -69,6 +69,18 @@ pub struct Zone {
     pub tstamp: String,
     /// hatch
     pub hatch: ZoneHatch,
+
+    // parts to be done:
+    // priority: u64, // don't ser when 0
+    // connect_pads: Option<String>
+    // clearance: String
+    // min_thickness: String
+    // keepout: ZoneKeepout
+    // fill: ZoneFill
+    // polygon: Option<ZonePolygon>
+    // filled_polygon: Option<ZoneFilledPolygon>
+    // fill_segments: Option<ZoneFillSegments>
+    
     /// other (uninterpreted symbolic-expressions)
     pub other: Vec<Sexp>,
 }
