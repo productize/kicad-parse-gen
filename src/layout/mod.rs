@@ -1,4 +1,4 @@
-// (c) 2016 Productize SPRL <joost@productize.be>
+// (c) 2016-2017 Productize SPRL <joost@productize.be>
 
 // extension: .kicad_pcb
 // format: new-style
@@ -17,6 +17,12 @@ pub use layout::data::*;
 pub trait BoundingBox {
     /// calculate the bounding box of a layout item
     fn bounding_box(&self) -> (f64, f64, f64, f64);
+}
+
+/// item location can be adjusted
+pub trait Adjust {
+    /// adjust the location of the item
+    fn adjust(&mut self, x:f64, y:f64);
 }
 
 /// convert a Kicad layout to a String

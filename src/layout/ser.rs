@@ -81,6 +81,7 @@ impl IntoSexp for Element {
             Element::GrArc(ref s) => s.into_sexp(),
             Element::Dimension(ref s) => s.into_sexp(),
             Element::Zone(ref s) => s.into_sexp(),
+            Element::Segment(ref s) => s.into_sexp(),
         }
     }
 }
@@ -204,16 +205,16 @@ impl IntoSexp for GrLine {
 }
 
 impl IntoSexp for GrArc {
-    fn into_sexp(&self) -> Sexp {
-        let mut v = Sexp::start("gr_arc");
-        v.push(self.start.into_sexp());
-        v.push(self.end.into_sexp());
-        v.push(("angle", &self.angle));
-        v.push(("layer", &self.layer));
-        v.push(("width", &self.width));
-        v
-    }
-}
+     fn into_sexp(&self) -> Sexp {
+         let mut v = Sexp::start("gr_arc");
+         v.push(self.start.into_sexp());
+         v.push(self.end.into_sexp());
+         v.push(("angle", &self.angle));
+         v.push(("layer", &self.layer));
+         v.push(("width", &self.width));
+         v
+     }
+ }
 
 impl IntoSexp for Dimension {
     fn into_sexp(&self) -> Sexp {
@@ -235,6 +236,25 @@ impl IntoSexp for Dimension {
         v.push(("arrow1b", self.arrow1b.into_sexp()));
         v.push(("arrow2a", self.arrow2a.into_sexp()));
         v.push(("arrow2b", self.arrow2b.into_sexp()));
+        v
+    }
+}
+
+// (segment (start 117.5548 123.4602) (end 118.3848 122.6302) (width 0.2032) (layer B.Cu) (net 0) (tstamp 55E99398))
+impl IntoSexp for Segment {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = Sexp::start("segment");
+        v.push(self.start.into_sexp());
+        v.push(self.end.into_sexp());
+        v.push(("width", &self.width));
+        v.push(("layer", &self.layer));
+        v.push(("net", &self.net));
+        if let Some(ref tstamp) = self.tstamp {
+            v.push(("tstamp", tstamp))
+        }
+        if let Some(ref status) = self.status {
+            v.push(("status", status))
+        }
         v
     }
 }

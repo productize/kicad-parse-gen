@@ -15,7 +15,6 @@ use from_sexp;
 
 use layout::data::*;
 
-
 fn parse_version(e: &Sexp) -> Result<i64> {
     let l = e.slice_atom("version")?;
     l[0].i().map_err(From::from)
@@ -247,6 +246,7 @@ impl FromSexp for Setup {
 // for some reason this needs to be in a subfunction or it doesn't work
 fn parse_other(e: &Sexp) -> Element {
     let e2 = e.clone();
+    debug!("Element::Other: {}", e2);
     Element::Other(e2)
 }
 
@@ -297,6 +297,15 @@ impl FromSexp for GrElement {
                 let sx = l2[0].string()?.clone();
                 Ok(GrElement::TStamp(sx))
             }
+            "status" => {
+                let l2 = s.slice_atom("status")?;
+                let sx = l2[0].string()?.clone();
+                Ok(GrElement::Status(sx))
+            }
+            "net" => {
+                let l2 = s.slice_atom("net")?;
+                Ok(GrElement::Net(l2[0].i()?))
+            },
             "at" => wrap(s, from_sexp, GrElement::At),
             "effects" => wrap(s, from_sexp, GrElement::Effects),
             x => str_error(format!("unknown element {} in {}", x, s)),
@@ -428,6 +437,42 @@ impl FromSexp for Zone {
     }
 }
 
+
+impl FromSexp for Segment {
+    fn from_sexp(s: &Sexp) -> Result<Segment> {
+        // println!("GrLine: {}", s);
+        let l = s.slice_atom("segment")?;
+        let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
+        let mut end = footprint::Xy::new_empty(footprint::XyType::End);
+        let mut layer = footprint::Layer::default();
+        let mut width = 0.0_f64;
+        let mut tstamp = None;
+        let mut net = 0;
+        let mut status = None;
+        for x in l {
+            let elem = from_sexp(x)?;
+            match elem {
+                GrElement::Start(x) => start = x,
+                GrElement::End(x) => end = x,
+                GrElement::Layer(x) => layer = x,
+                GrElement::TStamp(x) => tstamp = Some(x),
+                GrElement::Width(x) => width = x,
+                GrElement::Net(x) => net = x,
+                GrElement::Status(x) => status = Some(x),
+                _ => (), // TODO
+            }
+        }
+        Ok(Segment {
+            start: start,
+            end: end,
+            width: width,
+            layer: layer,
+            net: net,
+            tstamp: tstamp,
+            status: status,
+        })
+    }
+}
 impl FromSexp for Layout {
     fn from_sexp(s: &Sexp) -> Result<Layout> {
         let l1 = s.slice_atom("kicad_pcb")?;
@@ -469,6 +514,10 @@ impl FromSexp for Layout {
                 }
                 "zone" => {
                     let g = wrap(e, from_sexp, Element::Zone)?;
+                    layout.elements.push(g)
+                }
+                "segment" => {
+                    let g = wrap(e, from_sexp, Element::Segment)?;
                     layout.elements.push(g)
                 }
                 "setup" => layout.setup = from_sexp(&e)?,

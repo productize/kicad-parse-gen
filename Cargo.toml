@@ -11,6 +11,8 @@ description = "Kicad file format parser and generator library"
 #symbolic_expressions = { git = "git://github.com/productize/symbolic-expressions.git" }
 symbolic_expressions = "~4.0.7"
 error-chain = "0.8"
+log = "0.3"
+ env_logger = "0.3"
 
 [dev-dependencies]
 difference = "0.4"

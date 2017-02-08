@@ -1,4 +1,4 @@
-// (c) 2016 Productize SPRL <joost@productize.be>
+// (c) 2016-2017 Productize SPRL <joost@productize.be>
 
 // from parent
 use Result;
@@ -42,7 +42,8 @@ pub enum Element {
     GrArc(GrArc),
     /// dimension
     Dimension(Dimension),
-    // Segment,
+    /// segment
+    Segment(Segment),
     // Via,
     // FilledPolygon,
     /// zone
@@ -264,6 +265,26 @@ pub struct Dimension {
     pub arrow2b: footprint::Pts,
 }
 
+/// segment
+// (segment (start 117.5548 123.4602) (end 118.3848 122.6302) (width 0.2032) (layer B.Cu) (net 0) (tstamp 55E99398))
+#[derive(Clone,Debug)]
+pub struct Segment {
+    /// start point
+    pub start: footprint::Xy,
+    /// end point
+    pub end: footprint::Xy,
+    /// width
+    pub width: f64,
+    /// layer
+    pub layer: footprint::Layer,
+    /// net
+    pub net: i64,
+    /// tstamp
+    pub tstamp: Option<String>,
+    /// status
+    pub status: Option<String>,
+}
+
 impl Default for Layout {
     fn default() -> Layout {
         Layout {
@@ -350,6 +371,7 @@ impl Layout {
                         return Some(m);
                     }
                 }
+                Element::Segment(_) |
                 Element::Net(_) |
                 Element::NetClass(_) |
                 Element::GrText(_) |
@@ -388,6 +410,7 @@ impl Layout {
                         return Ok(fun(m));
                     }
                 }
+                Element::Segment(_) |
                 Element::Net(_) |
                 Element::NetClass(_) |
                 Element::GrText(_) |

@@ -7,6 +7,8 @@
 extern crate symbolic_expressions;
 #[macro_use]
 extern crate error_chain;
+#[macro_use]
+extern crate log;
 
 use std::fmt;
 use std::slice::Iter;
@@ -287,6 +289,8 @@ enum GrElement {
     TStamp(String),
     At(footprint::At),
     Effects(footprint::Effects),
+    Net(i64),
+    Status(String),
 }
 
 fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> Result<Y>
