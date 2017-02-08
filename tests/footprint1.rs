@@ -11,7 +11,7 @@ fn parse_and_compare() {
     let mut file_name = String::new();
     file_name.push_str(env!("CARGO_MANIFEST_DIR"));
     file_name.push_str("/tests/data/");
-    file_name.push_str("SOT-23.kicad_mod");
+    file_name.push_str("footprint1.kicad_mod");
     let file_name = PathBuf::from(file_name);
 
     let content = kicad::read_file(&file_name).unwrap();

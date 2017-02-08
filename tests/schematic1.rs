@@ -11,7 +11,7 @@ fn parse_and_compare() {
     let mut file_name = String::new();
     file_name.push_str(env!("CARGO_MANIFEST_DIR"));
     file_name.push_str("/tests/data/");
-    file_name.push_str("hgminiUSBC.sch");
+    file_name.push_str("schematic1.sch");
     let file_name = PathBuf::from(file_name);
     
     let content = kicad::read_file(&file_name).unwrap();
