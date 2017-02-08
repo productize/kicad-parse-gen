@@ -5,6 +5,7 @@ use Result;
 use str_error;
 use footprint;
 use Sexp;
+use layout::Adjust;
 
 /// a Kicad layout
 #[derive(Debug)]
@@ -64,6 +65,12 @@ pub struct Zone {
     pub net_name: String,
     /// other (uninterpreted symbolic-expressions)
     pub other: Vec<Sexp>,
+}
+
+impl Adjust for Zone {
+    fn adjust(&mut self, _x:f64, _y:f64) {
+        panic!("adjust not possible due to zone not fully implemented")
+    }
 }
 
 /// build host info
@@ -205,6 +212,12 @@ pub struct GrText {
     pub tstamp: Option<String>,
 }
 
+impl Adjust for GrText {
+    fn adjust(&mut self, x:f64, y:f64) {
+        self.at.adjust(x,y)
+    }
+}
+
 /// line
 #[derive(Clone,Debug)]
 pub struct GrLine {
@@ -220,6 +233,13 @@ pub struct GrLine {
     pub width: f64,
     /// time stamp
     pub tstamp: Option<String>,
+}
+
+impl Adjust for GrLine {
+    fn adjust(&mut self, x:f64, y:f64) {
+        self.start.adjust(x,y);
+        self.end.adjust(x,y)
+    }
 }
 
 /// arc
@@ -239,6 +259,13 @@ pub struct GrArc {
     pub tstamp: Option<String>,
 }
 
+impl Adjust for GrArc {
+    fn adjust(&mut self, x:f64, y:f64) {
+        self.start.adjust(x,y);
+        self.end.adjust(x,y);
+    }
+}
+
 /// gr_circle
 // (gr_circle (center 178.6 68.8) (end 176.1 68.7) (layer Eco2.User) (width 0.2))
 
@@ -254,6 +281,15 @@ pub struct GrCircle {
     pub width: f64,
     /// timestamp
     pub tstamp: Option<String>,
+}
+
+impl Adjust for GrCircle {
+    fn adjust(&mut self, x:f64, y:f64) {
+        self.center.x += x;
+        self.center.y += y;
+        self.end.x += x;
+        self.end.y += y;
+    }
 }
 
 /// dimension
@@ -285,6 +321,19 @@ pub struct Dimension {
     pub arrow2b: footprint::Pts,
 }
 
+impl Adjust for Dimension {
+    fn adjust(&mut self, x:f64, y:f64) {
+        self.text.adjust(x,y);
+        self.feature1.adjust(x,y);
+        self.feature2.adjust(x,y);
+        self.crossbar.adjust(x,y);
+        self.arrow1a.adjust(x,y);
+        self.arrow1b.adjust(x,y);
+        self.arrow2a.adjust(x,y);
+        self.arrow2b.adjust(x,y)
+    }
+}
+
 /// segment
 // (segment (start 117.5548 123.4602) (end 118.3848 122.6302) (width 0.2032) (layer B.Cu) (net 0) (tstamp 55E99398))
 #[derive(Clone,Debug)]
@@ -305,6 +354,13 @@ pub struct Segment {
     pub status: Option<String>,
 }
 
+impl Adjust for Segment {
+    fn adjust(&mut self, x:f64, y:f64) {
+        self.start.adjust(x,y);
+        self.end.adjust(x,y)
+    }
+}
+
 /// via
 // (via (at 132.1948 121.2202) (size 0.675) (drill 0.25) (layers F.Cu B.Cu) (net 19))
 #[derive(Clone,Debug)]
@@ -321,6 +377,11 @@ pub struct Via {
     pub net: i64,
 }
 
+impl Adjust for Via {
+    fn adjust(&mut self, x:f64, y:f64) {
+        self.at.adjust(x,y);
+    }
+}
 
 impl Default for Layout {
     fn default() -> Layout {
@@ -332,6 +393,14 @@ impl Default for Layout {
             general: General::default(),
             page: String::from("A4"),
             layers: vec![],
+        }
+    }
+}
+
+impl Adjust for Layout {
+    fn adjust(&mut self, x:f64, y:f64) {
+        for e in &mut self.elements {
+            e.adjust(x,y)
         }
     }
 }
@@ -573,5 +642,24 @@ impl Setup {
             value1: value,
             value2: None,
         })
+    }
+}
+
+impl Adjust for Element {
+    fn adjust(&mut self, x:f64, y:f64) {
+        match *self {
+            Element::Module(ref mut e) => e.adjust(x,y),
+            Element::GrText(ref mut e) => e.adjust(x,y),
+            Element::GrLine(ref mut e) => e.adjust(x,y),
+            Element::GrArc(ref mut e) => e.adjust(x,y),
+            Element::GrCircle(ref mut e) => e.adjust(x,y),
+            Element::Dimension(ref mut e) => e.adjust(x,y),
+            Element::Segment(ref mut e) => e.adjust(x,y),
+            Element::Via(ref mut e) => e.adjust(x,y),
+            Element::Zone(ref mut e) => e.adjust(x,y),
+            Element::Net(_) => (),
+            Element::NetClass(_) => (),
+            Element::Other(_) => (),
+        }
     }
 }

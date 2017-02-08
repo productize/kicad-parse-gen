@@ -19,5 +19,5 @@ fn main() {
     let layout = kicad::read_layout(&name).unwrap();
     let s = kicad::layout::layout_to_string(&layout, 0).unwrap();
     info!("{}", name.display());
-    //println!("{}", s)
+    println!("{}", s)
 }

@@ -3,6 +3,7 @@
 use str_error;
 use Result;
 use layout::BoundingBox;
+use layout::Adjust;
 
 /// a Kicad module, with a name and a list of elements
 #[derive(Debug,Clone)]
@@ -72,6 +73,16 @@ impl Module {
         (0.0, 0.0)
     }
 
+    /// adjust the At element contained in the module
+    pub fn adjust_at(&mut self, x:f64, y:f64) {
+        for element in &mut self.elements[..] {
+            if let Element::At(ref mut at) = *element {
+                at.x += x;
+                at.y += y;
+            }
+        }
+    }
+
     /// check if the Module is on the front layer
     pub fn is_front(&self) -> bool {
         for element in &self.elements[..] {
@@ -117,6 +128,12 @@ impl BoundingBox for Module {
             (y2, y1)
         };
         (x1, y1, x2, y2)
+    }
+}
+
+impl Adjust for Module {
+    fn adjust(&mut self, x:f64, y:f64) {
+        self.adjust_at(x,y)
     }
 }
 
@@ -221,6 +238,13 @@ pub struct At {
     pub rot: f64,
 }
 
+impl Adjust for At {
+    fn adjust(&mut self, x:f64, y:f64) {
+        self.x += x;
+        self.y += y
+    }
+}
+
 impl At {
     /// create a location
     pub fn new(x: f64, y: f64, rot: f64) -> At {
@@ -305,6 +329,13 @@ pub struct Xy {
     pub t: XyType,
 }
 
+impl Adjust for Xy {
+    fn adjust(&mut self, x:f64, y:f64) {
+        self.x += x;
+        self.y += y
+    }
+}
+
 impl Xy {
     /// create a new X-Y coordinate
     pub fn new(x: f64, y: f64, t: XyType) -> Xy {
@@ -325,6 +356,14 @@ impl Xy {
 pub struct Pts {
     /// the list of X-Y coordinates
     pub elements: Vec<Xy>,
+}
+
+impl Adjust for Pts {
+    fn adjust(&mut self, x:f64, y:f64) {
+        for e in &mut self.elements {
+            e.adjust(x,y)
+        }
+    }
 }
 
 /// a drill
