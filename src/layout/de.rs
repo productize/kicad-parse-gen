@@ -468,8 +468,13 @@ impl FromSexp for Zone {
         let layer = from_sexp(&l[2])?;
         let tstamp = l[3].named_value_string("tstamp")?.clone();
         let hatch = from_sexp(&l[4])?;
+        let (i, priority) = match l[5].named_value_i("priority") {
+            Ok(priority) => (6, priority as u64),
+            Err(_) => (5, 0_u64),
+        };
+        let connect_pads = from_sexp(&l[i])?;
         let mut other = vec![];
-        for x in &l[5..] {
+        for x in &l[(i+1)..] {
             debug!("'zone': not parsing {}", x);
             other.push(x.clone())
         }
@@ -479,17 +484,33 @@ impl FromSexp for Zone {
             layer: layer,
             tstamp: tstamp,
             hatch: hatch,
+            priority: priority,
+            connect_pads:connect_pads,
             other: other,
         })
     }
 }
 
-impl FromSexp for ZoneHatch {
-    fn from_sexp(s: &Sexp) -> Result<ZoneHatch> {
+impl FromSexp for Hatch {
+    fn from_sexp(s: &Sexp) -> Result<Hatch> {
         let l = s.slice_atom_num("hatch", 2)?;
         let style = l[0].string()?.clone();
         let pitch = l[1].f()?;
-        Ok(ZoneHatch { style:style, pitch:pitch })
+        Ok(Hatch { style:style, pitch:pitch })
+    }
+}
+
+impl FromSexp for ConnectPads {
+    fn from_sexp(s: &Sexp) -> Result<ConnectPads> {
+        let l = s.slice_atom("connect_pads")?;
+        let (connection,clearance) = if l.len() == 1 {
+            (None, l[0].named_value_f("clearance")?)
+        } else if l.len() == 2 {
+            (Some(l[0].string()?.clone()), l[1].named_value_f("clearance")?)
+        } else {
+            return Err("unknown extra elements in connect_pads".into())
+        };
+        Ok(ConnectPads { connection:connection, clearance:clearance })
     }
 }
 

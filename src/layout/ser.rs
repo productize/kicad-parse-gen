@@ -96,6 +96,10 @@ impl IntoSexp for Zone {
         v.push(("layer", &self.layer));
         v.push(("tstamp", &self.tstamp));
         v.push(self.hatch.into_sexp());
+        if self.priority > 0 {
+            v.push(("priority", &self.priority));
+        }
+        v.push(self.connect_pads.into_sexp());
         for o in &self.other {
             v.push(o.clone());
         }
@@ -103,11 +107,22 @@ impl IntoSexp for Zone {
     }
 }
 
-impl IntoSexp for ZoneHatch {
+impl IntoSexp for Hatch {
     fn into_sexp(&self) -> Sexp {
         let mut v = Sexp::start("hatch");
         v.push(&self.style);
         v.push(self.pitch);
+        v
+    }
+}
+
+impl IntoSexp for ConnectPads {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = Sexp::start("connect_pads");
+        if let Some(ref connection) = self.connection {
+            v.push(connection);
+        }
+        v.push(("clearance", &self.clearance));
         v
     }
 }

@@ -191,7 +191,11 @@ impl KicadFormatter {
                     indent.newline_after_closing();
                     return Some(indent);
                 }
-                "general" | "net_class" | "zone" => {
+                "zone" => {
+                    indent.close_on_new_line();
+                    return Some(indent);
+                }
+                "general" | "net_class" => {
                     indent.before_double();
                     indent.close_on_new_line();
                     return Some(indent);

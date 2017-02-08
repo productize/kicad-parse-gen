@@ -68,19 +68,25 @@ pub struct Zone {
     /// tstamp
     pub tstamp: String,
     /// hatch
-    pub hatch: ZoneHatch,
-
-    // parts to be done:
-    // priority: u64, // don't ser when 0
-    // connect_pads: Option<String>
-    // clearance: String
-    // min_thickness: String
-    // keepout: ZoneKeepout
-    // fill: ZoneFill
-    // polygon: Option<ZonePolygon>
-    // filled_polygon: Option<ZoneFilledPolygon>
-    // fill_segments: Option<ZoneFillSegments>
-    
+    pub hatch: Hatch,
+    /// priority
+    pub priority: u64,
+    /// connect pads
+    pub connect_pads: ConnectPads,
+    /*
+    /// minimum thickness
+    min_thickness: f64,
+    /// keepout
+    keepout: Option<Keepout>,
+    /// fill
+    pub fill: Fill,
+    /// polygons
+    polygons: Vec<footprint::Pts>,
+    /// filled polygons
+    filled_polygons: Vec<footprint::Pts>,
+    /// filled segments
+    fill_segments: Option<footprint::Pts>,
+    */
     /// other (uninterpreted symbolic-expressions)
     pub other: Vec<Sexp>,
 }
@@ -90,13 +96,22 @@ impl Adjust for Zone {
         panic!("adjust not possible due to zone not fully implemented")
     }
 }
-/// a zone region
+/// a zone hatch
 #[derive(Clone,Debug)]
-pub struct ZoneHatch {
+pub struct Hatch {
     /// hatching style
     pub style:String,
     /// hatching pitch
     pub pitch:f64,
+}
+
+/// a zone connect pads
+#[derive(Clone,Debug)]
+pub struct ConnectPads {
+    /// connection type
+    pub connection:Option<String>,
+    /// clearance
+    pub clearance: f64,
 }
 
 /// build host info
