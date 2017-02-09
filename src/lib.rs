@@ -365,6 +365,17 @@ impl<'a> IterAtom<'a> {
     pub fn sl(&mut self, sname:&str, name:&str) -> Result<String> {
         self.expect(sname, name, |x| x.named_value_string(name).map(|y| y.clone()).map_err(From::from))
     }
+
+    /// expect a list contained i64 while iterating a `Sexp` list
+    pub fn il(&mut self, sname:&str, name:&str) -> Result<i64> {
+        self.expect(sname, name, |x| x.named_value_i(name).map_err(From::from))
+    }
+
+    /// expect a list contained f64 while iterating a `Sexp` list
+    pub fn fl(&mut self, sname:&str, name:&str) -> Result<f64> {
+        self.expect(sname, name, |x| x.named_value_f(name).map_err(From::from))
+    }
+    
     
     /// expect a `Sexp` while iterating a `Sexp` list
     pub fn t<T:FromSexp>(&mut self, sname:&str, name:&str) -> Result<T> {

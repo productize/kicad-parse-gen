@@ -18,40 +18,30 @@ use layout::data::*;
 
 // TODO: switch more to IterAtom like in footprint/de.rs
 
-fn parse_version(e: &Sexp) -> Result<i64> {
-    let l = e.slice_atom("version")?;
-    l[0].i().map_err(From::from)
-}
-
-fn parse_page(e: &Sexp) -> Result<String> {
-    let l = e.slice_atom("page")?;
-    Ok(l[0].string()?.clone())
-}
-
-struct TStamp(String);
-
-impl FromSexp for TStamp {
-    fn from_sexp(s: &Sexp) -> Result<TStamp> {
-        let mut i = IterAtom::new(s, "tstamp")?;
-        Ok(TStamp(i.s("tstamp", "value")?))
+struct FillRadius(f64);
+ 
+impl FromSexp for FillRadius {
+    fn from_sexp(s: &Sexp) -> Result<FillRadius> {
+        let mut i = IterAtom::new(s, "radius")?;
+        Ok(FillRadius(i.f("radius", "value")?))
     }
 }
 
-struct ZoneNetName(String);
-
-impl FromSexp for ZoneNetName {
-    fn from_sexp(s: &Sexp) -> Result<ZoneNetName> {
-        let mut i = IterAtom::new(s, "net_name")?;
-        Ok(ZoneNetName(i.s("net_name", "value")?))
+struct FillSmoothing(String);
+ 
+impl FromSexp for FillSmoothing {
+    fn from_sexp(s: &Sexp) -> Result<FillSmoothing> {
+        let mut i = IterAtom::new(s, "smoothing")?;
+        Ok(FillSmoothing(i.s("smoothing", "value")?))
     }
 }
 
-struct MinThickness(f64);
-
-impl FromSexp for MinThickness {
-    fn from_sexp(s: &Sexp) -> Result<MinThickness> {
-        let mut i = IterAtom::new(s, "min_thickness")?;
-        Ok(MinThickness(i.f("min_thickness", "value")?))
+struct FillMode(String);
+ 
+impl FromSexp for FillMode {
+    fn from_sexp(s: &Sexp) -> Result<FillMode> {
+        let mut i = IterAtom::new(s, "mode")?;
+        Ok(FillMode(i.s("mode", "value")?))
     }
 }
 
@@ -64,66 +54,21 @@ impl FromSexp for Priority {
     }
 }
 
-struct ZoneNet(i64);
+struct Version(i64);
 
-impl FromSexp for ZoneNet {
-    fn from_sexp(s: &Sexp) -> Result<ZoneNet> {
-        let mut i = IterAtom::new(s, "net")?;
-        Ok(ZoneNet(i.i("net", "value")?))
+impl FromSexp for Version {
+    fn from_sexp(s: &Sexp) -> Result<Version> {
+        let mut i = IterAtom::new(s, "version")?;
+        Ok(Version(i.i("version", "value")?))
     }
 }
 
-struct FillMode(String);
+struct Page(String);
 
-impl FromSexp for FillMode {
-    fn from_sexp(s: &Sexp) -> Result<FillMode> {
-        let mut i = IterAtom::new(s, "mode")?;
-        Ok(FillMode(i.s("mode", "value")?))
-    }
-}
-
-struct FillArcSegments(i64);
-
-impl FromSexp for FillArcSegments {
-    fn from_sexp(s: &Sexp) -> Result<FillArcSegments> {
-        let mut i = IterAtom::new(s, "arc_segments")?;
-        Ok(FillArcSegments(i.i("arc_segments", "value")?))
-    }
-}
-
-struct FillThermalGap(f64);
-
-impl FromSexp for FillThermalGap {
-    fn from_sexp(s: &Sexp) -> Result<FillThermalGap> {
-        let mut i = IterAtom::new(s, "thermal_gap")?;
-        Ok(FillThermalGap(i.f("thermal_gap", "value")?))
-    }
-}
-
-struct FillThermalBridgeWidth(f64);
-
-impl FromSexp for FillThermalBridgeWidth {
-    fn from_sexp(s: &Sexp) -> Result<FillThermalBridgeWidth> {
-        let mut i = IterAtom::new(s, "thermal_bridge_width")?;
-        Ok(FillThermalBridgeWidth(i.f("thermal_bridge_width", "value")?))
-    }
-}
-
-struct FillRadius(f64);
-
-impl FromSexp for FillRadius {
-    fn from_sexp(s: &Sexp) -> Result<FillRadius> {
-        let mut i = IterAtom::new(s, "radius")?;
-        Ok(FillRadius(i.f("radius", "value")?))
-    }
-}
-
-struct FillSmoothing(String);
-
-impl FromSexp for FillSmoothing {
-    fn from_sexp(s: &Sexp) -> Result<FillSmoothing> {
-        let mut i = IterAtom::new(s, "smoothing")?;
-        Ok(FillSmoothing(i.s("smoothing", "value")?))
+impl FromSexp for Page {
+    fn from_sexp(s: &Sexp) -> Result<Page> {
+        let mut i = IterAtom::new(s, "page")?;
+        Ok(Page(i.s("page", "value")?))
     }
 }
 
@@ -156,9 +101,9 @@ impl FromSexp for FillSegments {
 
 impl FromSexp for Net {
     fn from_sexp(s: &Sexp) -> Result<Net> {
-        let l = s.slice_atom_num("net", 2)?;
-        let num = l[0].i()?;
-        let name = l[1].string()?.clone();
+        let mut i = IterAtom::new(s, "net")?;
+        let num = i.i("net", "num")?;
+        let name = i.s("net", "name")?;
         Ok(Net {
             name: name,
             num: num,
@@ -168,9 +113,9 @@ impl FromSexp for Net {
 
 impl FromSexp for Host {
     fn from_sexp(s: &Sexp) -> Result<Host> {
-        let l = s.slice_atom_num("host", 2)?;
-        let tool = l[0].string()?.clone();
-        let build = l[1].string()?.clone();
+        let mut i = IterAtom::new(s, "host")?;
+        let tool = i.s("host", "tool")?;
+        let build = i.s("host", "build")?;
         Ok(Host {
             tool: tool,
             build: build,
@@ -180,16 +125,16 @@ impl FromSexp for Host {
 
 impl FromSexp for General {
     fn from_sexp(s: &Sexp) -> Result<General> {
-        let l = s.slice_atom_num("general", 9)?;
-        let links = l[0].named_value_i("links")?;
-        let no_connects = l[1].named_value_i("no_connects")?;
-        let area = from_sexp(&l[2])?;
-        let thickness = l[3].named_value_f("thickness")?;
-        let drawings = l[4].named_value_i("drawings")?;
-        let tracks = l[5].named_value_i("tracks")?;
-        let zones = l[6].named_value_i("zones")?;
-        let modules = l[7].named_value_i("modules")?;
-        let nets = l[8].named_value_i("nets")?;
+        let mut i = IterAtom::new(s, "general")?;
+        let links = i.il("general", "links")?;
+        let no_connects = i.il("general", "no_connects")?;
+        let area:Area = i.t("general", "area")?;
+        let thickness = i.fl("general", "thickness")?;
+        let drawings = i.il("general", "drawings")?;
+        let tracks = i.il("general", "tracks")?;
+        let zones = i.il("general", "zones")?;
+        let modules = i.il("general", "modules")?;
+        let nets = i.il("general", "nets")?;
         Ok(General {
             links: links,
             no_connects: no_connects,
@@ -589,10 +534,10 @@ impl FromSexp for Dimension {
 impl FromSexp for Zone {
     fn from_sexp(s: &Sexp) -> Result<Zone> {
         let mut i = IterAtom::new(s, "zone")?;
-        let net:ZoneNet = i.t("zone", "net")?;
-        let net_name:ZoneNetName = i.t("zone", "net_name")?;
+        let net = i.il("zone", "net")?;
+        let net_name = i.sl("zone", "net_name")?;
         let layer = i.t("zone", "layer")?;
-        let tstamp:TStamp = i.t("zone", "tstamp")?;
+        let tstamp = i.sl("zone", "tstamp")?;
         let hatch = i.t("zone", "hatch")?;
         let priority:Option<Priority> = i.maybe_t();
         let priority = match priority {
@@ -600,7 +545,7 @@ impl FromSexp for Zone {
             None => 0_u64,
         };
         let connect_pads = i.t("zone", "connect_pads")?;
-        let min_thickness:MinThickness = i.t("zone", "min_thickness")?;
+        let min_thickness = i.fl("zone", "min_thickness")?;
         let keepout = i.maybe_t();
         let fill = i.t("zone", "fill")?;
         let mut polygons = vec![];
@@ -620,14 +565,14 @@ impl FromSexp for Zone {
             }
         }
         Ok(Zone {
-            net: net.0,
-            net_name: net_name.0,
+            net: net,
+            net_name: net_name,
             layer: layer,
-            tstamp: tstamp.0,
+            tstamp: tstamp,
             hatch: hatch,
             priority: priority,
             connect_pads:connect_pads,
-            min_thickness:min_thickness.0,
+            min_thickness:min_thickness,
             keepout: keepout,
             fill: fill,
             polygons: polygons,
@@ -676,9 +621,9 @@ impl FromSexp for Fill {
         let mut i = IterAtom::new(s, "fill")?;
         let filled = i.maybe_s().is_some();
         let mode:Option<FillMode> = i.maybe_t();
-        let arc_segments:FillArcSegments = i.t("fill", "arc_segments")?;
-        let thermal_gap:FillThermalGap = i.t("fill", "thermal_gap")?;
-        let thermal_bridge_width:FillThermalBridgeWidth = i.t("fill", "thermal_bridge_width")?;
+        let arc_segments = i.il("fill", "arc_segments")?;
+        let thermal_gap = i.fl("fill", "thermal_gap")?;
+        let thermal_bridge_width = i.fl("fill", "thermal_bridge_width")?;
         let smoothing:Option<FillSmoothing> = i.maybe_t();
         let radius:Option<FillRadius> = i.maybe_t();
         let radius = match radius {
@@ -688,9 +633,9 @@ impl FromSexp for Fill {
         Ok(Fill {
             filled:filled,
             segment:mode.is_some(),
-            arc_segments: arc_segments.0,
-            thermal_gap:thermal_gap.0,
-            thermal_bridge_width: thermal_bridge_width.0,
+            arc_segments: arc_segments,
+            thermal_gap:thermal_gap,
+            thermal_bridge_width: thermal_bridge_width,
             smoothing:smoothing.map(|x| x.0),
             corner_radius:radius,
         })
@@ -767,10 +712,10 @@ impl FromSexp for Layout {
         let mut layout = Layout::default();
         for e in l1 {
             match &(e.list_name()?)[..] {
-                "version" => layout.version = parse_version(e)?,
+                "version" => layout.version = Version::from_sexp(e)?.0,
                 "host" => layout.host = from_sexp(e)?,
                 "general" => layout.general = from_sexp(&e)?,
-                "page" => layout.page = parse_page(&e)?,
+                "page" => layout.page = Page::from_sexp(&e)?.0,
                 "layers" => layout.layers = from_sexp(e)?,
                 "module" => {
                     let module = wrap(e, from_sexp, Element::Module)?;
