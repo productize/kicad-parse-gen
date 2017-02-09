@@ -105,6 +105,15 @@ impl IntoSexp for Zone {
             v.push(keepout.into_sexp());
         }
         v.push(self.fill.into_sexp());
+        for p in &self.polygons {
+            v.push(("polygon", p.into_sexp()))
+        }
+        for p in &self.filled_polygons {
+            v.push(("filled_polygon", p.into_sexp()))
+        }
+        if let Some(ref s) = self.fill_segments {
+            v.push(("fill_segments", s.into_sexp()))
+        }
         for o in &self.other {
             v.push(o.clone());
         }

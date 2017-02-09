@@ -79,14 +79,12 @@ pub struct Zone {
     pub keepout: Option<Keepout>,
     /// fill
     pub fill: Fill,
-    /*
     /// polygons
     pub polygons: Vec<footprint::Pts>,
     /// filled polygons
     pub filled_polygons: Vec<footprint::Pts>,
     /// filled segments
     pub fill_segments: Option<footprint::Pts>,
-    */
     /// other (uninterpreted symbolic-expressions)
     pub other: Vec<Sexp>,
 }

@@ -127,6 +127,33 @@ impl FromSexp for FillSmoothing {
     }
 }
 
+struct Polygon(footprint::Pts);
+
+impl FromSexp for Polygon {
+    fn from_sexp(s: &Sexp) -> Result<Polygon> {
+        let mut i = IterAtom::new(s, "polygon")?;
+        Ok(Polygon(i.t("polygon", "pts")?))
+    }
+}
+
+struct FilledPolygon(footprint::Pts);
+
+impl FromSexp for FilledPolygon {
+    fn from_sexp(s: &Sexp) -> Result<FilledPolygon> {
+        let mut i = IterAtom::new(s, "filled_polygon")?;
+        Ok(FilledPolygon(i.t("filled_polygon", "pts")?))
+    }
+}
+
+struct FillSegments(footprint::Pts);
+
+impl FromSexp for FillSegments {
+    fn from_sexp(s: &Sexp) -> Result<FillSegments> {
+        let mut i = IterAtom::new(s, "fill_segments")?;
+        Ok(FillSegments(i.t("fill_segments", "pts")?))
+    }
+}
+
 impl FromSexp for Net {
     fn from_sexp(s: &Sexp) -> Result<Net> {
         let l = s.slice_atom_num("net", 2)?;
@@ -576,9 +603,21 @@ impl FromSexp for Zone {
         let min_thickness:MinThickness = i.t("zone", "min_thickness")?;
         let keepout = i.maybe_t();
         let fill = i.t("zone", "fill")?;
-        let other = i.iter.cloned().collect();
-        for x in &other {
-            debug!("'zone': not parsing {}", x);
+        let mut polygons = vec![];
+        let mut filled_polygons = vec![];
+        let mut fill_segments = None;
+        let mut others = vec![];
+        for x in i.iter {
+            if let Ok(p) = Polygon::from_sexp(x) {
+                polygons.push(p.0)
+            } else if let Ok(p) = FilledPolygon::from_sexp(x) {
+                filled_polygons.push(p.0)
+            } else if let Ok(p) = FillSegments::from_sexp(x) {
+                fill_segments = Some(p.0);
+            } else {
+                others.push(x.clone());
+                debug!("'zone': not parsing {}", x);
+            }
         }
         Ok(Zone {
             net: net.0,
@@ -591,7 +630,10 @@ impl FromSexp for Zone {
             min_thickness:min_thickness.0,
             keepout: keepout,
             fill: fill,
-            other: other,
+            polygons: polygons,
+            filled_polygons: filled_polygons,
+            fill_segments: fill_segments,
+            other: others,
         })
     }
 }
