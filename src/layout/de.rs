@@ -19,7 +19,7 @@ use layout::data::*;
 // TODO: switch more to IterAtom like in footprint/de.rs
 
 struct FillRadius(f64);
- 
+
 impl FromSexp for FillRadius {
     fn from_sexp(s: &Sexp) -> Result<FillRadius> {
         let mut i = IterAtom::new(s, "radius")?;
@@ -28,7 +28,7 @@ impl FromSexp for FillRadius {
 }
 
 struct FillSmoothing(String);
- 
+
 impl FromSexp for FillSmoothing {
     fn from_sexp(s: &Sexp) -> Result<FillSmoothing> {
         let mut i = IterAtom::new(s, "smoothing")?;
@@ -37,7 +37,7 @@ impl FromSexp for FillSmoothing {
 }
 
 struct FillMode(String);
- 
+
 impl FromSexp for FillMode {
     fn from_sexp(s: &Sexp) -> Result<FillMode> {
         let mut i = IterAtom::new(s, "mode")?;
@@ -128,7 +128,7 @@ impl FromSexp for General {
         let mut i = IterAtom::new(s, "general")?;
         let links = i.il("general", "links")?;
         let no_connects = i.il("general", "no_connects")?;
-        let area:Area = i.t("general", "area")?;
+        let area: Area = i.t("general", "area")?;
         let thickness = i.fl("general", "thickness")?;
         let drawings = i.il("general", "drawings")?;
         let tracks = i.il("general", "tracks")?;
@@ -388,7 +388,7 @@ impl FromSexp for GrElement {
             "net" => {
                 let l2 = s.slice_atom("net")?;
                 Ok(GrElement::Net(l2[0].i()?))
-            },
+            }
             "at" => wrap(s, from_sexp, GrElement::At),
             "layers" => wrap(s, from_sexp, GrElement::Layers),
             "effects" => wrap(s, from_sexp, GrElement::Effects),
@@ -539,7 +539,7 @@ impl FromSexp for Zone {
         let layer = i.t("zone", "layer")?;
         let tstamp = i.sl("zone", "tstamp")?;
         let hatch = i.t("zone", "hatch")?;
-        let priority:Option<Priority> = i.maybe_t();
+        let priority: Option<Priority> = i.maybe_t();
         let priority = match priority {
             Some(p) => p.0 as u64,
             None => 0_u64,
@@ -571,8 +571,8 @@ impl FromSexp for Zone {
             tstamp: tstamp,
             hatch: hatch,
             priority: priority,
-            connect_pads:connect_pads,
-            min_thickness:min_thickness,
+            connect_pads: connect_pads,
+            min_thickness: min_thickness,
             keepout: keepout,
             fill: fill,
             polygons: polygons,
@@ -588,21 +588,27 @@ impl FromSexp for Hatch {
         let l = s.slice_atom_num("hatch", 2)?;
         let style = l[0].string()?.clone();
         let pitch = l[1].f()?;
-        Ok(Hatch { style:style, pitch:pitch })
+        Ok(Hatch {
+            style: style,
+            pitch: pitch,
+        })
     }
 }
 
 impl FromSexp for ConnectPads {
     fn from_sexp(s: &Sexp) -> Result<ConnectPads> {
         let l = s.slice_atom("connect_pads")?;
-        let (connection,clearance) = if l.len() == 1 {
+        let (connection, clearance) = if l.len() == 1 {
             (None, l[0].named_value_f("clearance")?)
         } else if l.len() == 2 {
             (Some(l[0].string()?.clone()), l[1].named_value_f("clearance")?)
         } else {
-            return Err("unknown extra elements in connect_pads".into())
+            return Err("unknown extra elements in connect_pads".into());
         };
-        Ok(ConnectPads { connection:connection, clearance:clearance })
+        Ok(ConnectPads {
+            connection: connection,
+            clearance: clearance,
+        })
     }
 }
 impl FromSexp for Keepout {
@@ -611,7 +617,11 @@ impl FromSexp for Keepout {
         let tracks = !l[0].named_value_string("tracks")?.starts_with("not");
         let vias = !l[1].named_value_string("vias")?.starts_with("not");
         let copperpour = !l[2].named_value_string("copperpour")?.starts_with("not");
-        Ok(Keepout { tracks:tracks, vias:vias, copperpour:copperpour })
+        Ok(Keepout {
+            tracks: tracks,
+            vias: vias,
+            copperpour: copperpour,
+        })
     }
 }
 
@@ -620,32 +630,31 @@ impl FromSexp for Fill {
     fn from_sexp(s: &Sexp) -> Result<Fill> {
         let mut i = IterAtom::new(s, "fill")?;
         let filled = i.maybe_s().is_some();
-        let mode:Option<FillMode> = i.maybe_t();
+        let mode: Option<FillMode> = i.maybe_t();
         let arc_segments = i.il("fill", "arc_segments")?;
         let thermal_gap = i.fl("fill", "thermal_gap")?;
         let thermal_bridge_width = i.fl("fill", "thermal_bridge_width")?;
-        let smoothing:Option<FillSmoothing> = i.maybe_t();
-        let radius:Option<FillRadius> = i.maybe_t();
+        let smoothing: Option<FillSmoothing> = i.maybe_t();
+        let radius: Option<FillRadius> = i.maybe_t();
         let radius = match radius {
             Some(x) => x.0,
             None => 0_f64,
         };
         Ok(Fill {
-            filled:filled,
-            segment:mode.is_some(),
+            filled: filled,
+            segment: mode.is_some(),
             arc_segments: arc_segments,
-            thermal_gap:thermal_gap,
+            thermal_gap: thermal_gap,
             thermal_bridge_width: thermal_bridge_width,
-            smoothing:smoothing.map(|x| x.0),
-            corner_radius:radius,
+            smoothing: smoothing.map(|x| x.0),
+            corner_radius: radius,
         })
     }
 }
 
 impl FromSexp for Segment {
     fn from_sexp(s: &Sexp) -> Result<Segment> {
-        // println!("GrLine: {}", s);
-        let l = s.slice_atom("segment")?;
+        let i = IterAtom::new(s, "segment")?;
         let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
         let mut layer = footprint::Layer::default();
@@ -653,7 +662,8 @@ impl FromSexp for Segment {
         let mut tstamp = None;
         let mut net = 0;
         let mut status = None;
-        for x in l {
+        // TODO: perhaps we can get rid of GrElement now we have IterAtom...
+        for x in i.iter {
             let elem = from_sexp(x)?;
             match elem {
                 GrElement::Start(x) => start = x,
@@ -679,13 +689,13 @@ impl FromSexp for Segment {
 }
 impl FromSexp for Via {
     fn from_sexp(s: &Sexp) -> Result<Via> {
-        let l = s.slice_atom("via")?;
+        let i = IterAtom::new(s, "via")?;
         let mut at = footprint::At::default();
         let mut size = 0.0_f64;
         let mut drill = 0.0_f64;
         let mut layers = footprint::Layers::default();
         let mut net = 0;
-        for x in l {
+        for x in i.iter {
             let elem = from_sexp(x)?;
             match elem {
                 GrElement::At(x) => at = x,
@@ -708,9 +718,9 @@ impl FromSexp for Via {
 
 impl FromSexp for Layout {
     fn from_sexp(s: &Sexp) -> Result<Layout> {
-        let l1 = s.slice_atom("kicad_pcb")?;
+        let i = IterAtom::new(s, "kicad_pcb")?;
         let mut layout = Layout::default();
-        for e in l1 {
+        for e in i.iter {
             match &(e.list_name()?)[..] {
                 "version" => layout.version = Version::from_sexp(e)?.0,
                 "host" => layout.host = from_sexp(e)?,
@@ -763,7 +773,7 @@ impl FromSexp for Layout {
                 }
                 "setup" => layout.setup = from_sexp(&e)?,
                 _ => {
-                    //println!("unimplemented: {}", e);
+                    // println!("unimplemented: {}", e);
                     layout.elements.push(parse_other(e))
                 }
             }

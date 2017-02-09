@@ -126,7 +126,7 @@ impl KicadFormatter {
                 "gr_text" => {
                     indent.close_on_new_line();
                     return Some(indent);
-                },
+                }
                 _ => (),
             }
         }
@@ -180,7 +180,9 @@ impl KicadFormatter {
                     indent.close_on_new_line();
                     return Some(indent);
                 }
-                "net" | "gr_circle" | "gr_line" | "gr_arc" | "segment" | "via" => return Some(indent),
+                "net" | "gr_circle" | "gr_line" | "gr_arc" | "segment" | "via" => {
+                    return Some(indent)
+                }
                 "layers" | "gr_text" | "dimension" => {
                     indent.close_on_new_line();
                     return Some(indent);
@@ -299,7 +301,7 @@ impl Formatter for KicadFormatter {
                 self.indent(writer, 1)?;
             }
         }
-        
+
         let exp = Sexp::String(ele.clone());
         let want_indent = self.want_indent(&exp);
         if let Some(ref want_indent) = want_indent {

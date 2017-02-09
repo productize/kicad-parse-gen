@@ -2,7 +2,7 @@
 
 use Sexp;
 use str_error;
-//use Result;
+// use Result;
 use footprint::data::*;
 use FromSexp;
 use Part;
@@ -33,7 +33,7 @@ impl FromSexp for Layer {
 
 impl FromSexp for Effects {
     fn from_sexp(s: &Sexp) -> Result<Effects> {
-        let mut i = IterAtom::new(s,"effects")?;
+        let mut i = IterAtom::new(s, "effects")?;
         let font = i.t("effects", "font")?;
         let justify = i.opt_t()?;
         Ok(Effects::from_font(font, justify))

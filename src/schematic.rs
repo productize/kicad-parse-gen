@@ -5,7 +5,7 @@
 
 use std::fmt;
 use std::str::FromStr;
-use std::path::{Path,PathBuf};
+use std::path::{Path, PathBuf};
 use std::collections::HashMap;
 use std::result;
 
@@ -126,7 +126,7 @@ impl Schematic {
         }
         Ok(v)
     }
-    
+
     /// get a component by reference
     pub fn component_by_reference(&self, reference: &str) -> Result<Component> {
         for x in &self.elements {
@@ -398,7 +398,7 @@ impl Component {
         }
         None
     }
-    
+
     /// get a component field by name
     pub fn get_field(&self, name: &str) -> Option<ComponentField> {
         for field in &self.fields[..] {
@@ -408,7 +408,7 @@ impl Component {
         }
         None
     }
-    
+
     /// get the first free component field number
     pub fn get_available_field_num(&self) -> i64 {
         let mut i: i64 = 0;
@@ -694,7 +694,12 @@ impl ComponentField {
 impl fmt::Display for ComponentField {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "F {} \"{}\" {} ", self.i, self.value, self.orientation)?;
-        write!(f, "{:3} {:3} {:3} ", format!("{}", self.x), format!("{}", self.y), format!("{}", self.size))?;
+        write!(f,
+               "{:3} {:3} {:3} ",
+               format!("{}", self.x),
+               format!("{}", self.y),
+               format!("{}", self.size))
+            ?;
         write!(f,
                "{} ",
                if self.visible {
@@ -753,8 +758,8 @@ pub struct Sheet {
 }
 
 impl BoundingBox for Sheet {
-    fn bounding_box(&self) -> (i64,i64,i64,i64) {
-        (self.x, self.y-100, self.x + self.dimx, self.y + self.dimy+100)
+    fn bounding_box(&self) -> (i64, i64, i64, i64) {
+        (self.x, self.y - 100, self.x + self.dimx, self.y + self.dimy + 100)
     }
 }
 

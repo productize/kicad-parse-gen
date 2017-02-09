@@ -141,7 +141,7 @@ impl IntoSexp for ConnectPads {
     }
 }
 
-fn allowed(a:bool) -> String {
+fn allowed(a: bool) -> String {
     if a {
         "allowed".into()
     } else {
@@ -165,7 +165,7 @@ impl IntoSexp for Fill {
             v.push("yes")
         }
         if self.segment {
-            let s:String = "segment".into();
+            let s: String = "segment".into();
             v.push(("mode", &s))
         }
         v.push(("arc_segments", &self.arc_segments));
@@ -294,33 +294,33 @@ impl IntoSexp for GrLine {
 }
 
 impl IntoSexp for GrArc {
-     fn into_sexp(&self) -> Sexp {
-         let mut v = Sexp::start("gr_arc");
-         v.push(self.start.into_sexp());
-         v.push(self.end.into_sexp());
-         v.push(("angle", &self.angle));
-         v.push(("layer", &self.layer));
-         v.push(("width", &self.width));
-         if let Some(ref tstamp) = self.tstamp {
-             v.push(("tstamp", tstamp));
-         }
-         v
-     }
+    fn into_sexp(&self) -> Sexp {
+        let mut v = Sexp::start("gr_arc");
+        v.push(self.start.into_sexp());
+        v.push(self.end.into_sexp());
+        v.push(("angle", &self.angle));
+        v.push(("layer", &self.layer));
+        v.push(("width", &self.width));
+        if let Some(ref tstamp) = self.tstamp {
+            v.push(("tstamp", tstamp));
+        }
+        v
+    }
 }
 
 impl IntoSexp for GrCircle {
-     fn into_sexp(&self) -> Sexp {
-         let mut v = Sexp::start("gr_circle");
-         v.push(self.center.into_sexp());
-         v.push(self.end.into_sexp());
-         v.push(("layer", &self.layer));
-         v.push(("width", &self.width));
-         if let Some(ref tstamp) = self.tstamp {
-             v.push(("tstamp", tstamp));
-         }
-         v
-     }
- }
+    fn into_sexp(&self) -> Sexp {
+        let mut v = Sexp::start("gr_circle");
+        v.push(self.center.into_sexp());
+        v.push(self.end.into_sexp());
+        v.push(("layer", &self.layer));
+        v.push(("width", &self.width));
+        if let Some(ref tstamp) = self.tstamp {
+            v.push(("tstamp", tstamp));
+        }
+        v
+    }
+}
 
 
 impl IntoSexp for Dimension {

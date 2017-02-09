@@ -38,7 +38,7 @@ impl Module {
         false
     }
 
-        /// check if a Module has a reference Element with the specified name
+    /// check if a Module has a reference Element with the specified name
     pub fn get_reference(&self) -> Option<&String> {
         for element in &self.elements[..] {
             if let Element::FpText(ref fp_text) = *element {
@@ -49,7 +49,7 @@ impl Module {
         }
         None
     }
-    
+
     /// update the name of the reference element specified by name, if found
     pub fn set_reference(&mut self, reference: &str, reference2: &str) {
         // println!("debug: searching '{}'", reference);
@@ -74,7 +74,7 @@ impl Module {
     }
 
     /// adjust the At element contained in the module
-    pub fn adjust_at(&mut self, x:f64, y:f64) {
+    pub fn adjust_at(&mut self, x: f64, y: f64) {
         for element in &mut self.elements[..] {
             if let Element::At(ref mut at) = *element {
                 at.x += x;
@@ -132,8 +132,8 @@ impl BoundingBox for Module {
 }
 
 impl Adjust for Module {
-    fn adjust(&mut self, x:f64, y:f64) {
-        self.adjust_at(x,y)
+    fn adjust(&mut self, x: f64, y: f64) {
+        self.adjust_at(x, y)
     }
 }
 
@@ -239,7 +239,7 @@ pub struct At {
 }
 
 impl Adjust for At {
-    fn adjust(&mut self, x:f64, y:f64) {
+    fn adjust(&mut self, x: f64, y: f64) {
         self.x += x;
         self.y += y
     }
@@ -330,7 +330,7 @@ pub struct Xy {
 }
 
 impl Adjust for Xy {
-    fn adjust(&mut self, x:f64, y:f64) {
+    fn adjust(&mut self, x: f64, y: f64) {
         self.x += x;
         self.y += y
     }
@@ -359,9 +359,9 @@ pub struct Pts {
 }
 
 impl Adjust for Pts {
-    fn adjust(&mut self, x:f64, y:f64) {
+    fn adjust(&mut self, x: f64, y: f64) {
         for e in &mut self.elements {
-            e.adjust(x,y)
+            e.adjust(x, y)
         }
     }
 }

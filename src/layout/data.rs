@@ -90,7 +90,7 @@ pub struct Zone {
 }
 
 impl Adjust for Zone {
-    fn adjust(&mut self, _x:f64, _y:f64) {
+    fn adjust(&mut self, _x: f64, _y: f64) {
         panic!("adjust not possible due to zone not fully implemented")
     }
 }
@@ -98,16 +98,16 @@ impl Adjust for Zone {
 #[derive(Clone,Debug)]
 pub struct Hatch {
     /// hatching style
-    pub style:String,
+    pub style: String,
     /// hatching pitch
-    pub pitch:f64,
+    pub pitch: f64,
 }
 
 /// a zone connect pads
 #[derive(Clone,Debug)]
 pub struct ConnectPads {
     /// connection type
-    pub connection:Option<String>,
+    pub connection: Option<String>,
     /// clearance
     pub clearance: f64,
 }
@@ -284,8 +284,8 @@ pub struct GrText {
 }
 
 impl Adjust for GrText {
-    fn adjust(&mut self, x:f64, y:f64) {
-        self.at.adjust(x,y)
+    fn adjust(&mut self, x: f64, y: f64) {
+        self.at.adjust(x, y)
     }
 }
 
@@ -307,9 +307,9 @@ pub struct GrLine {
 }
 
 impl Adjust for GrLine {
-    fn adjust(&mut self, x:f64, y:f64) {
-        self.start.adjust(x,y);
-        self.end.adjust(x,y)
+    fn adjust(&mut self, x: f64, y: f64) {
+        self.start.adjust(x, y);
+        self.end.adjust(x, y)
     }
 }
 
@@ -331,15 +331,14 @@ pub struct GrArc {
 }
 
 impl Adjust for GrArc {
-    fn adjust(&mut self, x:f64, y:f64) {
-        self.start.adjust(x,y);
-        self.end.adjust(x,y);
+    fn adjust(&mut self, x: f64, y: f64) {
+        self.start.adjust(x, y);
+        self.end.adjust(x, y);
     }
 }
 
 /// gr_circle
 // (gr_circle (center 178.6 68.8) (end 176.1 68.7) (layer Eco2.User) (width 0.2))
-
 #[derive(Clone,Debug)]
 pub struct GrCircle {
     /// center point
@@ -355,7 +354,7 @@ pub struct GrCircle {
 }
 
 impl Adjust for GrCircle {
-    fn adjust(&mut self, x:f64, y:f64) {
+    fn adjust(&mut self, x: f64, y: f64) {
         self.center.x += x;
         self.center.y += y;
         self.end.x += x;
@@ -393,15 +392,15 @@ pub struct Dimension {
 }
 
 impl Adjust for Dimension {
-    fn adjust(&mut self, x:f64, y:f64) {
-        self.text.adjust(x,y);
-        self.feature1.adjust(x,y);
-        self.feature2.adjust(x,y);
-        self.crossbar.adjust(x,y);
-        self.arrow1a.adjust(x,y);
-        self.arrow1b.adjust(x,y);
-        self.arrow2a.adjust(x,y);
-        self.arrow2b.adjust(x,y)
+    fn adjust(&mut self, x: f64, y: f64) {
+        self.text.adjust(x, y);
+        self.feature1.adjust(x, y);
+        self.feature2.adjust(x, y);
+        self.crossbar.adjust(x, y);
+        self.arrow1a.adjust(x, y);
+        self.arrow1b.adjust(x, y);
+        self.arrow2a.adjust(x, y);
+        self.arrow2b.adjust(x, y)
     }
 }
 
@@ -426,9 +425,9 @@ pub struct Segment {
 }
 
 impl Adjust for Segment {
-    fn adjust(&mut self, x:f64, y:f64) {
-        self.start.adjust(x,y);
-        self.end.adjust(x,y)
+    fn adjust(&mut self, x: f64, y: f64) {
+        self.start.adjust(x, y);
+        self.end.adjust(x, y)
     }
 }
 
@@ -449,8 +448,8 @@ pub struct Via {
 }
 
 impl Adjust for Via {
-    fn adjust(&mut self, x:f64, y:f64) {
-        self.at.adjust(x,y);
+    fn adjust(&mut self, x: f64, y: f64) {
+        self.at.adjust(x, y);
     }
 }
 
@@ -469,9 +468,9 @@ impl Default for Layout {
 }
 
 impl Adjust for Layout {
-    fn adjust(&mut self, x:f64, y:f64) {
+    fn adjust(&mut self, x: f64, y: f64) {
         for e in &mut self.elements {
-            e.adjust(x,y)
+            e.adjust(x, y)
         }
     }
 }
@@ -569,15 +568,13 @@ impl Layout {
         let mut v = vec![];
         for e in &self.elements {
             match *e {
-                Element::Module(ref m) => {
-                    v.push(m)
-                }
-                _ => ()
+                Element::Module(ref m) => v.push(m),
+                _ => (),
             }
         }
         v
     }
-    
+
     /// modify a module
     pub fn modify_module<F>(&mut self, reference: &str, fun: F) -> Result<()>
         where F: Fn(&mut footprint::Module) -> ()
@@ -717,17 +714,17 @@ impl Setup {
 }
 
 impl Adjust for Element {
-    fn adjust(&mut self, x:f64, y:f64) {
+    fn adjust(&mut self, x: f64, y: f64) {
         match *self {
-            Element::Module(ref mut e) => e.adjust(x,y),
-            Element::GrText(ref mut e) => e.adjust(x,y),
-            Element::GrLine(ref mut e) => e.adjust(x,y),
-            Element::GrArc(ref mut e) => e.adjust(x,y),
-            Element::GrCircle(ref mut e) => e.adjust(x,y),
-            Element::Dimension(ref mut e) => e.adjust(x,y),
-            Element::Segment(ref mut e) => e.adjust(x,y),
-            Element::Via(ref mut e) => e.adjust(x,y),
-            Element::Zone(ref mut e) => e.adjust(x,y),
+            Element::Module(ref mut e) => e.adjust(x, y),
+            Element::GrText(ref mut e) => e.adjust(x, y),
+            Element::GrLine(ref mut e) => e.adjust(x, y),
+            Element::GrArc(ref mut e) => e.adjust(x, y),
+            Element::GrCircle(ref mut e) => e.adjust(x, y),
+            Element::Dimension(ref mut e) => e.adjust(x, y),
+            Element::Segment(ref mut e) => e.adjust(x, y),
+            Element::Via(ref mut e) => e.adjust(x, y),
+            Element::Zone(ref mut e) => e.adjust(x, y),
             Element::Net(_) => (),
             Element::NetClass(_) => (),
             Element::Other(_) => (),

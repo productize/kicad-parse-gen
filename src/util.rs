@@ -9,7 +9,7 @@ use Result;
 
 /// read a file
 pub fn read_file<P>(path: P) -> Result<String>
-    where P:AsRef<Path>
+    where P: AsRef<Path>
 {
     let mut f = File::open(path)?;
     let mut s = String::new();
@@ -19,11 +19,15 @@ pub fn read_file<P>(path: P) -> Result<String>
 
 /// write a file
 pub fn write_file<P>(name: P, data: &str) -> Result<()>
-    where P:AsRef<Path>
+    where P: AsRef<Path>
 {
     let mut f = match File::create(&name) {
             Ok(f) => Ok(f),
-            Err(err) => Err(format!("create error in file '{}': {}", name.as_ref().display(), err)),
+            Err(err) => {
+                Err(format!("create error in file '{}': {}",
+                            name.as_ref().display(),
+                            err))
+            }
         }
         ?;
     match write!(&mut f, "{}", data) {

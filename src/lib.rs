@@ -13,7 +13,7 @@ extern crate log;
 use std::fmt;
 use std::slice::Iter;
 use std::iter::Peekable;
-use std::path::{PathBuf,Path};
+use std::path::{PathBuf, Path};
 
 pub use symbolic_expressions::Sexp;
 pub use error::*;
@@ -162,9 +162,8 @@ impl fmt::Display for KicadFile {
 
 /// try to read a file, trying to parse it as the different formats
 /// and matching it against the Expected type
-pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile>
-{
-    
+pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile> {
+
     let data = read_file(name)?;
     match footprint::parse(&data) {
         Ok(module) => return Ok(KicadFile::Module(module)),
@@ -210,8 +209,7 @@ pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile>
 }
 
 /// read a file, expecting it to be a Kicad module file
-pub fn read_module(name: &Path) -> Result<footprint::Module>
-{
+pub fn read_module(name: &Path) -> Result<footprint::Module> {
     match read_kicad_file(name, Expected::Module)? {
         KicadFile::Module(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),
@@ -219,8 +217,7 @@ pub fn read_module(name: &Path) -> Result<footprint::Module>
 }
 
 /// read a file, expecting it to be a Kicad schematic
-pub fn read_schematic(name: &Path) -> Result<schematic::Schematic>
-{
+pub fn read_schematic(name: &Path) -> Result<schematic::Schematic> {
     match read_kicad_file(name, Expected::Schematic)? {
         KicadFile::Schematic(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),
@@ -228,8 +225,7 @@ pub fn read_schematic(name: &Path) -> Result<schematic::Schematic>
 }
 
 /// read a file, expecting it to be a Kicad layout file
-pub fn read_layout(name: &Path) -> Result<layout::Layout>
-{
+pub fn read_layout(name: &Path) -> Result<layout::Layout> {
     match read_kicad_file(name, Expected::Layout)? {
         KicadFile::Layout(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),
@@ -243,8 +239,7 @@ pub fn write_layout(layout: &layout::Layout, name: &Path) -> Result<()> {
 }
 
 /// read a file, expecting it to be a Kicad symbol library file
-pub fn read_symbol_lib(name: &Path) -> Result<symbol_lib::SymbolLib>
-{
+pub fn read_symbol_lib(name: &Path) -> Result<symbol_lib::SymbolLib> {
     match read_kicad_file(name, Expected::SymbolLib)? {
         KicadFile::SymbolLib(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),
@@ -252,8 +247,7 @@ pub fn read_symbol_lib(name: &Path) -> Result<symbol_lib::SymbolLib>
 }
 
 /// read a file, expecting it to be a Kicad project file
-pub fn read_project(name: &Path) -> Result<project::Project>
-{
+pub fn read_project(name: &Path) -> Result<project::Project> {
     match read_kicad_file(name, Expected::Project)? {
         KicadFile::Project(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),
@@ -308,35 +302,33 @@ fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> Result<Y>
 
 /// Atom iterator wrapper
 pub struct IterAtom<'a> {
-    iter:Peekable<Iter<'a,Sexp>>,
+    iter: Peekable<Iter<'a, Sexp>>,
 }
 
-/*
-impl<'a> From<Iter<'a, Sexp>> for IterAtom<'a> {
-    fn from(i:Iter<'a, Sexp>) -> IterAtom<'a> {
-        IterAtom { iter: i }
-    }
-}
-*/
+// impl<'a> From<Iter<'a, Sexp>> for IterAtom<'a> {
+// fn from(i:Iter<'a, Sexp>) -> IterAtom<'a> {
+// IterAtom { iter: i }
+// }
+// }
+//
 
 impl<'a> IterAtom<'a> {
-
-    fn new(s:&'a Sexp, name:&str) -> Result<IterAtom<'a>> {
+    fn new(s: &'a Sexp, name: &str) -> Result<IterAtom<'a>> {
         let i = s.iter_atom(name)?.peekable();
         Ok(IterAtom { iter: i })
     }
-    
-    fn expect<T,F>(&mut self, sname:&str, name:&str, get:F) -> Result<T>
-        where F:Fn(&Sexp) -> Result<T>
+
+    fn expect<T, F>(&mut self, sname: &str, name: &str, get: F) -> Result<T>
+        where F: Fn(&Sexp) -> Result<T>
     {
         match self.iter.next() {
             Some(x) => get(x),
-            None => return Err(format!("missing {} field in {}",name, sname).into()),
+            None => return Err(format!("missing {} field in {}", name, sname).into()),
         }
     }
 
-    fn optional<T,F>(&mut self, or:T, get:F) -> Result<T>
-        where F:Fn(&Sexp) -> Result<T>
+    fn optional<T, F>(&mut self, or: T, get: F) -> Result<T>
+        where F: Fn(&Sexp) -> Result<T>
     {
         let x = match self.iter.next() {
             Some(x) => get(x)?,
@@ -344,73 +336,76 @@ impl<'a> IterAtom<'a> {
         };
         Ok(x)
     }
-    
+
     /// expect an integer while iterating a `Sexp` list
-    pub fn i(&mut self, sname:&str, name:&str) -> Result<i64>
-    {
+    pub fn i(&mut self, sname: &str, name: &str) -> Result<i64> {
         self.expect(sname, name, |x| x.i().map_err(From::from))
     }
 
     /// expect a float while iterating a `Sexp` list
-    pub fn f(&mut self, sname:&str, name:&str) -> Result<f64> {
+    pub fn f(&mut self, sname: &str, name: &str) -> Result<f64> {
         self.expect(sname, name, |x| x.f().map_err(From::from))
     }
 
     /// expect a String while iterating a `Sexp` list
-    pub fn s(&mut self, sname:&str, name:&str) -> Result<String> {
-        self.expect(sname, name, |x| x.string().map(|y| y.clone()).map_err(From::from))
+    pub fn s(&mut self, sname: &str, name: &str) -> Result<String> {
+        self.expect(sname,
+                    name,
+                    |x| x.string().map(|y| y.clone()).map_err(From::from))
     }
 
     /// expect a list contained String while iterating a `Sexp` list
-    pub fn sl(&mut self, sname:&str, name:&str) -> Result<String> {
-        self.expect(sname, name, |x| x.named_value_string(name).map(|y| y.clone()).map_err(From::from))
+    pub fn sl(&mut self, sname: &str, name: &str) -> Result<String> {
+        self.expect(sname,
+                    name,
+                    |x| x.named_value_string(name).map(|y| y.clone()).map_err(From::from))
     }
 
     /// expect a list contained i64 while iterating a `Sexp` list
-    pub fn il(&mut self, sname:&str, name:&str) -> Result<i64> {
+    pub fn il(&mut self, sname: &str, name: &str) -> Result<i64> {
         self.expect(sname, name, |x| x.named_value_i(name).map_err(From::from))
     }
 
     /// expect a list contained f64 while iterating a `Sexp` list
-    pub fn fl(&mut self, sname:&str, name:&str) -> Result<f64> {
+    pub fn fl(&mut self, sname: &str, name: &str) -> Result<f64> {
         self.expect(sname, name, |x| x.named_value_f(name).map_err(From::from))
     }
-    
-    
+
+
     /// expect a `Sexp` while iterating a `Sexp` list
-    pub fn t<T:FromSexp>(&mut self, sname:&str, name:&str) -> Result<T> {
+    pub fn t<T: FromSexp>(&mut self, sname: &str, name: &str) -> Result<T> {
         self.expect(sname, name, |x| T::from_sexp(x))
     }
 
     /// optional integer while iterating a `Sexp` list
-    pub fn opt_i(&mut self, or:i64) -> Result<i64> {
+    pub fn opt_i(&mut self, or: i64) -> Result<i64> {
         self.optional(or, |x| x.i().map_err(From::from))
     }
 
     /// optional float while iterating a `Sexp` list
-    pub fn opt_f(&mut self, or:f64) -> Result<f64> {
+    pub fn opt_f(&mut self, or: f64) -> Result<f64> {
         self.optional(or, |x| x.f().map_err(From::from))
     }
-    
+
     /// optional String while iterating a `Sexp` list
-    pub fn opt_s(&mut self, or:String) -> Result<String> {
+    pub fn opt_s(&mut self, or: String) -> Result<String> {
         self.optional(or, |x| x.string().map(|y| y.clone()).map_err(From::from))
     }
-    
+
     /// optional `Sexp` while iterating a `Sexp` list
-    pub fn opt_t<T:FromSexp>(&mut self) -> Result<Option<T>> {
+    pub fn opt_t<T: FromSexp>(&mut self) -> Result<Option<T>> {
         let x = match self.iter.next() {
             Some(x) => {
-                let t:T = T::from_sexp(x)?;
+                let t: T = T::from_sexp(x)?;
                 Some(t)
-            },
+            }
             None => None,
         };
         Ok(x)
     }
 
     /// expect remainder of iterator to be a `Vec<T>`
-    pub fn vec<T:FromSexp>(&mut self) -> Result<Vec<T>> {
+    pub fn vec<T: FromSexp>(&mut self) -> Result<Vec<T>> {
         let mut res = Vec::new();
         loop {
             match self.iter.next() {
@@ -425,17 +420,13 @@ impl<'a> IterAtom<'a> {
     }
 
     /// maybe a `Sexp` while iterating a `Sexp` list
-    pub fn maybe_t<T:FromSexp>(&mut self) -> Option<T> {
+    pub fn maybe_t<T: FromSexp>(&mut self) -> Option<T> {
         let res = match self.iter.peek() {
             None => None,
             Some(ref s) => {
                 match T::from_sexp(s) {
-                    Ok(t) => {
-                        Some(t)
-                    }
-                    Err(_) => {
-                        None
-                    }
+                    Ok(t) => Some(t),
+                    Err(_) => None,
                 }
             }
         };
@@ -443,7 +434,7 @@ impl<'a> IterAtom<'a> {
             Some(x) => {
                 let _ = self.iter.next();
                 Some(x)
-            },
+            }
             x => x,
         }
     }
@@ -454,12 +445,8 @@ impl<'a> IterAtom<'a> {
             None => None,
             Some(s) => {
                 match s.string() {
-                    Ok(t) => {
-                        Some(t.clone())
-                    }
-                    Err(_) => {
-                        None
-                    }
+                    Ok(t) => Some(t.clone()),
+                    Err(_) => None,
                 }
             }
         };
@@ -467,7 +454,7 @@ impl<'a> IterAtom<'a> {
             Some(x) => {
                 let _ = self.iter.next();
                 Some(x)
-            },
+            }
             x => x,
         }
     }
