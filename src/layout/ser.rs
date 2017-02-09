@@ -104,6 +104,7 @@ impl IntoSexp for Zone {
         if let Some(ref keepout) = self.keepout {
             v.push(keepout.into_sexp());
         }
+        v.push(self.fill.into_sexp());
         for o in &self.other {
             v.push(o.clone());
         }
@@ -145,6 +146,28 @@ impl IntoSexp for Keepout {
         v.push(("tracks", &allowed(self.tracks)));
         v.push(("vias", &allowed(self.vias)));
         v.push(("copperpour", &allowed(self.copperpour)));
+        v
+    }
+}
+impl IntoSexp for Fill {
+    fn into_sexp(&self) -> Sexp {
+        let mut v = Sexp::start("fill");
+        if self.filled {
+            v.push("yes")
+        }
+        if self.segment {
+            let s:String = "segment".into();
+            v.push(("mode", &s))
+        }
+        v.push(("arc_segments", &self.arc_segments));
+        v.push(("thermal_gap", &self.thermal_gap));
+        v.push(("thermal_bridge_width", &self.thermal_bridge_width));
+        if let Some(ref smoothing) = self.smoothing {
+            v.push(("smoothing", smoothing))
+        }
+        if self.corner_radius != 0.0 {
+            v.push(("radius", &self.corner_radius))
+        }
         v
     }
 }

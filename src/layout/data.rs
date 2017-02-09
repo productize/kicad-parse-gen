@@ -77,9 +77,9 @@ pub struct Zone {
     pub min_thickness: f64,
     /// keepout
     pub keepout: Option<Keepout>,
-    /*
     /// fill
     pub fill: Fill,
+    /*
     /// polygons
     pub polygons: Vec<footprint::Pts>,
     /// filled polygons
@@ -124,6 +124,26 @@ pub struct Keepout {
     pub vias: bool,
     /// copperpour
     pub copperpour: bool,
+}
+
+/// fill of a zone
+//  (fill yes (arc_segments 16) (thermal_gap 0.508) (thermal_bridge_width 0.508))
+#[derive(Clone,Debug)]
+pub struct Fill {
+    /// if it is filled (default no)
+    pub filled: bool,
+    /// if it is segment mode
+    pub segment: bool,
+    /// number of arc segments
+    pub arc_segments: i64,
+    /// thermal relief gap
+    pub thermal_gap: f64,
+    /// thermal relief copper bridge
+    pub thermal_bridge_width: f64,
+    /// smoothing
+    pub smoothing: Option<String>,
+    /// corner radius
+    pub corner_radius: f64,
 }
 
 /// build host info

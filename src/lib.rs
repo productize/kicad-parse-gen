@@ -436,6 +436,30 @@ impl<'a> IterAtom<'a> {
             x => x,
         }
     }
+
+    /// maybe a `String` while iterating a `Sexp` list
+    pub fn maybe_s(&mut self) -> Option<String> {
+        let res = match self.iter.peek() {
+            None => None,
+            Some(s) => {
+                match s.string() {
+                    Ok(t) => {
+                        Some(t.clone())
+                    }
+                    Err(_) => {
+                        None
+                    }
+                }
+            }
+        };
+        match res {
+            Some(x) => {
+                let _ = self.iter.next();
+                Some(x)
+            },
+            x => x,
+        }
+    }
 }
 
 

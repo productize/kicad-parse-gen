@@ -73,6 +73,60 @@ impl FromSexp for ZoneNet {
     }
 }
 
+struct FillMode(String);
+
+impl FromSexp for FillMode {
+    fn from_sexp(s: &Sexp) -> Result<FillMode> {
+        let mut i = IterAtom::new(s, "mode")?;
+        Ok(FillMode(i.s("mode", "value")?))
+    }
+}
+
+struct FillArcSegments(i64);
+
+impl FromSexp for FillArcSegments {
+    fn from_sexp(s: &Sexp) -> Result<FillArcSegments> {
+        let mut i = IterAtom::new(s, "arc_segments")?;
+        Ok(FillArcSegments(i.i("arc_segments", "value")?))
+    }
+}
+
+struct FillThermalGap(f64);
+
+impl FromSexp for FillThermalGap {
+    fn from_sexp(s: &Sexp) -> Result<FillThermalGap> {
+        let mut i = IterAtom::new(s, "thermal_gap")?;
+        Ok(FillThermalGap(i.f("thermal_gap", "value")?))
+    }
+}
+
+struct FillThermalBridgeWidth(f64);
+
+impl FromSexp for FillThermalBridgeWidth {
+    fn from_sexp(s: &Sexp) -> Result<FillThermalBridgeWidth> {
+        let mut i = IterAtom::new(s, "thermal_bridge_width")?;
+        Ok(FillThermalBridgeWidth(i.f("thermal_bridge_width", "value")?))
+    }
+}
+
+struct FillRadius(f64);
+
+impl FromSexp for FillRadius {
+    fn from_sexp(s: &Sexp) -> Result<FillRadius> {
+        let mut i = IterAtom::new(s, "radius")?;
+        Ok(FillRadius(i.f("radius", "value")?))
+    }
+}
+
+struct FillSmoothing(String);
+
+impl FromSexp for FillSmoothing {
+    fn from_sexp(s: &Sexp) -> Result<FillSmoothing> {
+        let mut i = IterAtom::new(s, "smoothing")?;
+        Ok(FillSmoothing(i.s("smoothing", "value")?))
+    }
+}
+
 impl FromSexp for Net {
     fn from_sexp(s: &Sexp) -> Result<Net> {
         let l = s.slice_atom_num("net", 2)?;
@@ -521,6 +575,7 @@ impl FromSexp for Zone {
         let connect_pads = i.t("zone", "connect_pads")?;
         let min_thickness:MinThickness = i.t("zone", "min_thickness")?;
         let keepout = i.maybe_t();
+        let fill = i.t("zone", "fill")?;
         let other = i.iter.cloned().collect();
         for x in &other {
             debug!("'zone': not parsing {}", x);
@@ -535,6 +590,7 @@ impl FromSexp for Zone {
             connect_pads:connect_pads,
             min_thickness:min_thickness.0,
             keepout: keepout,
+            fill: fill,
             other: other,
         })
     }
@@ -569,6 +625,33 @@ impl FromSexp for Keepout {
         let vias = !l[1].named_value_string("vias")?.starts_with("not");
         let copperpour = !l[2].named_value_string("copperpour")?.starts_with("not");
         Ok(Keepout { tracks:tracks, vias:vias, copperpour:copperpour })
+    }
+}
+
+//  (fill yes (arc_segments 16) (thermal_gap 0.508) (thermal_bridge_width 0.508))
+impl FromSexp for Fill {
+    fn from_sexp(s: &Sexp) -> Result<Fill> {
+        let mut i = IterAtom::new(s, "fill")?;
+        let filled = i.maybe_s().is_some();
+        let mode:Option<FillMode> = i.maybe_t();
+        let arc_segments:FillArcSegments = i.t("fill", "arc_segments")?;
+        let thermal_gap:FillThermalGap = i.t("fill", "thermal_gap")?;
+        let thermal_bridge_width:FillThermalBridgeWidth = i.t("fill", "thermal_bridge_width")?;
+        let smoothing:Option<FillSmoothing> = i.maybe_t();
+        let radius:Option<FillRadius> = i.maybe_t();
+        let radius = match radius {
+            Some(x) => x.0,
+            None => 0_f64,
+        };
+        Ok(Fill {
+            filled:filled,
+            segment:mode.is_some(),
+            arc_segments: arc_segments.0,
+            thermal_gap:thermal_gap.0,
+            thermal_bridge_width: thermal_bridge_width.0,
+            smoothing:smoothing.map(|x| x.0),
+            corner_radius:radius,
+        })
     }
 }
 
