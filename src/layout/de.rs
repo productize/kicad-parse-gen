@@ -19,7 +19,8 @@ struct Version(i64);
 impl FromSexp for Version {
     fn from_sexp(s: &Sexp) -> SResult<Version> {
         let mut i = IterAtom::new(s, "version")?;
-        Ok(Version(i.i("value")?))
+        let v = Version(i.i("value")?);
+        i.close(v)
     }
 }
 
@@ -28,7 +29,8 @@ struct Page(String);
 impl FromSexp for Page {
     fn from_sexp(s: &Sexp) -> SResult<Page> {
         let mut i = IterAtom::new(s, "page")?;
-        Ok(Page(i.s("value")?))
+        let p = Page(i.s("value")?);
+        i.close(p)
     }
 }
 
@@ -37,7 +39,8 @@ struct Polygon(footprint::Pts);
 impl FromSexp for Polygon {
     fn from_sexp(s: &Sexp) -> SResult<Polygon> {
         let mut i = IterAtom::new(s, "polygon")?;
-        Ok(Polygon(i.t("pts")?))
+        let p = Polygon(i.t("pts")?);
+        i.close(p)
     }
 }
 
@@ -46,7 +49,8 @@ struct FilledPolygon(footprint::Pts);
 impl FromSexp for FilledPolygon {
     fn from_sexp(s: &Sexp) -> SResult<FilledPolygon> {
         let mut i = IterAtom::new(s, "filled_polygon")?;
-        Ok(FilledPolygon(i.t("pts")?))
+        let f = FilledPolygon(i.t("pts")?);
+        i.close(f)
     }
 }
 
@@ -64,7 +68,7 @@ impl FromSexp for Net {
         let mut i = IterAtom::new(s, "net")?;
         let num = i.i("num")?;
         let name = i.s("name")?;
-        Ok(Net {
+        i.close(Net {
             name: name,
             num: num,
         })
@@ -76,7 +80,7 @@ impl FromSexp for Host {
         let mut i = IterAtom::new(s, "host")?;
         let tool = i.s("tool")?;
         let build = i.s("build")?;
-        Ok(Host {
+        i.close(Host {
             tool: tool,
             build: build,
         })
@@ -95,7 +99,7 @@ impl FromSexp for General {
         let zones = i.i_in_list("zones")?;
         let modules = i.i_in_list("modules")?;
         let nets = i.i_in_list("nets")?;
-        Ok(General {
+        i.close(General {
             links: links,
             no_connects: no_connects,
             area: area,
@@ -112,12 +116,13 @@ impl FromSexp for General {
 impl FromSexp for Area {
     fn from_sexp(s: &Sexp) -> SResult<Area> {
         let mut i = IterAtom::new(s, "area")?;
-        Ok(Area {
+        let a = Area {
             x1: i.f("x1")?,
             y1: i.f("y1")?,
             x2: i.f("x2")?,
             y2: i.f("y2")?,
-        })
+        };
+        i.close(a)
     }
 }
 
@@ -125,9 +130,9 @@ struct LayerVec(Vec<Layer>);
 
 impl FromSexp for LayerVec {
     fn from_sexp(s: &Sexp) -> SResult<LayerVec> {
+        let i = IterAtom::new(s, "layers")?;
         let mut v = vec![];
-        let l = s.slice_atom("layers")?;
-        for x in l {
+        for x in i.iter {
             let layer = from_sexp(&x)?;
             v.push(layer)
         }
@@ -137,24 +142,12 @@ impl FromSexp for LayerVec {
 
 impl FromSexp for Layer {
     fn from_sexp(s: &Sexp) -> SResult<Layer> {
-        let l = s.list()?;
-        // println!("making layer from {}", s);
-        if l.len() != 3 && l.len() != 4 {
-            return Err(format!("expecting 3 or 4 elements in layer: {}", s).into());
-        }
-        let num = l[0].i()?;
-        let layer = footprint::Layer::from_string(l[1].string()?)?;
-        let layer_type = from_sexp(&l[2])?;
-        let hide = if l.len() == 3 {
-            false
-        } else {
-            let h = l[3].string()?;
-            match &h[..] {
-                "hide" => true,
-                _ => false,
-            }
-        };
-        Ok(Layer {
+        let mut i = IterAtom::new_nameless(s, "layer")?;
+        let num = i.i("num")?;
+        let layer = footprint::Layer::from_string(&i.s("layer")?)?;
+        let layer_type = i.t("layer_type")?;
+        let hide = i.maybe_s().is_some();
+        i.close(Layer {
             num: num,
             layer: layer,
             layer_type: layer_type,
@@ -176,21 +169,13 @@ impl FromSexp for LayerType {
 
 impl FromSexp for SetupElement {
     fn from_sexp(s: &Sexp) -> SResult<SetupElement> {
-        let l = s.list()?;
-        if l.len() != 2 && l.len() != 3 {
-            return Err(format!("expecting 2 or 3 elements in setup element: {}", s).into());
-        }
-        let name = l[0].string()?.clone();
-        let value1 = l[1].string()?.clone();
-        let value2 = match l.len() {
-            3 => Some(l[2].string()?.clone()),
-            _ => None,
+        let mut i = IterAtom::new_nameless(s, "setup_element")?;
+        let m = SetupElement {
+            name: i.s("name")?,
+            value1: i.s("value1")?,
+            value2: i.maybe_s(),
         };
-        Ok(SetupElement {
-            name: name,
-            value1: value1,
-            value2: value2,
-        })
+        i.close(m)
     }
 }
 
@@ -252,34 +237,31 @@ impl FromSexp for Setup {
     fn from_sexp(s: &Sexp) -> SResult<Setup> {
         let mut elements = vec![];
         let mut pcbplotparams = vec![];
-        for v in s.slice_atom("setup")? {
-            let n = v.list_name().unwrap().clone();
-            match &n[..] {
-                "pcbplotparams" => {
-                    for y in v.slice_atom("pcbplotparams")? {
-                        let p_e = from_sexp(y)?;
-                        pcbplotparams.push(p_e)
-                    }
+        let mut i = IterAtom::new(s, "setup")?;
+        for v in i.iter {
+            let n = v.list_name()?;
+            if n == "pcbplotparams" {
+                let i2 = IterAtom::new(v, "pcbplotparams")?;
+                for y in i2.iter {
+                    let p_e = from_sexp(y)?;
+                    pcbplotparams.push(p_e)
                 }
-                _ => {
-                    let setup_element = from_sexp(&v)?;
-                    elements.push(setup_element)
-                }
+            } else {
+                let setup_element = from_sexp(&v)?;
+                elements.push(setup_element)
             }
         }
-        let s = Setup {
+        Ok(Setup {
             elements: elements,
             pcbplotparams: pcbplotparams,
-        };
-        Ok(s)
+        })
     }
 }
 
 // for some reason this needs to be in a subfunction or it doesn't work
 fn parse_other(e: &Sexp) -> Element {
-    let e2 = e.clone();
-    debug!("Element::Other: {}", e2);
-    Element::Other(e2)
+    debug!("Element::Other: {}", e);
+    Element::Other(e.clone())
 }
 
 impl FromSexp for GrText {
@@ -322,30 +304,28 @@ impl FromSexp for GrElement {
             }
             "layer" => wrap(s, from_sexp, GrElement::Layer),
             "width" => {
-                let l2 = s.slice_atom("width")?;
-                Ok(GrElement::Width(l2[0].f()?))
+                let l2 = s.named_value_f("width")?;
+                Ok(GrElement::Width(l2))
             }
             "size" => {
-                let l2 = s.slice_atom("size")?;
-                Ok(GrElement::Size(l2[0].f()?))
+                let l2 = s.named_value_f("size")?;
+                Ok(GrElement::Size(l2))
             }
             "drill" => {
-                let l2 = s.slice_atom("drill")?;
-                Ok(GrElement::Drill(l2[0].f()?))
+                let l2 = s.named_value_f("drill")?;
+                Ok(GrElement::Drill(l2))
             }
             "tstamp" => {
-                let l2 = s.slice_atom("tstamp")?;
-                let sx = l2[0].string()?.clone();
-                Ok(GrElement::TStamp(sx))
+                let l2 = s.named_value_s("tstamp")?;
+                Ok(GrElement::TStamp(l2))
             }
             "status" => {
-                let l2 = s.slice_atom("status")?;
-                let sx = l2[0].string()?.clone();
-                Ok(GrElement::Status(sx))
+                let l2 = s.named_value_s("status")?;
+                Ok(GrElement::Status(l2))
             }
             "net" => {
-                let l2 = s.slice_atom("net")?;
-                Ok(GrElement::Net(l2[0].i()?))
+                let l2 = s.named_value_i("net")?;
+                Ok(GrElement::Net(l2))
             }
             "at" => wrap(s, from_sexp, GrElement::At),
             "layers" => wrap(s, from_sexp, GrElement::Layers),
@@ -453,26 +433,20 @@ impl FromSexp for GrCircle {
 
 impl FromSexp for Dimension {
     fn from_sexp(s: &Sexp) -> SResult<Dimension> {
-        let l = s.slice_atom_num("dimension", 11)?;
-        let name = l[0].string()?.clone();
-        let width = {
-            let l2 = l[1].slice_atom("width")?;
-            l2[0].f()?
-        };
-        let layer = from_sexp(&l[2])?;
-        let (i, tstamp) = match l[3].named_value_string("tstamp") {
-            Ok(s) => (4, Some(s.clone())),
-            _ => (3, None),
-        };
-        let text = from_sexp(&l[i])?;
-        let feature1 = from_sexp(l[i + 1].named_value("feature1")?)?;
-        let feature2 = from_sexp(l[i + 2].named_value("feature2")?)?;
-        let crossbar = from_sexp(l[i + 3].named_value("crossbar")?)?;
-        let arrow1a = from_sexp(l[i + 4].named_value("arrow1a")?)?;
-        let arrow1b = from_sexp(l[i + 5].named_value("arrow1b")?)?;
-        let arrow2a = from_sexp(l[i + 6].named_value("arrow2a")?)?;
-        let arrow2b = from_sexp(l[i + 7].named_value("arrow2b")?)?;
-        Ok(Dimension {
+        let mut i = IterAtom::new(s, "dimension")?;
+        let name = i.s("name")?;
+        let width = i.f_in_list("width")?;
+        let layer = i.t("layer")?;
+        let tstamp = i.maybe_s_in_list("tstamp");
+        let text = i.t("text")?;
+        let feature1 = i.t_in_list("feature1")?;
+        let feature2 = i.t_in_list("feature2")?;
+        let crossbar = i.t_in_list("crossbar")?;
+        let arrow1a = i.t_in_list("arrow1a")?;
+        let arrow1b = i.t_in_list("arrow1b")?;
+        let arrow2a = i.t_in_list("arrow2a")?;
+        let arrow2b = i.t_in_list("arrow2b")?;
+        i.close(Dimension {
             name: name,
             width: width,
             layer: layer,
@@ -543,27 +517,21 @@ impl FromSexp for Zone {
 
 impl FromSexp for Hatch {
     fn from_sexp(s: &Sexp) -> SResult<Hatch> {
-        let l = s.slice_atom_num("hatch", 2)?;
-        let style = l[0].string()?.clone();
-        let pitch = l[1].f()?;
-        Ok(Hatch {
-            style: style,
-            pitch: pitch,
-        })
+        let mut i = IterAtom::new(s, "hatch")?;
+        let h = Hatch {
+            style: i.s("style")?,
+            pitch: i.f("pitch")?,
+        };
+        i.close(h)
     }
 }
 
 impl FromSexp for ConnectPads {
     fn from_sexp(s: &Sexp) -> SResult<ConnectPads> {
-        let l = s.slice_atom("connect_pads")?;
-        let (connection, clearance) = if l.len() == 1 {
-            (None, l[0].named_value_f("clearance")?)
-        } else if l.len() == 2 {
-            (Some(l[0].string()?.clone()), l[1].named_value_f("clearance")?)
-        } else {
-            return Err("unknown extra elements in connect_pads".into());
-        };
-        Ok(ConnectPads {
+        let mut i = IterAtom::new(s, "connect_pads")?;
+        let connection = i.maybe_s();
+        let clearance = i.f_in_list("clearance")?;
+        i.close(ConnectPads {
             connection: connection,
             clearance: clearance,
         })
@@ -571,11 +539,11 @@ impl FromSexp for ConnectPads {
 }
 impl FromSexp for Keepout {
     fn from_sexp(s: &Sexp) -> SResult<Keepout> {
-        let l = s.slice_atom_num("keepout", 3)?;
-        let tracks = !l[0].named_value_string("tracks")?.starts_with("not");
-        let vias = !l[1].named_value_string("vias")?.starts_with("not");
-        let copperpour = !l[2].named_value_string("copperpour")?.starts_with("not");
-        Ok(Keepout {
+        let mut i = IterAtom::new(s, "keepout")?;
+        let tracks = !i.s_in_list("tracks")?.starts_with("not");
+        let vias = !i.s_in_list("vias")?.starts_with("not");
+        let copperpour = !i.s_in_list("copperpour")?.starts_with("not");
+        i.close(Keepout {
             tracks: tracks,
             vias: vias,
             copperpour: copperpour,

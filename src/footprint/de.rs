@@ -341,13 +341,6 @@ impl FromSexp for FpArc {
     }
 }
 
-
-fn parse_sublist<X: FromSexp>(s: &Sexp, name: &'static str) -> SResult<X> {
-    let x = &(s.slice_atom_num(name, 1)?)[0];
-    X::from_sexp(x)
-}
-
-
 // (model C_0603J.wrl (at (xyz 0 0 0)) (scale (xyz 1 1 1)) (rotate (xyz 0 0 0)))
 impl FromSexp for Model {
     fn from_sexp(s: &Sexp) -> SResult<Model> {
