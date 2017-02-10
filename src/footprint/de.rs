@@ -348,20 +348,16 @@ fn parse_sublist<X: FromSexp>(s: &Sexp, name: &'static str) -> SResult<X> {
 }
 
 
+// (model C_0603J.wrl (at (xyz 0 0 0)) (scale (xyz 1 1 1)) (rotate (xyz 0 0 0)))
 impl FromSexp for Model {
     fn from_sexp(s: &Sexp) -> SResult<Model> {
-        let v = s.slice_atom_num("model", 4)?;
-        let name = v[0].string()?.clone();
-        let at = parse_sublist(&v[1], "at")?;
-        let scale = parse_sublist(&v[2], "scale")?;
-        let rotate = parse_sublist(&v[3], "rotate")?;
-        let m = Model {
-            name: name,
-            at: at,
-            scale: scale,
-            rotate: rotate,
-        };
-        Ok(m)
+        let mut i = IterAtom::new(s, "model")?;
+        Ok(Model {
+            name: i.s("name")?,
+            at: i.t_in_list("at")?,
+            scale: i.t_in_list("scale")?,
+            rotate: i.t_in_list("rotate")?,
+        })
     }
 }
 
@@ -416,13 +412,10 @@ impl FromSexp for Element {
 
 impl FromSexp for Module {
     fn from_sexp(s: &Sexp) -> SResult<Module> {
-        let v = s.slice_atom("module")?;
-        if v.len() < 1 {
-            return Err("no name in module".into());
-        }
-        let name = v[0].string()?;
-        let mut module = Module::new(name.clone());
-        for e in &v[1..] {
+        let mut i = IterAtom::new(s, "module")?;
+        let name = i.s("name")?;
+        let mut module = Module::new(name);
+        for e in i.iter {
             let el = from_sexp(e)?;
             module.append(el)
         }

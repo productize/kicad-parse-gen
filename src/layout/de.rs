@@ -111,16 +111,12 @@ impl FromSexp for General {
 
 impl FromSexp for Area {
     fn from_sexp(s: &Sexp) -> SResult<Area> {
-        let l = s.slice_atom_num("area", 4)?;
-        let x1 = l[0].f()?;
-        let y1 = l[1].f()?;
-        let x2 = l[2].f()?;
-        let y2 = l[3].f()?;
+        let mut i = IterAtom::new(s, "area")?;
         Ok(Area {
-            x1: x1,
-            y1: y1,
-            x2: x2,
-            y2: y2,
+            x1: i.f("x1")?,
+            y1: i.f("y1")?,
+            x2: i.f("x2")?,
+            y2: i.f("y2")?,
         })
     }
 }
