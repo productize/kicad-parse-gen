@@ -182,12 +182,13 @@ impl FromSexp for SetupElement {
 impl FromSexp for NetClass {
     fn from_sexp(s: &Sexp) -> SResult<NetClass> {
         fn parse(e: &Sexp, name: &str) -> SResult<f64> {
-            let l = e.slice_atom(name)?;
-            l[0].f().map_err(From::from)
+            let mut i = IterAtom::new(e, name)?;
+            let r = i.f("element")?;
+            i.close(r)
         }
-        let l = s.slice_atom("net_class")?;
-        let name = l[0].string()?.clone();
-        let desc = l[1].string()?.clone();
+        let mut i = IterAtom::new(s, "net_class")?;
+        let name = i.s("name")?;
+        let desc = i.s("desc")?;
         let mut clearance = 0.1524;
         let mut trace_width = 0.2032;
         let mut via_dia = 0.675;
@@ -197,13 +198,13 @@ impl FromSexp for NetClass {
         let mut diff_pair_gap = None;
         let mut diff_pair_width = None;
         let mut nets = vec![];
-        for x in &l[2..] {
+        for x in i.iter {
             let list_name = x.list_name()?;
             let xn = &list_name[..];
             match xn {
                 "add_net" => {
-                    let l1 = x.slice_atom("add_net")?;
-                    nets.push(l1[0].string()?.clone())
+                    let l1 = x.named_value_s("add_net")?;
+                    nets.push(l1)
                 }
                 "clearance" => clearance = parse(x, xn)?,
                 "trace_width" => trace_width = parse(x, xn)?,
@@ -237,7 +238,7 @@ impl FromSexp for Setup {
     fn from_sexp(s: &Sexp) -> SResult<Setup> {
         let mut elements = vec![];
         let mut pcbplotparams = vec![];
-        let mut i = IterAtom::new(s, "setup")?;
+        let i = IterAtom::new(s, "setup")?;
         for v in i.iter {
             let n = v.list_name()?;
             if n == "pcbplotparams" {
@@ -266,13 +267,13 @@ fn parse_other(e: &Sexp) -> Element {
 
 impl FromSexp for GrText {
     fn from_sexp(s: &Sexp) -> SResult<GrText> {
-        let l = s.slice_atom("gr_text")?;
-        let value = l[0].string()?.clone();
+        let mut i = IterAtom::new(s, "gr_text")?;
+        let value = i.s("value")?;
         let mut layer = footprint::Layer::default();
         let mut tstamp = None;
         let mut at = footprint::At::default();
         let mut effects = footprint::Effects::default();
-        for x in &l[1..] {
+        for x in i.iter {
             let elem = from_sexp(x)?;
             match elem {
                 GrElement::At(x) => at = x,
@@ -299,8 +300,8 @@ impl FromSexp for GrElement {
             "end" => wrap(s, from_sexp, GrElement::End),
             "center" => wrap(s, from_sexp, GrElement::Center),
             "angle" => {
-                let l2 = s.slice_atom("angle")?;
-                Ok(GrElement::Angle(l2[0].f()?))
+                let l2 = s.named_value_f("angle")?;
+                Ok(GrElement::Angle(l2))
             }
             "layer" => wrap(s, from_sexp, GrElement::Layer),
             "width" => {
@@ -338,15 +339,14 @@ impl FromSexp for GrElement {
 
 impl FromSexp for GrLine {
     fn from_sexp(s: &Sexp) -> SResult<GrLine> {
-        // println!("GrLine: {}", s);
-        let l = s.slice_atom("gr_line")?;
+        let i = IterAtom::new(s, "gr_line")?;
         let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
         let mut angle = 0.0_f64;
         let mut layer = footprint::Layer::default();
         let mut width = 0.0_f64;
         let mut tstamp = None;
-        for x in l {
+        for x in i.iter {
             let elem = from_sexp(x)?;
             match elem {
                 GrElement::Start(x) => start = x,
@@ -371,14 +371,14 @@ impl FromSexp for GrLine {
 
 impl FromSexp for GrArc {
     fn from_sexp(s: &Sexp) -> SResult<GrArc> {
-        let l = s.slice_atom("gr_arc")?;
+        let i = IterAtom::new(s, "gr_arc")?;
         let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
         let mut angle = 0.0_f64;
         let mut layer = footprint::Layer::default();
         let mut width = 0.0_f64;
         let mut tstamp = None;
-        for x in l {
+        for x in i.iter {
             let elem = from_sexp(x)?;
             match elem {
                 GrElement::Start(x) => start = x,
@@ -403,13 +403,13 @@ impl FromSexp for GrArc {
 
 impl FromSexp for GrCircle {
     fn from_sexp(s: &Sexp) -> SResult<GrCircle> {
-        let l = s.slice_atom("gr_circle")?;
+        let i = IterAtom::new(s, "gr_circle")?;
         let mut center = footprint::Xy::new_empty(footprint::XyType::Center);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
         let mut layer = footprint::Layer::default();
         let mut width = 0.0_f64;
         let mut tstamp = None;
-        for x in l {
+        for x in i.iter {
             let elem = from_sexp(x)?;
             match elem {
                 GrElement::Center(x) => center = x,

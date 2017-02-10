@@ -263,6 +263,8 @@ enum Part {
 }
 
 // put here so it is accessible to all subfiles privately
+// TODO: get rid of GrElement, using IterAtom allows dealing
+// with the elements cleanly
 enum GrElement {
     Start(footprint::Xy),
     End(footprint::Xy),

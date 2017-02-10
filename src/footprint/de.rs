@@ -6,6 +6,17 @@ use Part;
 use wrap;
 use symbolic_expressions::iteratom::*;
 
+struct Offset(f64,f64);
+
+impl FromSexp for Offset {
+    fn from_sexp(s: &Sexp) -> SResult<Offset> {
+        let mut i = IterAtom::new(s, "offset")?;
+        let x = i.f("x")?;
+        let y = i.f("y")?;
+        i.close(Offset(x,y))
+    }
+}
+
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
 impl FromSexp for At {
     fn from_sexp(s: &Sexp) -> SResult<At> {
@@ -150,36 +161,15 @@ impl FromSexp for Net {
 
 impl FromSexp for Drill {
     fn from_sexp(s: &Sexp) -> SResult<Drill> {
+        let mut i = IterAtom::new(s, "drill")?;
         let mut drill = Drill::default();
-        let v = s.slice_atom("drill")?;
-        let mut i = 0;
-        let len = v.len();
-        // optional a shape, which can only be "oval"
-        let shape = v[i].string()?;
-        if let "oval" = &shape[..] {
-            drill.shape = Some(shape.clone());
-            i += 1;
-        }
-        // always at least one drill
-        let drill1 = v[i].f()?;
-        i += 1;
-        drill.width = drill1;
-        drill.height = drill1;
-        if i == len {
-            return Ok(drill);
-        }
-        match v[i] {
-            Sexp::String(_) => {
-                drill.height = v[i].f()?;
-            }
-            Sexp::Empty => (),
-            Sexp::List(_) => {
-                let mut i2 = IterAtom::new(&v[i], "offset")?;
-                drill.offset_x = i2.f("x")?;
-                drill.offset_y = i2.f("y")?;
-            }
-        }
-        Ok(drill)
+        drill.shape = i.maybe_literal_s("oval");
+        drill.width = i.f("width")?;
+        drill.height = i.maybe_f().unwrap_or(drill.width);
+        let offset:Offset = i.maybe_t().unwrap_or(Offset(0.0,0.0));
+        drill.offset_x = offset.0;
+        drill.offset_y = offset.1;
+        i.close(drill)
     }
 }
 
