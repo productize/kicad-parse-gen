@@ -1,9 +1,8 @@
 // (c) 2016-2017 Productize SPRL <joost@productize.be>
 
-use str_error;
-use Result;
 use layout::BoundingBox;
 use layout::Adjust;
+use symbolic_expressions::iteratom::SResult;
 
 /// a Kicad module, with a name and a list of elements
 #[derive(Debug,Clone)]
@@ -394,12 +393,12 @@ pub enum PadType {
 
 impl PadType {
     /// convert a &str to a pad type
-    pub fn from_string(s: &str) -> Result<PadType> {
+    pub fn from_string(s: &str) -> SResult<PadType> {
         match s {
             "smd" => Ok(PadType::Smd),
             "thru_hole" => Ok(PadType::Pth),
             "np_thru_hole" => Ok(PadType::NpPth),
-            x => str_error(format!("unknown PadType {}", x)),
+            x => Err(format!("unknown PadType {}", x).into()),
         }
     }
 }
@@ -419,13 +418,13 @@ pub enum PadShape {
 
 impl PadShape {
     /// convert a &str to a pad shape
-    pub fn from_string(s: &str) -> Result<PadShape> {
+    pub fn from_string(s: &str) -> SResult<PadShape> {
         match s {
             "rect" => Ok(PadShape::Rect),
             "circle" => Ok(PadShape::Circle),
             "oval" => Ok(PadShape::Oval),
             "trapezoid" => Ok(PadShape::Trapezoid),
-            x => str_error(format!("unknown PadShape: {}", x)),
+            x => Err(format!("unknown PadShape: {}", x).into()),
         }
     }
 }
@@ -507,7 +506,7 @@ pub struct Layer {
 
 impl Layer {
     /// create a layer from a String
-    pub fn from_string(s: &str) -> Result<Layer> {
+    pub fn from_string(s: &str) -> SResult<Layer> {
         let sp: Vec<&str> = s.split('.').collect();
         let mut side = LayerSide::None;
         let s_t = if sp.len() == 2 {
@@ -522,7 +521,7 @@ impl Layer {
                 "In1" => LayerSide::In1,
                 "In2" => LayerSide::In2,
                 "*" => LayerSide::Both,
-                x => return str_error(format!("unknown layer side {}", x)),
+                x => return Err(format!("unknown layer side {}", x).into()),
             };
             sp[1]
         } else {

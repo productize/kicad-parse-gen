@@ -11,7 +11,6 @@ use Result;
 use symbolic_expressions;
 use symbolic_expressions::IntoSexp;
 use formatter::KicadFormatter;
-use from_sexp;
 
 // pub use footprint;
 pub use footprint::data::*;
@@ -58,7 +57,8 @@ impl fmt::Display for Layer {
 /// parse a &str to a Kicad Module
 pub fn parse(s: &str) -> Result<Module> {
     let t = symbolic_expressions::parser::parse_str(s)?;
-    from_sexp(&t)
+    let s = symbolic_expressions::from_sexp(&t)?;
+    Ok(s)
 }
 
 mod data;

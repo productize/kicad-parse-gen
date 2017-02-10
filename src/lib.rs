@@ -11,25 +11,12 @@ extern crate error_chain;
 extern crate log;
 
 use std::fmt;
-use std::slice::Iter;
-use std::iter::Peekable;
 use std::path::{PathBuf, Path};
 
 pub use symbolic_expressions::Sexp;
 pub use error::*;
 
-/// convert from a symbolic-expression to something
-pub trait FromSexp
-    where Self: Sized
-{
-    /// convert from a symbolic-expression to something
-    fn from_sexp(&Sexp) -> Result<Self>;
-}
-
-/// convert from a symbolic-expression to something (dispatcher)
-pub fn from_sexp<T: FromSexp>(s: &Sexp) -> Result<T> {
-    T::from_sexp(s)
-}
+use symbolic_expressions::iteratom::SResult;
 
 /// read file utility wrapper function
 pub use util::read_file;
@@ -293,174 +280,12 @@ enum GrElement {
     Layers(footprint::Layers),
 }
 
-fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> Result<Y>
-    where F: Fn(&Sexp) -> Result<X>,
+fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> SResult<Y>
+    where F: Fn(&Sexp) -> SResult<X>,
           G: Fn(X) -> Y
 {
     Ok(wrapper(make(s)?))
 }
-
-/// Atom iterator wrapper
-pub struct IterAtom<'a> {
-    iter: Peekable<Iter<'a, Sexp>>,
-}
-
-// impl<'a> From<Iter<'a, Sexp>> for IterAtom<'a> {
-// fn from(i:Iter<'a, Sexp>) -> IterAtom<'a> {
-// IterAtom { iter: i }
-// }
-// }
-//
-
-impl<'a> IterAtom<'a> {
-    fn new(s: &'a Sexp, name: &str) -> Result<IterAtom<'a>> {
-        let i = s.iter_atom(name)?.peekable();
-        Ok(IterAtom { iter: i })
-    }
-
-    fn expect<T, F>(&mut self, sname: &str, name: &str, get: F) -> Result<T>
-        where F: Fn(&Sexp) -> Result<T>
-    {
-        match self.iter.next() {
-            Some(x) => get(x),
-            None => return Err(format!("missing {} field in {}", name, sname).into()),
-        }
-    }
-
-    fn optional<T, F>(&mut self, or: T, get: F) -> Result<T>
-        where F: Fn(&Sexp) -> Result<T>
-    {
-        let x = match self.iter.next() {
-            Some(x) => get(x)?,
-            None => or,
-        };
-        Ok(x)
-    }
-
-    /// expect an integer while iterating a `Sexp` list
-    pub fn i(&mut self, sname: &str, name: &str) -> Result<i64> {
-        self.expect(sname, name, |x| x.i().map_err(From::from))
-    }
-
-    /// expect a float while iterating a `Sexp` list
-    pub fn f(&mut self, sname: &str, name: &str) -> Result<f64> {
-        self.expect(sname, name, |x| x.f().map_err(From::from))
-    }
-
-    /// expect a String while iterating a `Sexp` list
-    pub fn s(&mut self, sname: &str, name: &str) -> Result<String> {
-        self.expect(sname,
-                    name,
-                    |x| x.string().map(|y| y.clone()).map_err(From::from))
-    }
-
-    /// expect a list contained String while iterating a `Sexp` list
-    pub fn sl(&mut self, sname: &str, name: &str) -> Result<String> {
-        self.expect(sname,
-                    name,
-                    |x| x.named_value_string(name).map(|y| y.clone()).map_err(From::from))
-    }
-
-    /// expect a list contained i64 while iterating a `Sexp` list
-    pub fn il(&mut self, sname: &str, name: &str) -> Result<i64> {
-        self.expect(sname, name, |x| x.named_value_i(name).map_err(From::from))
-    }
-
-    /// expect a list contained f64 while iterating a `Sexp` list
-    pub fn fl(&mut self, sname: &str, name: &str) -> Result<f64> {
-        self.expect(sname, name, |x| x.named_value_f(name).map_err(From::from))
-    }
-
-
-    /// expect a `Sexp` while iterating a `Sexp` list
-    pub fn t<T: FromSexp>(&mut self, sname: &str, name: &str) -> Result<T> {
-        self.expect(sname, name, |x| T::from_sexp(x))
-    }
-
-    /// optional integer while iterating a `Sexp` list
-    pub fn opt_i(&mut self, or: i64) -> Result<i64> {
-        self.optional(or, |x| x.i().map_err(From::from))
-    }
-
-    /// optional float while iterating a `Sexp` list
-    pub fn opt_f(&mut self, or: f64) -> Result<f64> {
-        self.optional(or, |x| x.f().map_err(From::from))
-    }
-
-    /// optional String while iterating a `Sexp` list
-    pub fn opt_s(&mut self, or: String) -> Result<String> {
-        self.optional(or, |x| x.string().map(|y| y.clone()).map_err(From::from))
-    }
-
-    /// optional `Sexp` while iterating a `Sexp` list
-    pub fn opt_t<T: FromSexp>(&mut self) -> Result<Option<T>> {
-        let x = match self.iter.next() {
-            Some(x) => {
-                let t: T = T::from_sexp(x)?;
-                Some(t)
-            }
-            None => None,
-        };
-        Ok(x)
-    }
-
-    /// expect remainder of iterator to be a `Vec<T>`
-    pub fn vec<T: FromSexp>(&mut self) -> Result<Vec<T>> {
-        let mut res = Vec::new();
-        loop {
-            match self.iter.next() {
-                None => break,
-                Some(e) => {
-                    let p = from_sexp(e)?;
-                    res.push(p);
-                }
-            }
-        }
-        Ok(res)
-    }
-
-    /// maybe a `Sexp` while iterating a `Sexp` list
-    pub fn maybe_t<T: FromSexp>(&mut self) -> Option<T> {
-        let res = match self.iter.peek() {
-            None => None,
-            Some(ref s) => {
-                match T::from_sexp(s) {
-                    Ok(t) => Some(t),
-                    Err(_) => None,
-                }
-            }
-        };
-        match res {
-            Some(x) => {
-                let _ = self.iter.next();
-                Some(x)
-            }
-            x => x,
-        }
-    }
-
-    /// maybe a `String` while iterating a `Sexp` list
-    pub fn maybe_s(&mut self) -> Option<String> {
-        let res = match self.iter.peek() {
-            None => None,
-            Some(s) => {
-                match s.string() {
-                    Ok(t) => Some(t.clone()),
-                    Err(_) => None,
-                }
-            }
-        };
-        match res {
-            Some(x) => {
-                let _ = self.iter.next();
-                Some(x)
-            }
-            x => x,
-        }
-    }
-}
-
-
 
 /// Kicad error handling code and types
 pub mod error;

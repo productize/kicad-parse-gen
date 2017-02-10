@@ -4,106 +4,66 @@
 // format: new-style
 
 // from parent
-use Result;
 use footprint;
 use wrap;
 use Sexp;
-use str_error;
-use FromSexp;
 use GrElement;
-use from_sexp;
-use IterAtom;
+use symbolic_expressions::iteratom::*;
 
 use layout::data::*;
 
 // TODO: switch more to IterAtom like in footprint/de.rs
 
-struct FillRadius(f64);
-
-impl FromSexp for FillRadius {
-    fn from_sexp(s: &Sexp) -> Result<FillRadius> {
-        let mut i = IterAtom::new(s, "radius")?;
-        Ok(FillRadius(i.f("radius", "value")?))
-    }
-}
-
-struct FillSmoothing(String);
-
-impl FromSexp for FillSmoothing {
-    fn from_sexp(s: &Sexp) -> Result<FillSmoothing> {
-        let mut i = IterAtom::new(s, "smoothing")?;
-        Ok(FillSmoothing(i.s("smoothing", "value")?))
-    }
-}
-
-struct FillMode(String);
-
-impl FromSexp for FillMode {
-    fn from_sexp(s: &Sexp) -> Result<FillMode> {
-        let mut i = IterAtom::new(s, "mode")?;
-        Ok(FillMode(i.s("mode", "value")?))
-    }
-}
-
-struct Priority(i64);
-
-impl FromSexp for Priority {
-    fn from_sexp(s: &Sexp) -> Result<Priority> {
-        let mut i = IterAtom::new(s, "priority")?;
-        Ok(Priority(i.i("priority", "value")?))
-    }
-}
-
 struct Version(i64);
 
 impl FromSexp for Version {
-    fn from_sexp(s: &Sexp) -> Result<Version> {
+    fn from_sexp(s: &Sexp) -> SResult<Version> {
         let mut i = IterAtom::new(s, "version")?;
-        Ok(Version(i.i("version", "value")?))
+        Ok(Version(i.i("value")?))
     }
 }
 
 struct Page(String);
 
 impl FromSexp for Page {
-    fn from_sexp(s: &Sexp) -> Result<Page> {
+    fn from_sexp(s: &Sexp) -> SResult<Page> {
         let mut i = IterAtom::new(s, "page")?;
-        Ok(Page(i.s("page", "value")?))
+        Ok(Page(i.s("value")?))
     }
 }
 
 struct Polygon(footprint::Pts);
 
 impl FromSexp for Polygon {
-    fn from_sexp(s: &Sexp) -> Result<Polygon> {
+    fn from_sexp(s: &Sexp) -> SResult<Polygon> {
         let mut i = IterAtom::new(s, "polygon")?;
-        Ok(Polygon(i.t("polygon", "pts")?))
+        Ok(Polygon(i.t("pts")?))
     }
 }
 
 struct FilledPolygon(footprint::Pts);
 
 impl FromSexp for FilledPolygon {
-    fn from_sexp(s: &Sexp) -> Result<FilledPolygon> {
+    fn from_sexp(s: &Sexp) -> SResult<FilledPolygon> {
         let mut i = IterAtom::new(s, "filled_polygon")?;
-        Ok(FilledPolygon(i.t("filled_polygon", "pts")?))
+        Ok(FilledPolygon(i.t("pts")?))
     }
 }
 
 struct FillSegments(footprint::Pts);
 
 impl FromSexp for FillSegments {
-    fn from_sexp(s: &Sexp) -> Result<FillSegments> {
+    fn from_sexp(s: &Sexp) -> SResult<FillSegments> {
         let mut i = IterAtom::new(s, "fill_segments")?;
-        Ok(FillSegments(i.t("fill_segments", "pts")?))
+        Ok(FillSegments(i.t("pts")?))
     }
 }
 
 impl FromSexp for Net {
-    fn from_sexp(s: &Sexp) -> Result<Net> {
+    fn from_sexp(s: &Sexp) -> SResult<Net> {
         let mut i = IterAtom::new(s, "net")?;
-        let num = i.i("net", "num")?;
-        let name = i.s("net", "name")?;
+        let num = i.i("num")?;
+        let name = i.s("name")?;
         Ok(Net {
             name: name,
             num: num,
@@ -112,10 +72,10 @@ impl FromSexp for Net {
 }
 
 impl FromSexp for Host {
-    fn from_sexp(s: &Sexp) -> Result<Host> {
+    fn from_sexp(s: &Sexp) -> SResult<Host> {
         let mut i = IterAtom::new(s, "host")?;
-        let tool = i.s("host", "tool")?;
-        let build = i.s("host", "build")?;
+        let tool = i.s("tool")?;
+        let build = i.s("build")?;
         Ok(Host {
             tool: tool,
             build: build,
@@ -124,17 +84,17 @@ impl FromSexp for Host {
 }
 
 impl FromSexp for General {
-    fn from_sexp(s: &Sexp) -> Result<General> {
+    fn from_sexp(s: &Sexp) -> SResult<General> {
         let mut i = IterAtom::new(s, "general")?;
-        let links = i.il("general", "links")?;
-        let no_connects = i.il("general", "no_connects")?;
-        let area: Area = i.t("general", "area")?;
-        let thickness = i.fl("general", "thickness")?;
-        let drawings = i.il("general", "drawings")?;
-        let tracks = i.il("general", "tracks")?;
-        let zones = i.il("general", "zones")?;
-        let modules = i.il("general", "modules")?;
-        let nets = i.il("general", "nets")?;
+        let links = i.i_in_list("links")?;
+        let no_connects = i.i_in_list("no_connects")?;
+        let area: Area = i.t("area")?;
+        let thickness = i.f_in_list("thickness")?;
+        let drawings = i.i_in_list("drawings")?;
+        let tracks = i.i_in_list("tracks")?;
+        let zones = i.i_in_list("zones")?;
+        let modules = i.i_in_list("modules")?;
+        let nets = i.i_in_list("nets")?;
         Ok(General {
             links: links,
             no_connects: no_connects,
@@ -150,7 +110,7 @@ impl FromSexp for General {
 }
 
 impl FromSexp for Area {
-    fn from_sexp(s: &Sexp) -> Result<Area> {
+    fn from_sexp(s: &Sexp) -> SResult<Area> {
         let l = s.slice_atom_num("area", 4)?;
         let x1 = l[0].f()?;
         let y1 = l[1].f()?;
@@ -165,24 +125,26 @@ impl FromSexp for Area {
     }
 }
 
-impl FromSexp for Vec<Layer> {
-    fn from_sexp(s: &Sexp) -> Result<Vec<Layer>> {
+struct LayerVec(Vec<Layer>);
+
+impl FromSexp for LayerVec {
+    fn from_sexp(s: &Sexp) -> SResult<LayerVec> {
         let mut v = vec![];
         let l = s.slice_atom("layers")?;
         for x in l {
             let layer = from_sexp(&x)?;
             v.push(layer)
         }
-        Ok(v)
+        Ok(LayerVec(v))
     }
 }
 
 impl FromSexp for Layer {
-    fn from_sexp(s: &Sexp) -> Result<Layer> {
+    fn from_sexp(s: &Sexp) -> SResult<Layer> {
         let l = s.list()?;
         // println!("making layer from {}", s);
         if l.len() != 3 && l.len() != 4 {
-            return str_error(format!("expecting 3 or 4 elements in layer: {}", s));
+            return Err(format!("expecting 3 or 4 elements in layer: {}", s).into());
         }
         let num = l[0].i()?;
         let layer = footprint::Layer::from_string(l[1].string()?)?;
@@ -206,21 +168,21 @@ impl FromSexp for Layer {
 }
 
 impl FromSexp for LayerType {
-    fn from_sexp(s: &Sexp) -> Result<LayerType> {
+    fn from_sexp(s: &Sexp) -> SResult<LayerType> {
         let x = s.string()?;
         match &x[..] {
             "signal" => Ok(LayerType::Signal),
             "user" => Ok(LayerType::User),
-            _ => str_error(format!("unknown layertype {} in {}", x, s)),
+            _ => Err(format!("unknown layertype {} in {}", x, s).into()),
         }
     }
 }
 
 impl FromSexp for SetupElement {
-    fn from_sexp(s: &Sexp) -> Result<SetupElement> {
+    fn from_sexp(s: &Sexp) -> SResult<SetupElement> {
         let l = s.list()?;
         if l.len() != 2 && l.len() != 3 {
-            return str_error(format!("expecting 2 or 3 elements in setup element: {}", s));
+            return Err(format!("expecting 2 or 3 elements in setup element: {}", s).into());
         }
         let name = l[0].string()?.clone();
         let value1 = l[1].string()?.clone();
@@ -237,8 +199,8 @@ impl FromSexp for SetupElement {
 }
 
 impl FromSexp for NetClass {
-    fn from_sexp(s: &Sexp) -> Result<NetClass> {
-        fn parse(e: &Sexp, name: &str) -> Result<f64> {
+    fn from_sexp(s: &Sexp) -> SResult<NetClass> {
+        fn parse(e: &Sexp, name: &str) -> SResult<f64> {
             let l = e.slice_atom(name)?;
             l[0].f().map_err(From::from)
         }
@@ -270,7 +232,7 @@ impl FromSexp for NetClass {
                 "uvia_drill" => uvia_drill = parse(x, xn)?,
                 "diff_pair_gap" => diff_pair_gap = Some(parse(x, xn)?),
                 "diff_pair_width" => diff_pair_width = Some(parse(x, xn)?),
-                _ => return str_error(format!("unknown net_class field {}", list_name)),
+                _ => return Err(format!("unknown net_class field {}", list_name).into()),
             }
         }
         let net_class = NetClass {
@@ -291,7 +253,7 @@ impl FromSexp for NetClass {
 }
 
 impl FromSexp for Setup {
-    fn from_sexp(s: &Sexp) -> Result<Setup> {
+    fn from_sexp(s: &Sexp) -> SResult<Setup> {
         let mut elements = vec![];
         let mut pcbplotparams = vec![];
         for v in s.slice_atom("setup")? {
@@ -325,7 +287,7 @@ fn parse_other(e: &Sexp) -> Element {
 }
 
 impl FromSexp for GrText {
-    fn from_sexp(s: &Sexp) -> Result<GrText> {
+    fn from_sexp(s: &Sexp) -> SResult<GrText> {
         let l = s.slice_atom("gr_text")?;
         let value = l[0].string()?.clone();
         let mut layer = footprint::Layer::default();
@@ -353,7 +315,7 @@ impl FromSexp for GrText {
 }
 
 impl FromSexp for GrElement {
-    fn from_sexp(s: &Sexp) -> Result<GrElement> {
+    fn from_sexp(s: &Sexp) -> SResult<GrElement> {
         match &(s.list_name()?)[..] {
             "start" => wrap(s, from_sexp, GrElement::Start),
             "end" => wrap(s, from_sexp, GrElement::End),
@@ -392,14 +354,14 @@ impl FromSexp for GrElement {
             "at" => wrap(s, from_sexp, GrElement::At),
             "layers" => wrap(s, from_sexp, GrElement::Layers),
             "effects" => wrap(s, from_sexp, GrElement::Effects),
-            x => str_error(format!("unknown element {} in {}", x, s)),
+            x => Err(format!("unknown element {} in {}", x, s).into()),
         }
     }
 }
 
 
 impl FromSexp for GrLine {
-    fn from_sexp(s: &Sexp) -> Result<GrLine> {
+    fn from_sexp(s: &Sexp) -> SResult<GrLine> {
         // println!("GrLine: {}", s);
         let l = s.slice_atom("gr_line")?;
         let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
@@ -432,7 +394,7 @@ impl FromSexp for GrLine {
 }
 
 impl FromSexp for GrArc {
-    fn from_sexp(s: &Sexp) -> Result<GrArc> {
+    fn from_sexp(s: &Sexp) -> SResult<GrArc> {
         let l = s.slice_atom("gr_arc")?;
         let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
@@ -464,7 +426,7 @@ impl FromSexp for GrArc {
 }
 
 impl FromSexp for GrCircle {
-    fn from_sexp(s: &Sexp) -> Result<GrCircle> {
+    fn from_sexp(s: &Sexp) -> SResult<GrCircle> {
         let l = s.slice_atom("gr_circle")?;
         let mut center = footprint::Xy::new_empty(footprint::XyType::Center);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
@@ -494,7 +456,7 @@ impl FromSexp for GrCircle {
 
 
 impl FromSexp for Dimension {
-    fn from_sexp(s: &Sexp) -> Result<Dimension> {
+    fn from_sexp(s: &Sexp) -> SResult<Dimension> {
         let l = s.slice_atom_num("dimension", 11)?;
         let name = l[0].string()?.clone();
         let width = {
@@ -532,22 +494,22 @@ impl FromSexp for Dimension {
 }
 
 impl FromSexp for Zone {
-    fn from_sexp(s: &Sexp) -> Result<Zone> {
+    fn from_sexp(s: &Sexp) -> SResult<Zone> {
         let mut i = IterAtom::new(s, "zone")?;
-        let net = i.il("zone", "net")?;
-        let net_name = i.sl("zone", "net_name")?;
-        let layer = i.t("zone", "layer")?;
-        let tstamp = i.sl("zone", "tstamp")?;
-        let hatch = i.t("zone", "hatch")?;
-        let priority: Option<Priority> = i.maybe_t();
+        let net = i.i_in_list("net")?;
+        let net_name = i.s_in_list("net_name")?;
+        let layer = i.t("layer")?;
+        let tstamp = i.s_in_list("tstamp")?;
+        let hatch = i.t("hatch")?;
+        let priority = i.maybe_i_in_list("priority");
         let priority = match priority {
-            Some(p) => p.0 as u64,
+            Some(p) => p as u64,
             None => 0_u64,
         };
-        let connect_pads = i.t("zone", "connect_pads")?;
-        let min_thickness = i.fl("zone", "min_thickness")?;
+        let connect_pads = i.t("connect_pads")?;
+        let min_thickness = i.f_in_list("min_thickness")?;
         let keepout = i.maybe_t();
-        let fill = i.t("zone", "fill")?;
+        let fill = i.t("fill")?;
         let mut polygons = vec![];
         let mut filled_polygons = vec![];
         let mut fill_segments = None;
@@ -584,7 +546,7 @@ impl FromSexp for Zone {
 }
 
 impl FromSexp for Hatch {
-    fn from_sexp(s: &Sexp) -> Result<Hatch> {
+    fn from_sexp(s: &Sexp) -> SResult<Hatch> {
         let l = s.slice_atom_num("hatch", 2)?;
         let style = l[0].string()?.clone();
         let pitch = l[1].f()?;
@@ -596,7 +558,7 @@ impl FromSexp for Hatch {
 }
 
 impl FromSexp for ConnectPads {
-    fn from_sexp(s: &Sexp) -> Result<ConnectPads> {
+    fn from_sexp(s: &Sexp) -> SResult<ConnectPads> {
         let l = s.slice_atom("connect_pads")?;
         let (connection, clearance) = if l.len() == 1 {
             (None, l[0].named_value_f("clearance")?)
@@ -612,7 +574,7 @@ impl FromSexp for ConnectPads {
     }
 }
 impl FromSexp for Keepout {
-    fn from_sexp(s: &Sexp) -> Result<Keepout> {
+    fn from_sexp(s: &Sexp) -> SResult<Keepout> {
         let l = s.slice_atom_num("keepout", 3)?;
         let tracks = !l[0].named_value_string("tracks")?.starts_with("not");
         let vias = !l[1].named_value_string("vias")?.starts_with("not");
@@ -627,33 +589,29 @@ impl FromSexp for Keepout {
 
 //  (fill yes (arc_segments 16) (thermal_gap 0.508) (thermal_bridge_width 0.508))
 impl FromSexp for Fill {
-    fn from_sexp(s: &Sexp) -> Result<Fill> {
+    fn from_sexp(s: &Sexp) -> SResult<Fill> {
         let mut i = IterAtom::new(s, "fill")?;
         let filled = i.maybe_s().is_some();
-        let mode: Option<FillMode> = i.maybe_t();
-        let arc_segments = i.il("fill", "arc_segments")?;
-        let thermal_gap = i.fl("fill", "thermal_gap")?;
-        let thermal_bridge_width = i.fl("fill", "thermal_bridge_width")?;
-        let smoothing: Option<FillSmoothing> = i.maybe_t();
-        let radius: Option<FillRadius> = i.maybe_t();
-        let radius = match radius {
-            Some(x) => x.0,
-            None => 0_f64,
-        };
+        let mode = i.maybe_s_in_list("mode").is_some();
+        let arc_segments = i.i_in_list("arc_segments")?;
+        let thermal_gap = i.f_in_list("thermal_gap")?;
+        let thermal_bridge_width = i.f_in_list("thermal_bridge_width")?;
+        let smoothing = i.maybe_s_in_list("smoothing");
+        let radius = i.maybe_f_in_list("radius").unwrap_or(0.0);
         Ok(Fill {
             filled: filled,
-            segment: mode.is_some(),
+            segment: mode,
             arc_segments: arc_segments,
             thermal_gap: thermal_gap,
             thermal_bridge_width: thermal_bridge_width,
-            smoothing: smoothing.map(|x| x.0),
+            smoothing: smoothing,
             corner_radius: radius,
         })
     }
 }
 
 impl FromSexp for Segment {
-    fn from_sexp(s: &Sexp) -> Result<Segment> {
+    fn from_sexp(s: &Sexp) -> SResult<Segment> {
         let i = IterAtom::new(s, "segment")?;
         let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
         let mut end = footprint::Xy::new_empty(footprint::XyType::End);
@@ -688,7 +646,7 @@ impl FromSexp for Segment {
     }
 }
 impl FromSexp for Via {
-    fn from_sexp(s: &Sexp) -> Result<Via> {
+    fn from_sexp(s: &Sexp) -> SResult<Via> {
         let i = IterAtom::new(s, "via")?;
         let mut at = footprint::At::default();
         let mut size = 0.0_f64;
@@ -717,7 +675,7 @@ impl FromSexp for Via {
 }
 
 impl FromSexp for Layout {
-    fn from_sexp(s: &Sexp) -> Result<Layout> {
+    fn from_sexp(s: &Sexp) -> SResult<Layout> {
         let i = IterAtom::new(s, "kicad_pcb")?;
         let mut layout = Layout::default();
         for e in i.iter {
@@ -726,7 +684,7 @@ impl FromSexp for Layout {
                 "host" => layout.host = from_sexp(e)?,
                 "general" => layout.general = from_sexp(&e)?,
                 "page" => layout.page = Page::from_sexp(&e)?.0,
-                "layers" => layout.layers = from_sexp(e)?,
+                "layers" => layout.layers = LayerVec::from_sexp(e)?.0,
                 "module" => {
                     let module = wrap(e, from_sexp, Element::Module)?;
                     layout.elements.push(module)
