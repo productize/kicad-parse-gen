@@ -90,8 +90,16 @@ pub struct Zone {
 }
 
 impl Adjust for Zone {
-    fn adjust(&mut self, _x: f64, _y: f64) {
-        panic!("adjust not possible due to zone not fully implemented")
+    fn adjust(&mut self, x: f64, y: f64) {
+        for p in &mut self.polygons {
+            p.adjust(x,y)
+        }
+        for p in &mut self.filled_polygons {
+            p.adjust(x,y)
+        }
+        for p in &mut self.fill_segments {
+            p.adjust(x,y)
+        }
     }
 }
 /// a zone hatch
