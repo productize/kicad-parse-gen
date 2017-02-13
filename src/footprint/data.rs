@@ -165,6 +165,14 @@ impl BoundingBox for Element {
             Element::FpPoly(ref x) => x.bounding_box(),
             Element::FpLine(ref x) => x.bounding_box(),
             Element::FpCircle(ref x) => x.bounding_box(),
+            Element::FpText(ref x) => x.bounding_box(),
+            Element::At(_) |
+            Element::Layer(_) |
+            Element::TEdit(_) |
+            Element::Descr(_) |
+            Element::Path(_) |
+            Element::Model(_) |
+            Element::TStamp(_) => Bound::default(),
             ref e => {
                 warn!("bound requested for unknown element: {:?}", e);
                 Bound::default()
@@ -188,6 +196,14 @@ pub struct FpText {
     pub effects: Effects,
     /// is it a hidden text
     pub hide: bool,
+}
+
+impl BoundingBox for FpText {
+    fn bounding_box(&self) -> Bound {
+        let (x,y) = (self.at.x, self.at.y);
+        debug!("bound for FpText is poor");
+        Bound::new(x,y,x,y)
+    }
 }
 
 impl FpText {
