@@ -106,7 +106,12 @@ impl BoundingBox for Module {
         let (x,y) = self.at();
         let mut b = Bound::new(x,y,x,y);
         for element in &self.elements {
-            b.update(&element.bounding_box());
+            let mut b2 = element.bounding_box();
+             b2.x1 += b.x1;
+             b2.y1 += b.y1;
+             b2.x2 += b.x2;
+             b2.y2 += b.y2;
+            b.update(&b2);
         }
         b.swap_if_needed();
         b
