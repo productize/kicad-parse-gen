@@ -6,14 +6,14 @@ use Part;
 use wrap;
 use symbolic_expressions::iteratom::*;
 
-struct Offset(f64,f64);
+struct Offset(f64, f64);
 
 impl FromSexp for Offset {
     fn from_sexp(s: &Sexp) -> SResult<Offset> {
         let mut i = IterAtom::new(s, "offset")?;
         let x = i.f("x")?;
         let y = i.f("y")?;
-        i.close(Offset(x,y))
+        i.close(Offset(x, y))
     }
 }
 
@@ -110,15 +110,15 @@ fn parse_part_float<F>(e: &Sexp, make: F) -> SResult<Part>
 
 impl FromSexp for Xy {
     fn from_sexp(s: &Sexp) -> SResult<Xy> {
-        let name:&str = &s.list_name()?[..];
-        let t:SResult<XyType> = match name {
-                "xy" => Ok(XyType::Xy),
-                "start" => Ok(XyType::Start),
-                "end" => Ok(XyType::End),
-                "size" => Ok(XyType::Size),
-                "center" => Ok(XyType::Center),
-                "rect_delta" => Ok(XyType::RectDelta),
-                x => Err(format!("unknown XyType {}", x).into()),
+        let name: &str = &s.list_name()?[..];
+        let t: SResult<XyType> = match name {
+            "xy" => Ok(XyType::Xy),
+            "start" => Ok(XyType::Start),
+            "end" => Ok(XyType::End),
+            "size" => Ok(XyType::Size),
+            "center" => Ok(XyType::Center),
+            "rect_delta" => Ok(XyType::RectDelta),
+            x => Err(format!("unknown XyType {}", x).into()),
         };
         let t = t?;
         let mut i = IterAtom::new(s, name)?;
@@ -166,7 +166,7 @@ impl FromSexp for Drill {
         drill.shape = i.maybe_literal_s("oval");
         drill.width = i.f("width")?;
         drill.height = i.maybe_f().unwrap_or(drill.width);
-        let offset:Offset = i.maybe_t().unwrap_or(Offset(0.0,0.0));
+        let offset: Offset = i.maybe_t().unwrap_or(Offset(0.0, 0.0));
         drill.offset_x = offset.0;
         drill.offset_y = offset.1;
         i.close(drill)

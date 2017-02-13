@@ -5,7 +5,7 @@ use Result;
 use str_error;
 use footprint;
 use Sexp;
-use layout::{Adjust,BoundingBox,Bound};
+use layout::{Adjust, BoundingBox, Bound};
 
 /// a Kicad layout
 #[derive(Debug)]
@@ -92,13 +92,13 @@ pub struct Zone {
 impl Adjust for Zone {
     fn adjust(&mut self, x: f64, y: f64) {
         for p in &mut self.polygons {
-            p.adjust(x,y)
+            p.adjust(x, y)
         }
         for p in &mut self.filled_polygons {
-            p.adjust(x,y)
+            p.adjust(x, y)
         }
         for p in &mut self.fill_segments {
-            p.adjust(x,y)
+            p.adjust(x, y)
         }
     }
 }
@@ -352,7 +352,7 @@ impl BoundingBox for GrLine {
         let y1 = self.start.y.min(self.end.y);
         let x2 = self.start.x.max(self.end.x);
         let y2 = self.start.y.max(self.end.y);
-        Bound::new(x1,y1,x2,y2)
+        Bound::new(x1, y1, x2, y2)
     }
 }
 
@@ -386,7 +386,7 @@ impl BoundingBox for GrArc {
         let y1 = self.start.y.min(self.end.y);
         let x2 = self.start.x.max(self.end.x);
         let y2 = self.start.y.max(self.end.y);
-        Bound::new(x1,y1,x2,y2)
+        Bound::new(x1, y1, x2, y2)
     }
 }
 
@@ -414,12 +414,16 @@ impl Adjust for GrCircle {
         self.end.y += y;
     }
 }
-    
+
 impl BoundingBox for GrCircle {
     fn bounding_box(&self) -> Bound {
-        let r = (self.center.x - self.end.x)*(self.center.x - self.end.x) + (self.center.y - self.end.y)*(self.center.y - self.end.y);
+        let r = (self.center.x - self.end.x) * (self.center.x - self.end.x) +
+                (self.center.y - self.end.y) * (self.center.y - self.end.y);
         let r = r.sqrt();
-        Bound::new(self.center.x-r,self.center.y-r, self.center.x+r, self.center.y+r)
+        Bound::new(self.center.x - r,
+                   self.center.y - r,
+                   self.center.x + r,
+                   self.center.y + r)
     }
 }
 
@@ -513,7 +517,7 @@ impl BoundingBox for Segment {
         let y1 = self.start.y.min(self.end.y);
         let x2 = self.start.x.max(self.end.x);
         let y2 = self.start.y.max(self.end.y);
-        Bound::new(x1,y1,x2,y2)
+        Bound::new(x1, y1, x2, y2)
     }
 }
 
@@ -545,7 +549,7 @@ impl BoundingBox for Via {
         let y1 = self.at.y - self.size;
         let x2 = self.at.x + self.size;
         let y2 = self.at.y + self.size;
-        Bound::new(x1,y1,x2,y2)
+        Bound::new(x1, y1, x2, y2)
     }
 }
 

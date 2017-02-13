@@ -1,4 +1,4 @@
-// (c) 2016-2017 Joost Yervante Damad <joost@productize.be>
+// (c) 2016-2017 Productize SPRL <joost@productize.be>
 
 // extension: .sch
 // format: old-style

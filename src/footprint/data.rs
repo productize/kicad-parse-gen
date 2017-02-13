@@ -12,6 +12,10 @@ pub struct Module {
     pub elements: Vec<Element>,
 }
 
+trait Named {
+    fn name(&self) -> &'static str;
+}
+
 impl Module {
     /// create a Module
     pub fn new(name: String) -> Module {
@@ -103,17 +107,19 @@ impl Module {
 
 impl BoundingBox for Module {
     fn bounding_box(&self) -> Bound {
-        let (x,y) = self.at();
-        let mut b = Bound::new(x,y,x,y);
+        let (x, y) = self.at();
+        let mut b = Bound::new(x, y, x, y);
         for element in &self.elements {
             let mut b2 = element.bounding_box();
-             b2.x1 += b.x1;
-             b2.y1 += b.y1;
-             b2.x2 += b.x2;
-             b2.y2 += b.y2;
+            b2.x1 += x;
+            b2.y1 += y;
+            b2.x2 += x;
+            b2.y2 += y;
+            //trace!("{}: {:?}", element.name(), b2);
             b.update(&b2);
         }
         b.swap_if_needed();
+        //trace!("Module {} bb: {:?}", self.name, b);
         b
     }
 }
@@ -165,7 +171,7 @@ pub enum Element {
 
 impl BoundingBox for Element {
     fn bounding_box(&self) -> Bound {
-        match *self {
+        let bb = match *self {
             Element::Pad(ref x) => x.bounding_box(),
             Element::FpPoly(ref x) => x.bounding_box(),
             Element::FpLine(ref x) => x.bounding_box(),
@@ -182,6 +188,31 @@ impl BoundingBox for Element {
                 warn!("bound requested for unknown element: {:?}", e);
                 Bound::default()
             }
+        };
+        bb
+    }
+}
+
+impl Named for Element {
+    fn name(&self) -> &'static str {
+        match *self {
+            Element::Pad(_) => "Pad",
+            Element::FpPoly(_) => "FpPoly",
+            Element::FpLine(_) => "FpLine",
+            Element::FpCircle(_) => "FpCircle",
+            Element::FpArc(_) => "FpArc",
+            Element::FpText(_) => "FpText",
+            Element::At(_) => "At",
+            Element::Layer(_) => "Layer",
+            Element::TEdit(_) => "TEdit",
+            Element::Descr(_) => "Descr",
+            Element::Path(_) => "Path",
+            Element::Model(_) => "Model",
+            Element::TStamp(_) => "Tstamp",
+            Element::SolderMaskMargin(_) => "SolderMaskMargin",
+            Element::Tags(_) => "Tags",
+            Element::Attr(_) => "Attr",
+            Element::Locked => "Locked",
         }
     }
 }
@@ -205,9 +236,9 @@ pub struct FpText {
 
 impl BoundingBox for FpText {
     fn bounding_box(&self) -> Bound {
-        let (x,y) = (self.at.x, self.at.y);
+        let (x, y) = (self.at.x, self.at.y);
         debug!("bound for FpText is poor");
-        Bound::new(x,y,x,y)
+        Bound::new(x, y, x, y)
     }
 }
 
@@ -376,7 +407,7 @@ impl BoundingBox for Pts {
     fn bounding_box(&self) -> Bound {
         let mut b = Bound::default();
         for e in &self.elements {
-            let b2 =Bound::new(e.x,e.y,e.x,e.y);
+            let b2 = Bound::new(e.x, e.y, e.x, e.y);
             b.update(&b2);
         }
         b.swap_if_needed();
@@ -663,7 +694,10 @@ impl BoundingBox for Pad {
         } else {
             (self.size.y, self.size.x)
         };
-        Bound::new(x - dx / 2.0, y - dy / 2.0, x + dx / 2.0, y + dy / 2.0)
+        Bound::new(x - dx / 2.0,
+                   y - dy / 2.0,
+                   x + dx / 2.0,
+                            y + dy / 2.0)
     }
 }
 
@@ -679,7 +713,6 @@ pub struct FpPoly {
 }
 
 impl BoundingBox for FpPoly {
-    
     fn bounding_box(&self) -> Bound {
         let mut b = Bound::default();
         for p in &self.pts.elements {
@@ -751,7 +784,10 @@ impl BoundingBox for FpCircle {
         let dy = self.center.y - self.end.y;
         let d2 = dx * dx + dy * dy;
         let d = d2.sqrt();
-        Bound::new(self.center.x-d, self.center.y-d, self.center.x+d, self.center.y+d)
+        Bound::new(self.center.x - d,
+                   self.center.y - d,
+                   self.center.x + d,
+                   self.center.y + d)
     }
 }
 

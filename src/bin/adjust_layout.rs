@@ -18,7 +18,7 @@ fn main() {
     let name = args.next().unwrap();
     let name = PathBuf::from(name);
     let mut layout = kicad::read_layout(&name).unwrap();
-    layout.adjust(100.0,0.0);
+    layout.adjust(100.0, 0.0);
     let s = kicad::layout::layout_to_string(&layout, 0).unwrap();
     info!("{}", name.display());
     println!("{}", s)

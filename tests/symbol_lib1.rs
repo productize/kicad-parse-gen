@@ -1,4 +1,4 @@
-// (c) 2016-2017 Joost Yervante Damad <joost@productize.be>
+// (c) 2016-2017 Productize SPRL <joost@productize.be>
 
 extern crate kicad_parse_gen as kicad;
 
