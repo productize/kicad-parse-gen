@@ -1,7 +1,6 @@
 // (c) 2016-2017 Productize SPRL <joost@productize.be>
 
-use layout::BoundingBox;
-use layout::Adjust;
+use layout::{Adjust, Bound, BoundingBox};
 use symbolic_expressions::iteratom::SResult;
 
 /// a Kicad module, with a name and a list of elements
@@ -103,30 +102,14 @@ impl Module {
 }
 
 impl BoundingBox for Module {
-    fn bounding_box(&self) -> (f64, f64, f64, f64) {
-        let mut x1 = 10000.0_f64;
-        let mut y1 = 10000.0_f64;
-        let mut x2 = 0.0_f64;
-        let mut y2 = 0.0_f64;
-        let (x, y) = self.at();
+    fn bounding_box(&self) -> Bound {
+        let (x,y) = self.at();
+        let mut b = Bound::new(x,y,x,y);
         for element in &self.elements {
-            let (x1a, y1a, x2a, y2a) = element.bounding_box();
-            x1 = x1.min(x + x1a);
-            y1 = y1.min(y + y1a);
-            x2 = x2.max(x + x2a);
-            y2 = y2.max(y + y2a);
+            b.update(&element.bounding_box());
         }
-        let (x1, x2) = if x1 < x2 {
-            (x1, x2)
-        } else {
-            (x2, x1)
-        };
-        let (y1, y2) = if y1 < y2 {
-            (y1, y2)
-        } else {
-            (y2, y1)
-        };
-        (x1, y1, x2, y2)
+        b.swap_if_needed();
+        b
     }
 }
 
@@ -176,13 +159,16 @@ pub enum Element {
 }
 
 impl BoundingBox for Element {
-    fn bounding_box(&self) -> (f64, f64, f64, f64) {
+    fn bounding_box(&self) -> Bound {
         match *self {
             Element::Pad(ref x) => x.bounding_box(),
             Element::FpPoly(ref x) => x.bounding_box(),
             Element::FpLine(ref x) => x.bounding_box(),
             Element::FpCircle(ref x) => x.bounding_box(),
-            _ => (0.0, 0.0, 0.0, 0.0),
+            ref e => {
+                warn!("bound requested for unknown element: {:?}", e);
+                Bound::default()
+            }
         }
     }
 }
@@ -362,6 +348,18 @@ impl Adjust for Pts {
         for e in &mut self.elements {
             e.adjust(x, y)
         }
+    }
+}
+
+impl BoundingBox for Pts {
+    fn bounding_box(&self) -> Bound {
+        let mut b = Bound::default();
+        for e in &self.elements {
+            let b2 =Bound::new(e.x,e.y,e.x,e.y);
+            b.update(&b2);
+        }
+        b.swap_if_needed();
+        b
     }
 }
 
@@ -636,7 +634,7 @@ impl Pad {
 }
 
 impl BoundingBox for Pad {
-    fn bounding_box(&self) -> (f64, f64, f64, f64) {
+    fn bounding_box(&self) -> Bound {
         let x = self.at.x;
         let y = self.at.y;
         let (dx, dy) = if self.at.rot < 0.1 {
@@ -644,7 +642,7 @@ impl BoundingBox for Pad {
         } else {
             (self.size.y, self.size.x)
         };
-        (x - dx / 2.0, y - dy / 2.0, x + dx / 2.0, y + dy / 2.0)
+        Bound::new(x - dx / 2.0, y - dy / 2.0, x + dx / 2.0, y + dy / 2.0)
     }
 }
 
@@ -659,20 +657,16 @@ pub struct FpPoly {
     pub layer: Layer,
 }
 
-impl FpPoly {
-    /// bounding box of a polygon
-    pub fn bounding_box(&self) -> (f64, f64, f64, f64) {
-        let mut x1 = 10000.0_f64;
-        let mut y1 = 10000.0_f64;
-        let mut x2 = 0.0_f64;
-        let mut y2 = 0.0_f64;
+impl BoundingBox for FpPoly {
+    
+    fn bounding_box(&self) -> Bound {
+        let mut b = Bound::default();
         for p in &self.pts.elements {
-            x1 = x1.min(p.x);
-            y1 = y1.min(p.y);
-            x2 = x2.max(p.x);
-            y2 = y2.max(p.y);
+            let b2 = Bound::new(p.x, p.y, p.x, p.y);
+            b.update(&b2);
         }
-        (x1, y2, x2, y2)
+        b.swap_if_needed();
+        b
     }
 }
 
@@ -701,16 +695,8 @@ impl Default for FpLine {
 }
 
 impl BoundingBox for FpLine {
-    fn bounding_box(&self) -> (f64, f64, f64, f64) {
-        let mut x1 = 10000.0_f64;
-        let mut y1 = 10000.0_f64;
-        let mut x2 = 0.0_f64;
-        let mut y2 = 0.0_f64;
-        x1 = x1.min(self.start.x);
-        y1 = y1.min(self.start.y);
-        x2 = x2.max(self.end.x);
-        y2 = y2.max(self.end.y);
-        (x1, y1, x2, y2)
+    fn bounding_box(&self) -> Bound {
+        Bound::new(self.start.x, self.start.y, self.end.x, self.end.y)
     }
 }
 
@@ -739,20 +725,12 @@ impl Default for FpCircle {
 }
 
 impl BoundingBox for FpCircle {
-    fn bounding_box(&self) -> (f64, f64, f64, f64) {
-        let mut x1 = 10000.0_f64;
-        let mut y1 = 10000.0_f64;
-        let mut x2 = 0.0_f64;
-        let mut y2 = 0.0_f64;
+    fn bounding_box(&self) -> Bound {
         let dx = self.center.x - self.end.x;
         let dy = self.center.y - self.end.y;
         let d2 = dx * dx + dy * dy;
         let d = d2.sqrt();
-        x1 = x1.min(self.center.x - d);
-        y1 = y1.min(self.center.y - d);
-        x2 = x2.max(self.center.x + d);
-        y2 = y2.max(self.center.y + d);
-        (x1, y1, x2, y2)
+        Bound::new(self.center.x-d, self.center.y-d, self.center.x+d, self.center.y+d)
     }
 }
 

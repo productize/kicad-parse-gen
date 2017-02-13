@@ -5,7 +5,7 @@ use Result;
 use str_error;
 use footprint;
 use Sexp;
-use layout::Adjust;
+use layout::{Adjust,BoundingBox,Bound};
 
 /// a Kicad layout
 #[derive(Debug)]
@@ -102,6 +102,24 @@ impl Adjust for Zone {
         }
     }
 }
+
+impl BoundingBox for Zone {
+    fn bounding_box(&self) -> Bound {
+        let mut b = Bound::default();
+        for p in &self.polygons {
+            b.update(&p.bounding_box());
+        }
+        for p in &self.filled_polygons {
+            b.update(&p.bounding_box());
+        }
+        for p in &self.fill_segments {
+            b.update(&p.bounding_box());
+        }
+        b.swap_if_needed();
+        b
+    }
+}
+
 /// a zone hatch
 #[derive(Clone,Debug)]
 pub struct Hatch {
@@ -297,6 +315,13 @@ impl Adjust for GrText {
     }
 }
 
+impl BoundingBox for GrText {
+    fn bounding_box(&self) -> Bound {
+        debug!("poor bounding box for GrText");
+        Bound::new(self.at.x, self.at.y, self.at.x, self.at.y)
+    }
+}
+
 /// line
 #[derive(Clone,Debug)]
 pub struct GrLine {
@@ -318,6 +343,16 @@ impl Adjust for GrLine {
     fn adjust(&mut self, x: f64, y: f64) {
         self.start.adjust(x, y);
         self.end.adjust(x, y)
+    }
+}
+
+impl BoundingBox for GrLine {
+    fn bounding_box(&self) -> Bound {
+        let x1 = self.start.x.min(self.end.x);
+        let y1 = self.start.y.min(self.end.y);
+        let x2 = self.start.x.max(self.end.x);
+        let y2 = self.start.y.max(self.end.y);
+        Bound::new(x1,y1,x2,y2)
     }
 }
 
@@ -345,6 +380,16 @@ impl Adjust for GrArc {
     }
 }
 
+impl BoundingBox for GrArc {
+    fn bounding_box(&self) -> Bound {
+        let x1 = self.start.x.min(self.end.x);
+        let y1 = self.start.y.min(self.end.y);
+        let x2 = self.start.x.max(self.end.x);
+        let y2 = self.start.y.max(self.end.y);
+        Bound::new(x1,y1,x2,y2)
+    }
+}
+
 /// gr_circle
 // (gr_circle (center 178.6 68.8) (end 176.1 68.7) (layer Eco2.User) (width 0.2))
 #[derive(Clone,Debug)]
@@ -367,6 +412,14 @@ impl Adjust for GrCircle {
         self.center.y += y;
         self.end.x += x;
         self.end.y += y;
+    }
+}
+    
+impl BoundingBox for GrCircle {
+    fn bounding_box(&self) -> Bound {
+        let r = (self.center.x - self.end.x)*(self.center.x - self.end.x) + (self.center.y - self.end.y)*(self.center.y - self.end.y);
+        let r = r.sqrt();
+        Bound::new(self.center.x-r,self.center.y-r, self.center.x+r, self.center.y+r)
     }
 }
 
@@ -412,6 +465,21 @@ impl Adjust for Dimension {
     }
 }
 
+impl BoundingBox for Dimension {
+    fn bounding_box(&self) -> Bound {
+        let mut b = Bound::default();
+        b.update(&self.text.bounding_box());
+        b.update(&self.feature1.bounding_box());
+        b.update(&self.feature2.bounding_box());
+        b.update(&self.crossbar.bounding_box());
+        b.update(&self.arrow1a.bounding_box());
+        b.update(&self.arrow1b.bounding_box());
+        b.update(&self.arrow2a.bounding_box());
+        b.update(&self.arrow2b.bounding_box());
+        b
+    }
+}
+
 /// segment
 // (segment (start 117.5548 123.4602) (end 118.3848 122.6302) (width 0.2032) (layer B.Cu) (net 0) (tstamp 55E99398))
 #[derive(Clone,Debug)]
@@ -439,6 +507,16 @@ impl Adjust for Segment {
     }
 }
 
+impl BoundingBox for Segment {
+    fn bounding_box(&self) -> Bound {
+        let x1 = self.start.x.min(self.end.x);
+        let y1 = self.start.y.min(self.end.y);
+        let x2 = self.start.x.max(self.end.x);
+        let y2 = self.start.y.max(self.end.y);
+        Bound::new(x1,y1,x2,y2)
+    }
+}
+
 /// via
 // (via (at 132.1948 121.2202) (size 0.675) (drill 0.25) (layers F.Cu B.Cu) (net 19))
 #[derive(Clone,Debug)]
@@ -461,6 +539,16 @@ impl Adjust for Via {
     }
 }
 
+impl BoundingBox for Via {
+    fn bounding_box(&self) -> Bound {
+        let x1 = self.at.x - self.size;
+        let y1 = self.at.y - self.size;
+        let x2 = self.at.x + self.size;
+        let y2 = self.at.y + self.size;
+        Bound::new(x1,y1,x2,y2)
+    }
+}
+
 impl Default for Layout {
     fn default() -> Layout {
         Layout {
@@ -480,6 +568,17 @@ impl Adjust for Layout {
         for e in &mut self.elements {
             e.adjust(x, y)
         }
+    }
+}
+
+impl BoundingBox for Layout {
+    fn bounding_box(&self) -> Bound {
+        let mut bound = Bound::default();
+        for e in &self.elements {
+            bound.update(&e.bounding_box());
+        }
+        bound.swap_if_needed();
+        bound
     }
 }
 
@@ -736,6 +835,25 @@ impl Adjust for Element {
             Element::Net(_) => (),
             Element::NetClass(_) => (),
             Element::Other(_) => (),
+        }
+    }
+}
+
+impl BoundingBox for Element {
+    fn bounding_box(&self) -> Bound {
+        match *self {
+            Element::Module(ref e) => e.bounding_box(),
+            Element::GrText(ref e) => e.bounding_box(),
+            Element::GrLine(ref e) => e.bounding_box(),
+            Element::GrArc(ref e) => e.bounding_box(),
+            Element::GrCircle(ref e) => e.bounding_box(),
+            Element::Dimension(ref e) => e.bounding_box(),
+            Element::Segment(ref e) => e.bounding_box(),
+            Element::Via(ref e) => e.bounding_box(),
+            Element::Zone(ref e) => e.bounding_box(),
+            Element::Net(_) => Bound::default(),
+            Element::NetClass(_) => Bound::default(),
+            Element::Other(_) => Bound::default(),
         }
     }
 }
