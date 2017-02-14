@@ -115,11 +115,11 @@ impl BoundingBox for Module {
             b2.y1 += y;
             b2.x2 += x;
             b2.y2 += y;
-            //trace!("{}: {:?}", element.name(), b2);
+            // trace!("{}: {:?}", element.name(), b2);
             b.update(&b2);
         }
         b.swap_if_needed();
-        //trace!("Module {} bb: {:?}", self.name, b);
+        // trace!("Module {} bb: {:?}", self.name, b);
         b
     }
 }
@@ -694,10 +694,7 @@ impl BoundingBox for Pad {
         } else {
             (self.size.y, self.size.x)
         };
-        Bound::new(x - dx / 2.0,
-                   y - dy / 2.0,
-                   x + dx / 2.0,
-                            y + dy / 2.0)
+        Bound::new(x - dx / 2.0, y - dy / 2.0, x + dx / 2.0, y + dy / 2.0)
     }
 }
 

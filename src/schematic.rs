@@ -317,7 +317,7 @@ impl BoundingBox for Element {
             Element::Other(_) => {
                 debug!("unhandled schematic element for bounding box");
                 Bound::default()
-            },
+            }
         }
     }
 }
@@ -786,7 +786,10 @@ pub struct Sheet {
 
 impl BoundingBox for Sheet {
     fn bounding_box(&self) -> Bound {
-        Bound::new_from_i64(self.x, self.y - 100, self.x + self.dimx, self.y + self.dimy + 100)
+        Bound::new_from_i64(self.x,
+                            self.y - 100,
+                            self.x + self.dimx,
+                            self.y + self.dimy + 100)
     }
 }
 
