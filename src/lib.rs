@@ -289,6 +289,85 @@ fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> SResult<Y>
     Ok(wrapper(make(s)?))
 }
 
+#[derive(Debug)]
+/// A bounding box
+pub struct Bound {
+    /// smaller x
+    pub x1: f64,
+    /// smaller y
+    pub y1: f64,
+    /// bigger x
+    pub x2: f64,
+    /// bigger y
+    pub y2: f64,
+}
+
+impl Default for Bound {
+    fn default() -> Bound {
+        Bound {
+            x1: 100000.0,
+            y1: 100000.0,
+            x2: 0.0,
+            y2: 0.0,
+        }
+    }
+}
+
+impl Bound {
+    /// create a new bound
+    pub fn new(x1: f64, y1: f64, x2: f64, y2: f64) -> Bound {
+        Bound {
+            x1: x1,
+            y1: y1,
+            x2: x2,
+            y2: y2,
+        }
+    }
+    /// create a new bound
+    pub fn new_from_i64(x1: i64, y1: i64, x2: i64, y2: i64) -> Bound {
+        Bound {
+            x1: x1 as f64,
+            y1: y1 as f64,
+            x2: x2 as f64,
+            y2: y2 as f64,
+        }
+    }
+
+    /// update the bound with another one
+    pub fn update(&mut self, other: &Bound) {
+        self.x1 = self.x1.min(other.x1);
+        self.y1 = self.y1.min(other.y1);
+        self.x2 = self.x2.max(other.x2);
+        self.y2 = self.y2.max(other.y2);
+    }
+
+    /// call this when you constructed a default bound and potentionally had zero updates
+    pub fn swap_if_needed(&mut self) {
+        if self.x1 > self.x2 {
+            let t = self.x1;
+            self.x1 = self.x2;
+            self.x2 = t;
+        }
+        if self.y1 > self.y2 {
+            let t = self.y1;
+            self.y1 = self.y2;
+            self.y2 = t;
+        }
+    }
+}
+
+/// calculate the bounding box of a layout item
+pub trait BoundingBox {
+    /// calculate the bounding box of a layout item
+    fn bounding_box(&self) -> Bound;
+}
+
+/// item location can be adjusted
+pub trait Adjust {
+    /// adjust the location of the item
+    fn adjust(&mut self, x: f64, y: f64);
+}
+
 /// Kicad error handling code and types
 pub mod error;
 /// Kicad footprint format handling

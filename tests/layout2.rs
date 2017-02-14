@@ -6,7 +6,7 @@ extern crate log;
 extern crate difference;
 extern crate env_logger;
 
-use kicad::layout::BoundingBox;
+use kicad::BoundingBox;
 use std::path::PathBuf;
 use std::env;
 

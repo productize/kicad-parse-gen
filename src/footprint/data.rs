@@ -1,6 +1,6 @@
 // (c) 2016-2017 Productize SPRL <joost@productize.be>
 
-use layout::{Adjust, Bound, BoundingBox};
+use {Adjust, Bound, BoundingBox};
 use symbolic_expressions::iteratom::SResult;
 
 /// a Kicad module, with a name and a list of elements

@@ -7,7 +7,7 @@ extern crate env_logger;
 
 use std::path::PathBuf;
 use std::env;
-use kicad::layout::Adjust;
+use kicad::Adjust;
 
 fn main() {
     env::set_var("RUST_LOG", "debug");

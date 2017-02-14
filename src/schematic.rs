@@ -10,17 +10,11 @@ use std::collections::HashMap;
 use std::result;
 
 // get from parent
-use Result;
+use {Bound, BoundingBox, Result};
 use util::read_file;
 use str_error;
 use parse_split_quote_aware;
 use parse_split_quote_aware_n;
-
-/// calculate the bounding box of a schematic item
-pub trait BoundingBox {
-    /// calculate the bounding box of an item
-    fn bounding_box(&self) -> (i64, i64, i64, i64);
-}
 
 /// a Kicad schematic
 #[derive(Debug,Default)]
@@ -37,6 +31,20 @@ pub struct Schematic {
     pub sheets: Vec<Sheet>,
     /// eelayer is transparently copied
     pub eelayer: String,
+}
+
+impl BoundingBox for Schematic {
+    fn bounding_box(&self) -> Bound {
+        let mut b = Bound::default();
+        for e in &self.elements {
+            b.update(&e.bounding_box());
+        }
+        for s in &self.sheets {
+            b.update(&s.bounding_box());
+        }
+        b.swap_if_needed();
+        b
+    }
 }
 
 impl Schematic {
@@ -302,6 +310,18 @@ pub enum Element {
     Other(String),
 }
 
+impl BoundingBox for Element {
+    fn bounding_box(&self) -> Bound {
+        match *self {
+            Element::Component(ref c) => c.bounding_box(),
+            Element::Other(_) => {
+                debug!("unhandled schematic element for bounding box");
+                Bound::default()
+            },
+        }
+    }
+}
+
 impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
@@ -351,6 +371,13 @@ impl Default for Component {
                 d: 0,
             },
         }
+    }
+}
+
+impl BoundingBox for Component {
+    fn bounding_box(&self) -> Bound {
+        debug!("Component bound calculation is poor");
+        Bound::new_from_i64(self.y, self.y, self.x, self.y)
     }
 }
 
@@ -758,8 +785,8 @@ pub struct Sheet {
 }
 
 impl BoundingBox for Sheet {
-    fn bounding_box(&self) -> (i64, i64, i64, i64) {
-        (self.x, self.y - 100, self.x + self.dimx, self.y + self.dimy + 100)
+    fn bounding_box(&self) -> Bound {
+        Bound::new_from_i64(self.x, self.y - 100, self.x + self.dimx, self.y + self.dimy + 100)
     }
 }
 
