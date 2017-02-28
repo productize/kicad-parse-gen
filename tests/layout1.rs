@@ -4,6 +4,8 @@ extern crate kicad_parse_gen as kicad;
 
 extern crate difference;
 
+use difference::Changeset;
+
 use std::path::PathBuf;
 
 #[test]
@@ -21,11 +23,9 @@ fn parse_and_compare() {
 
     kicad::write_file("/tmp/dump.kicad_pcb", &s).unwrap();
 
-    // very inefficient...
-    let (n, d) = difference::diff(&content, &s, "\n");
-    if n > 1 {
-        difference::print_diff(&content, &s, "\n");
-        println!("{:?}", d);
-        assert_eq!(n, 1);
+    let changeset = Changeset::new(&content, &s, "\n");
+    if changeset.distance > 1 {
+        println!("{}", changeset);
+        assert_eq!(changeset.distance, 1);
     }
 }

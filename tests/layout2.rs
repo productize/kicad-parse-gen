@@ -9,7 +9,7 @@ extern crate env_logger;
 use kicad::BoundingBox;
 use std::path::PathBuf;
 use std::env;
-
+use difference::Changeset;
 
 #[test]
 fn parse_and_compare() {
@@ -28,12 +28,10 @@ fn parse_and_compare() {
 
     kicad::write_file("/tmp/dump.kicad_pcb", &s).unwrap();
 
-    // very inefficient...
-    let (n, d) = difference::diff(&content, &s, "\n");
-    if n > 1 {
-        difference::print_diff(&content, &s, "\n");
-        println!("{:?}", d);
-        assert_eq!(n, 1);
+    let changeset = Changeset::new(&content, &s, "\n");
+    if changeset.distance > 1 {
+        println!("{}", changeset);
+        assert_eq!(changeset.distance, 1);
     }
 
     let b = layout.bounding_box();

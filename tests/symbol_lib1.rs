@@ -4,6 +4,8 @@ extern crate kicad_parse_gen as kicad;
 
 extern crate difference;
 
+use difference::Changeset;
+
 use std::path::PathBuf;
 
 #[test]
@@ -18,11 +20,10 @@ fn parse_and_compare() {
     
     let s = kicad::read_symbol_lib(&file_name).unwrap();
     let s = format!("{}", s);
-
-    // very inefficient...
-    let (n, _) = difference::diff(&content, &s, "\n");
-    if n > 1 {
-        difference::print_diff(&content, &s, "\n");
-        assert_eq!(n, 1);
+    
+    let changeset = Changeset::new(&content, &s, "\n");
+    if changeset.distance > 0 {
+        println!("{}", changeset);
+        assert_eq!(changeset.distance, 0);
     }
 }

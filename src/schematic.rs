@@ -776,7 +776,7 @@ pub struct Sheet {
     pub name: String, // F0
     /// size of the name
     pub name_size: i64,
-    /// filename of the sheet font
+    /// filename of the sheet
     pub filename: String, // F1
     /// size of the filename font
     pub filename_size: i64,
