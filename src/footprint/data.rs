@@ -300,6 +300,8 @@ pub struct Font {
     pub size: Xy,
     /// thickness of the font
     pub thickness: f64,
+    /// if it is italic
+    pub italic: bool,
 }
 
 /// text effects

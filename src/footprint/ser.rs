@@ -77,6 +77,9 @@ impl IntoSexp for Font {
             v.push(v1);
         }
         v.push(("thickness", &self.thickness));
+        if self.italic {
+            v.push("italic")
+        }
         v
     }
 }

@@ -260,6 +260,7 @@ enum Part {
     SolderMaskMargin(f64),
     Clearance(f64),
     ThermalGap(f64),
+    Italic,
 }
 
 // put here so it is accessible to all subfiles privately

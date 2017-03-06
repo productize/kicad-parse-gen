@@ -200,7 +200,7 @@
     (descr "Generic 0603 footprint made slightly smaller for more densely populated boards used for resistor and capacitor")
     (path /559D6BDC)
     (fp_text reference C1 (at 2.25 0 360) (layer F.SilkS)
-      (effects (font (size 0.625 0.625) (thickness 0.1)))
+      (effects (font (size 0.625 0.625) (thickness 0.1) italic))
     )
     (fp_text value 47pF (at 0 1.4 270) (layer F.SilkS) hide
       (effects (font (size 0.625 0.625) (thickness 0.1)))

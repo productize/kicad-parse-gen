@@ -67,18 +67,22 @@ impl FromSexp for Font {
         for part in &parts[..] {
             // println!("part: {}", part);
             match *part {
-                    Part::Xy(ref xy) if xy.t == XyType::Size => {
-                        font.size.x = xy.x;
-                        font.size.y = xy.y;
-                        Ok(())
-                    }
-                    Part::Thickness(ref t) => {
-                        font.thickness = *t;
-                        Ok(())
-                    }
-                    ref x => Err(format!("unknown element in font: {:?}", x)),
+                Part::Xy(ref xy) if xy.t == XyType::Size => {
+                    font.size.x = xy.x;
+                    font.size.y = xy.y;
+                    Ok(())
                 }
-                ?
+                Part::Thickness(ref t) => {
+                    font.thickness = *t;
+                    Ok(())
+                }
+                Part::Italic => {
+                    font.italic = true;
+                    Ok(())
+                }
+                ref x => Err(format!("unknown element in font: {:?}", x)),
+            }
+            ?
         }
         Ok(font)
     }
@@ -179,6 +183,7 @@ impl FromSexp for Part {
             Ok(sx) => {
                 match &sx[..] {
                     "hide" => Ok(Part::Hide),
+                    "italic" => Ok(Part::Italic),
                     x => Err(format!("unknown part in element: {}", x).into()),
                 }
             }
