@@ -177,17 +177,18 @@ impl BoundingBox for Element {
             Element::FpLine(ref x) => x.bounding_box(),
             Element::FpCircle(ref x) => x.bounding_box(),
             Element::FpText(ref x) => x.bounding_box(),
+            Element::FpArc(ref x) => x.bounding_box(),
             Element::At(_) |
             Element::Layer(_) |
             Element::TEdit(_) |
             Element::Descr(_) |
             Element::Path(_) |
             Element::Model(_) |
+            Element::Attr(_) |
+            Element::SolderMaskMargin(_) |
+            Element::Tags(_) |
+            Element::Locked |
             Element::TStamp(_) => Bound::default(),
-            ref e => {
-                warn!("bound requested for unknown element: {:?}", e);
-                Bound::default()
-            }
         };
         bb
     }
@@ -803,6 +804,16 @@ pub struct FpArc {
     pub layer: Layer,
     /// width
     pub width: f64,
+}
+
+impl BoundingBox for FpArc {
+    fn bounding_box(&self) -> Bound {
+        // perhaps not correct
+        Bound::new(self.start.x,
+                   self.start.y,
+                   self.end.x,
+                   self.end.y)
+    }
 }
 
 impl Default for FpArc {

@@ -301,15 +301,18 @@ pub struct Bound {
     pub x2: f64,
     /// bigger y
     pub y2: f64,
+    /// item is bounded
+    pub is_bounded: bool,
 }
 
 impl Default for Bound {
     fn default() -> Bound {
         Bound {
-            x1: 100000.0,
-            y1: 100000.0,
+            x1: 0.0,
+            y1: 0.0,
             x2: 0.0,
             y2: 0.0,
+            is_bounded: false,
         }
     }
 }
@@ -322,6 +325,7 @@ impl Bound {
             y1: y1,
             x2: x2,
             y2: y2,
+            is_bounded: true,
         }
     }
     /// create a new bound
@@ -331,15 +335,26 @@ impl Bound {
             y1: y1 as f64,
             x2: x2 as f64,
             y2: y2 as f64,
+            is_bounded: true,
         }
     }
 
     /// update the bound with another one
     pub fn update(&mut self, other: &Bound) {
-        self.x1 = self.x1.min(other.x1);
-        self.y1 = self.y1.min(other.y1);
-        self.x2 = self.x2.max(other.x2);
-        self.y2 = self.y2.max(other.y2);
+        if other.is_bounded {
+            if !self.is_bounded {
+                self.is_bounded = true;
+                self.x1 = other.x1;
+                self.y1 = other.y1;
+                self.x2 = other.x2;
+                self.y2 = other.y2;
+            } else {
+                self.x1 = self.x1.min(other.x1);
+                self.y1 = self.y1.min(other.y1);
+                self.x2 = self.x2.max(other.x2);
+                self.y2 = self.y2.max(other.y2);
+            }
+        } 
     }
 
     /// call this when you constructed a default bound and potentionally had zero updates
