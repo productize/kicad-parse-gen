@@ -165,6 +165,8 @@ pub enum Element {
     At(At),
     /// 3D model information
     Model(Model),
+    /// Clearance override for module
+    Clearance(f64),
     /// is the module locked
     Locked,
 }
@@ -186,6 +188,7 @@ impl BoundingBox for Element {
             Element::Model(_) |
             Element::Attr(_) |
             Element::SolderMaskMargin(_) |
+            Element::Clearance(_) |
             Element::Tags(_) |
             Element::Locked |
             Element::TStamp(_) => Bound::default(),
@@ -211,6 +214,7 @@ impl Named for Element {
             Element::Model(_) => "Model",
             Element::TStamp(_) => "Tstamp",
             Element::SolderMaskMargin(_) => "SolderMaskMargin",
+            Element::Clearance(_) |
             Element::Tags(_) => "Tags",
             Element::Attr(_) => "Attr",
             Element::Locked => "Locked",

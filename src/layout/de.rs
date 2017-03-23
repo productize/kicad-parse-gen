@@ -161,6 +161,9 @@ impl FromSexp for LayerType {
         let x = s.string()?;
         match &x[..] {
             "signal" => Ok(LayerType::Signal),
+            "power" => Ok(LayerType::Power),
+            "mixed" => Ok(LayerType::Mixed),
+            "jumper" => Ok(LayerType::Jumper),
             "user" => Ok(LayerType::User),
             _ => Err(format!("unknown layertype {} in {}", x, s).into()),
         }

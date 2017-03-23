@@ -35,6 +35,7 @@ impl IntoSexp for Element {
             Element::Path(ref p) => ("path", p).into(),
             Element::At(ref p) => p.into_sexp(),
             Element::Model(ref p) => p.into_sexp(),
+            Element::Clearance(ref s) => ("clearance", s).into(),
             Element::Locked => "locked".into(),
         }
     }

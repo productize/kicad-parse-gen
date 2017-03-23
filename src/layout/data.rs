@@ -233,6 +233,12 @@ pub struct Layer {
 pub enum LayerType {
     /// signal layer
     Signal,
+    /// power layer
+    Power,
+    /// mixed layer
+    Mixed,
+    /// jumper layer
+    Jumper,
     /// user layer
     User,
 }

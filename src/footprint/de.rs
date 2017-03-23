@@ -390,6 +390,7 @@ impl FromSexp for Element {
                     "path" => wrap(s, parse_string_element, Element::Path),
                     "at" => wrap(s, from_sexp, Element::At),
                     "model" => wrap(s, from_sexp, Element::Model),
+                    "clearance" => wrap(s, parse_float_element, Element::Clearance),
                     _ => Err(format!("unknown element in module: {}", name).into()),
                 }
             }
