@@ -231,6 +231,9 @@ impl fmt::Display for LayerType {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         let s = match *self {
             LayerType::Signal => "signal",
+            LayerType::Power => "power",
+            LayerType::Mixed => "mixed",
+            LayerType::Jumper => "jumper",
             LayerType::User => "user",
         };
         write!(f, "{}", s)
