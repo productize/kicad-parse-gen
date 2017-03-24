@@ -354,7 +354,7 @@ impl Bound {
                 self.x2 = self.x2.max(other.x2);
                 self.y2 = self.y2.max(other.y2);
             }
-        } 
+        }
     }
 
     /// call this when you constructed a default bound and potentionally had zero updates

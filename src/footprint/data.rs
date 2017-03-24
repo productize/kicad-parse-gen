@@ -813,10 +813,7 @@ pub struct FpArc {
 impl BoundingBox for FpArc {
     fn bounding_box(&self) -> Bound {
         // perhaps not correct
-        Bound::new(self.start.x,
-                   self.start.y,
-                   self.end.x,
-                   self.end.y)
+        Bound::new(self.start.x, self.start.y, self.end.x, self.end.y)
     }
 }
 
