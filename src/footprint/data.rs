@@ -3,6 +3,8 @@
 use {Adjust, Bound, BoundingBox};
 use symbolic_expressions::iteratom::SResult;
 
+pub use layout::NetName;
+
 /// a Kicad module, with a name and a list of elements
 #[derive(Debug,Clone)]
 pub struct Module {
@@ -670,8 +672,8 @@ impl Pad {
     /// rename the net of a pad
     pub fn rename_net(&mut self, old_name: &str, new_name: &str) {
         let new_net = if let Some(ref net) = self.net {
-            if &net.name == old_name {
-                Some(Net { name: new_name.to_string(), ..*net })
+            if &net.name.0 == old_name {
+                Some(Net { name: new_name.into(), ..*net })
             } else {
                 Some(net.clone())
             }
@@ -835,7 +837,7 @@ pub struct Net {
     /// net number
     pub num: i64,
     /// net name
-    pub name: String,
+    pub name: NetName,
 }
 
 /// a 3D model

@@ -6,6 +6,7 @@ use str_error;
 use footprint;
 use Sexp;
 use layout::{Adjust, BoundingBox, Bound};
+use std::{fmt, result};
 
 /// a Kicad layout
 #[derive(Debug)]
@@ -263,6 +264,21 @@ pub struct SetupElement {
     pub value2: Option<String>,
 }
 
+/// a netname
+#[derive(Clone,Debug,PartialEq)]
+pub struct NetName(pub String);
+
+impl<'a> From<&'a str> for NetName {
+    fn from(s:&'a str) -> NetName {
+        NetName(s.into())
+    }
+}
+
+impl From<String> for NetName {
+    fn from(s:String) -> NetName {
+        NetName(s)
+    }
+}
 
 /// a net
 #[derive(Clone,PartialEq,Debug)]
@@ -270,7 +286,7 @@ pub struct Net {
     /// net number
     pub num: i64,
     /// net name
-    pub name: String,
+    pub name: NetName,
 }
 
 /// a net class
@@ -297,7 +313,7 @@ pub struct NetClass {
     /// differential pair width
     pub diff_pair_width: Option<f64>,
     /// associated nets
-    pub nets: Vec<String>,
+    pub nets: Vec<NetName>,
 }
 
 /// text
@@ -610,10 +626,10 @@ impl Layout {
         let mut found = false;
         for element in &mut self.elements {
             if let Element::Net(ref mut net) = *element {
-                if &net.name == old_name {
+                if &net.name.0 == old_name {
                     found = true;
-                    net.name.clear();
-                    net.name.push_str(new_name);
+                    net.name.0.clear();
+                    net.name.0.push_str(new_name);
                 }
             }
         }
@@ -623,11 +639,11 @@ impl Layout {
         for element in &mut self.elements {
             // 2. change net name in net_class (add_net)
             if let Element::NetClass(ref mut net_class) = *element {
-                let mut not_old: Vec<String> =
-                    net_class.nets.iter().filter(|&x| &x[..] != old_name).cloned().collect();
+                let mut not_old: Vec<NetName> =
+                    net_class.nets.iter().filter(|&x| &x.0[..] != old_name).cloned().collect();
                 if not_old.len() < net_class.nets.len() {
                     // net was in the net list of the net_class
-                    not_old.push(new_name.to_string());
+                    not_old.push(new_name.into());
                     net_class.nets = not_old;
                 }
             }
@@ -723,7 +739,7 @@ impl Layout {
     pub fn add_net(&mut self, num: i64, name: &'static str) {
         self.elements.push(Element::Net(Net {
             num: num,
-            name: String::from(name),
+            name: name.into(),
         }));
     }
 
@@ -751,7 +767,7 @@ impl Layout {
             uvia_drill: uvia_drill,
             diff_pair_gap: diff_pair_gap,
             diff_pair_width: diff_pair_width,
-            nets: nets,
+            nets: nets.into_iter().map(|x| x.into()).collect(),
         }));
     }
 }
@@ -794,7 +810,7 @@ impl NetClass {
     /// check if a netclass has a net
     pub fn has_net(&self, name: &'static str) -> bool {
         for net in &self.nets {
-            if &net[..] == name {
+            if &net.0[..] == name {
                 return true;
             }
         }
@@ -868,12 +884,12 @@ impl BoundingBox for Element {
     }
 }
 
-impl Net {
+impl NetName {
 
     /// check if a net is an unnamed net
     pub fn is_unnamed_net(&self) -> Option<(String, String)> {
-        if self.name.starts_with("Net-(") {
-            let v:Vec<&str> = self.name.split(|c| c == '-' || c == '(' || c == ')').collect();
+        if self.0.starts_with("Net-(") {
+            let v:Vec<&str> = self.0.split(|c| c == '-' || c == '(' || c == ')').collect();
             if v.len() != 5 {
                 None
             } else {
@@ -888,26 +904,32 @@ impl Net {
     /// update the component name in an unnamed net
     pub fn set_unnamed_net(&mut self, new_name:&str) -> Result<()> {
         if let Some((_,pad)) = self.is_unnamed_net() {
-            self.name = format!("Net-({}-{})", new_name, pad);
+            self.0 = format!("Net-({}-{})", new_name, pad);
             Ok(())
         } else {
-            Err(format!("net is not an unnamed net: {}", self.name).into())
+            Err(format!("net is not an unnamed net: {}", self.0).into())
         }
+    }
+}
+
+impl fmt::Display for NetName {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        write!(f, "{}", self.0)
     }
 }
 
 #[test]
 fn test_is_unnamed_net() {
     let n = Net { num:1, name:"HELLO".into() };
-    assert_eq!(n.is_unnamed_net(), None);
+    assert_eq!(n.name.is_unnamed_net(), None);
     let n = Net { num:1, name:"Net-(L1-Pad1)".into()};
-    assert_eq!(n.is_unnamed_net(), Some(("L1".into(), "Pad1".into())));
+    assert_eq!(n.name.is_unnamed_net(), Some(("L1".into(), "Pad1".into())));
 }
 
 #[test]
 fn test_unnamed_rename() {
     let mut n = Net { num:1, name:"Net-(L1-Pad1)".into()};
-    n.set_unnamed_net("L101").unwrap();
-    assert_eq!(n.is_unnamed_net(), Some(("L101".into(), "Pad1".into())));
+    n.name.set_unnamed_net("L101").unwrap();
+    assert_eq!(n.name.is_unnamed_net(), Some(("L101".into(), "Pad1".into())));
     
 }

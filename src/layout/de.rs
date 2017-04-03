@@ -69,7 +69,7 @@ impl FromSexp for Net {
         let num = i.i("num")?;
         let name = i.s("name")?;
         i.close(Net {
-            name: name,
+            name: name.into(),
             num: num,
         })
     }
@@ -230,7 +230,7 @@ impl FromSexp for NetClass {
             uvia_drill: uvia_drill,
             diff_pair_gap: diff_pair_gap,
             diff_pair_width: diff_pair_width,
-            nets: nets,
+            nets: nets.into_iter().map(|x| x.into()).collect(),
             trace_width: trace_width,
         };
         Ok(net_class)

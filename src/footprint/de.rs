@@ -158,7 +158,7 @@ impl FromSexp for Net {
         let name = i.s("name")?;
         Ok(Net {
             num: num,
-            name: name,
+            name: name.into(),
         })
     }
 }

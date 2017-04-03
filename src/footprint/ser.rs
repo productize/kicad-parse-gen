@@ -276,7 +276,7 @@ impl IntoSexp for Net {
     fn into_sexp(&self) -> Sexp {
         let mut v = Sexp::start("net");
         v.push(self.num);
-        v.push(&self.name);
+        v.push(&self.name.0);
         v
     }
 }
