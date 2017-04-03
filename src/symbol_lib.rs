@@ -47,7 +47,7 @@ pub struct Symbol {
     /// aliases
     pub aliases: Vec<String>,
     /// draw
-    pub draw: Vec<String>, // TODO parse draw
+    pub draw: Vec<Draw>,
 }
 // F n “text” posx posy dimension orientation visibility hjustify vjustify/italic/bold “name”
 // F0 "#PWR" 0 0 30 H I C CNN
@@ -79,6 +79,13 @@ pub struct Field {
     pub bold: bool,
     /// name of the field
     pub name: String,
+}
+
+/// a drawing
+#[derive(Debug,Clone)]
+pub enum Draw {
+    /// a non-parsed drawing part
+    Other(String),
 }
 
 impl SymbolLib {
@@ -205,6 +212,13 @@ impl fmt::Display for Field {
             write!(f, " \"{}\"", self.name)?
         };
         Ok(())
+    }
+}
+impl fmt::Display for Draw {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        match *self {
+            Draw::Other(ref s) => write!(f, "{}", s),
+        }
     }
 }
 
@@ -336,7 +350,7 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
             p.next();
             break;
         }
-        s.draw.push(s2.clone());
+        s.draw.push(Draw::Other(s2.clone()));
         p.next()
     }
     assume_line!(p, "ENDDEF");
