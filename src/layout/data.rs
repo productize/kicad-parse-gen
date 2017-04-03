@@ -867,3 +867,48 @@ impl BoundingBox for Element {
         }
     }
 }
+
+impl Net {
+
+    /// check if a net is an unnamed net
+    pub fn is_unnamed_net(&self) -> Option<(String, String)> {
+        if self.name.starts_with("Net-(") {
+            let v:Vec<&str> = self.name.split(|c| c == '-' || c == '(' || c == ')').collect();
+            println!("XXX: {:?}", v);
+            if v.len() != 5 {
+                None
+            } else {
+                Some((v[2].into(), v[3].into()))
+            }
+            
+        } else {
+            None
+        }
+    }
+
+    /// update the component name in an unnamed net
+    pub fn set_unnamed_net(&mut self, new_name:&str) -> Result<()> {
+        if let Some((_,pad)) = self.is_unnamed_net() {
+            self.name = format!("Net-({}-{})", new_name, pad);
+            Ok(())
+        } else {
+            Err(format!("net is not an unnamed net: {}", self.name).into())
+        }
+    }
+}
+
+#[test]
+fn test_is_unnamed_net() {
+    let n = Net { num:1, name:"HELLO".into() };
+    assert_eq!(n.is_unnamed_net(), None);
+    let n = Net { num:1, name:"Net-(L1-Pad1)".into()};
+    assert_eq!(n.is_unnamed_net(), Some(("L1".into(), "Pad1".into())));
+}
+
+#[test]
+fn test_unnamed_rename() {
+    let mut n = Net { num:1, name:"Net-(L1-Pad1)".into()};
+    n.set_unnamed_net("L101").unwrap();
+    assert_eq!(n.is_unnamed_net(), Some(("L101".into(), "Pad1".into())));
+    
+}
