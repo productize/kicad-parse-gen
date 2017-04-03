@@ -84,8 +84,109 @@ pub struct Field {
 /// a drawing
 #[derive(Debug,Clone)]
 pub enum Draw {
+    /// a pin
+    Pin(Pin),
     /// a non-parsed drawing part
     Other(String),
+}
+
+// U (up) D (down) R (right) L (left).
+/// pin orientation
+#[derive(Debug,Clone)]
+pub enum PinOrientation {
+    /// up
+    Up,    // U
+    /// down
+    Down,  // D
+    /// left
+    Left,  // L
+    /// right
+    Right, // R
+}
+
+/// pin type
+#[derive(Debug,Clone)]
+pub enum PinType {
+    /// input
+    Input, // I
+    /// output
+    Output, // O
+    /// bidi
+    Bidi, // B
+    /// tristate
+    Tristate, // T
+    /// passive
+    Passive, // P
+    /// unspecified
+    Unspecified, // U
+    /// power output
+    PowerInput, // W
+    /// power input
+    PowerOutput, // w
+    /// open collector
+    OpenCollector, // C
+    /// open emitter
+    OpenEmitter, // E
+    /// not connected
+    NotConnected, // N
+}
+
+/// pin shape
+#[derive(Debug,Clone)]
+pub enum PinShape {
+    /// line
+    Line, // None (default)
+    /// inverted
+    Inverted, // I
+    /// clock
+    Clock, // C
+    /// inverted clock
+    InvertedClock, // CI
+    /// input low
+    InputLow, // L
+    /// clock low
+    ClockLow, // CL
+    /// output low
+    OutputLow, // V
+    /// falling edge clock
+    FallingEdgeClock, // F
+    /// non logic
+    NonLogic, // X
+}
+
+// X name number posx posy length orientation Snum Snom unit convert Etype [shape].
+// X P1 1 -200 200 150 R 50 50 1 1 P
+// X +3.3V 1 0 0 0 U 30 30 0 0 W N
+/// draw a pin
+#[derive(Debug,Clone)]
+pub struct Pin {
+    /// name of the pin
+    pub name:String,
+    /// number of the pin, which doesn't have to be an actual number
+    pub number:String,
+    /// x position of the pin
+    pub x:i64,
+    /// y position of the pin
+    pub y:i64,
+    /// length of the pin
+    pub len:i64,
+    /// orientation of the pin
+    pub orientation:PinOrientation,
+    /// pin number text size
+    pub num_size:i64,
+    /// pin name text size
+    pub name_size:i64,
+    /// unit ??
+    pub unit: i64,
+    /// convert ??
+    pub convert: i64,
+    /// pin type
+    pub pin_type: PinType,
+    /// pin visible
+    pub pin_visible: bool,
+    /// pin shape
+    pub pin_shape: PinShape,
+    
 }
 
 impl SymbolLib {
@@ -218,6 +319,9 @@ impl fmt::Display for Draw {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
             Draw::Other(ref s) => write!(f, "{}", s),
+            Draw::Pin(ref p) => {
+                unimplemented!();
+            }
         }
     }
 }
