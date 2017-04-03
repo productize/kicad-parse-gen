@@ -59,6 +59,14 @@ impl Schematic {
     fn append_component(&mut self, c: Component) {
         self.elements.push(Element::Component(c))
     }
+    
+    fn append_wire(&mut self, w: Wire) {
+        self.elements.push(Element::Wire(w))
+    }
+    
+    fn append_connection(&mut self, w: Connection) {
+        self.elements.push(Element::Connection(w))
+    }
 
     fn append_sheet(&mut self, c: Sheet) {
         self.sheets.push(c)
@@ -79,6 +87,8 @@ impl Schematic {
                         return fun(c);
                     }
                 }
+                Element::Wire(_) |
+                Element::Connection(_) |
                 Element::Other(_) => (),
             }
         }
@@ -91,6 +101,8 @@ impl Schematic {
         for ref mut x in &mut self.elements[..] {
             match **x {
                 Element::Component(ref mut c) => fun(c),
+                Element::Wire(_) |
+                Element::Connection(_) |
                 Element::Other(_) => (),
             }
         }
@@ -101,6 +113,8 @@ impl Schematic {
         for x in &self.elements {
             match *x {
                 Element::Component(ref c) => v.push(c.clone()),
+                Element::Wire(_) |
+                Element::Connection(_) |
                 Element::Other(_) => (),
             }
         }
@@ -112,6 +126,8 @@ impl Schematic {
         for x in &self.elements {
             match *x {
                 Element::Component(ref c) => v.push(c.clone()),
+                Element::Wire(_) |
+                Element::Connection(_) |
                 Element::Other(_) => (),
             }
         }
@@ -124,6 +140,8 @@ impl Schematic {
         for x in &self.elements {
             match *x {
                 Element::Component(ref c) => v.push(c.clone()),
+                Element::Wire(_) |
+                Element::Connection(_) |
                 Element::Other(_) => (),
             }
         }
@@ -144,6 +162,8 @@ impl Schematic {
                         return Ok(c.clone());
                     }
                 }
+                Element::Wire(_) |
+                Element::Connection(_) |
                 Element::Other(_) => (),
             }
         }
@@ -306,6 +326,10 @@ impl fmt::Display for Description {
 pub enum Element {
     /// a component element
     Component(Component),
+    /// Wire
+    Wire(Wire),
+    /// Connection
+    Connection(Connection),
     /// an unparsed other element
     Other(String),
 }
@@ -314,6 +338,8 @@ impl BoundingBox for Element {
     fn bounding_box(&self) -> Bound {
         match *self {
             Element::Component(ref c) => c.bounding_box(),
+            Element::Wire(_) |
+            Element::Connection(_) |
             Element::Other(_) => {
                 debug!("unhandled schematic element for bounding box");
                 Bound::default()
@@ -326,6 +352,8 @@ impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
             Element::Component(ref c) => write!(f, "{}", c),
+            Element::Wire(ref c) => write!(f, "{}", c),
+            Element::Connection(ref c) => write!(f, "{}", c),
             Element::Other(ref c) => write!(f, "{}\n", c),
         }
     }
@@ -925,6 +953,41 @@ impl fmt::Display for LabelSide {
     }
 }
 
+/// a wire part making a connection
+#[derive(Debug)]
+pub struct Wire {
+    /// x-coordinate of first point of wire
+    pub x1:i64,
+    /// y-coordinate of first point of wire
+    pub y1:i64,
+    /// x-coordinate of second point of wire
+    pub x2:i64,
+    /// y-coordinate of second point of wire
+    pub y2:i64,
+}
+
+impl fmt::Display for Wire {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        writeln!(f, "Wire Wire Line")?;
+        writeln!(f, "\t{} {} {} {}", self.x1, self.y1, self.x2, self.y2)
+    }
+}
+
+/// a connection part making a junction
+#[derive(Debug)]
+pub struct Connection {
+    /// connection x-coordinate
+    pub x:i64,
+    /// connection y-coordinate
+    pub y:i64,
+}
+
+impl fmt::Display for Connection {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        writeln!(f, "Connection ~ {} {}", self.x, self.y)
+    }
+}
+
 fn char_at(s: &str, p: usize) -> char {
     let v: Vec<char> = s.chars().collect();
     v[..][p]
@@ -1193,6 +1256,35 @@ fn parse_sheet(p: &mut ParseState) -> Result<Sheet> {
     Ok(s)
 }
 
+// Wire Wire Line
+//	6100 3050 5850 3050
+fn parse_wire(p: &mut ParseState) -> Result<Wire> {
+    p.next(); // skip Wire Wire Line
+    let s = p.here();
+    let v: Vec<&str> = s.split_whitespace().collect();
+    if v.len() != 4 {
+        return str_error(format!("expecting 4 elements in {}", s));
+    }
+    let x1 = i64_from_string(p, &String::from(v[0]))?;
+    let y1 = i64_from_string(p, &String::from(v[1]))?;
+    let x2 = i64_from_string(p, &String::from(v[2]))?;
+    let y2 = i64_from_string(p, &String::from(v[3]))?;
+    Ok(Wire { x1:x1, y1:y1, x2:x2, y2:y2 })
+}
+
+// Connection ~ 5250 3050
+fn parse_connection(p: &mut ParseState) -> Result<Connection> {
+    let s = p.here();
+    let v: Vec<&str> = s.split_whitespace().collect();
+    if v.len() != 4 {
+        return str_error(format!("expecting 4 elements in {}", s));
+    }
+    let x = i64_from_string(p, &String::from(v[2]))?;
+    let y = i64_from_string(p, &String::from(v[3]))?;
+    Ok(Connection { x:x, y:y })
+}
+
+
 /// parse a &str to a Kicad schematic, optionally setting the filename
 pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
     let mut sch = Schematic::default();
@@ -1232,6 +1324,14 @@ pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
                     sch.append_sheet(d)
                 }
                 Some("$EndSCHEMATC") => (),
+                Some("Wire") => {
+                    let w = parse_wire(p)?;
+                    sch.append_wire(w)
+                }
+                Some("Connection") => {
+                    let w = parse_connection(p)?;
+                    sch.append_connection(w)
+                }
                 Some(_) => sch.append_other(p.here()),
                 None => unreachable!(),
             }
