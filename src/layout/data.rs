@@ -280,6 +280,12 @@ impl From<String> for NetName {
     }
 }
 
+impl<'a> AsRef<str> for NetName {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
 /// a net
 #[derive(Clone,PartialEq,Debug)]
 pub struct Net {
