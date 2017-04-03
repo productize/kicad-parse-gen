@@ -874,7 +874,6 @@ impl Net {
     pub fn is_unnamed_net(&self) -> Option<(String, String)> {
         if self.name.starts_with("Net-(") {
             let v:Vec<&str> = self.name.split(|c| c == '-' || c == '(' || c == ')').collect();
-            println!("XXX: {:?}", v);
             if v.len() != 5 {
                 None
             } else {
