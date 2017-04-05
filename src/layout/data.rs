@@ -280,6 +280,16 @@ impl From<String> for NetName {
     }
 }
 
+impl NetName {
+    /// replace the block_name in a net name
+    pub fn replace_block(&mut self, from:&str, to:&str) {
+        let from_pat = format!("/{}/", from);
+        let to_pat = format!("/{}/", to);
+        let n = self.0.replace(&from_pat, &to_pat);
+        self.0 = n;
+    }
+}
+
 impl<'a> AsRef<str> for NetName {
     fn as_ref(&self) -> &str {
         self.0.as_str()
