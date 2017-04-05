@@ -501,7 +501,7 @@ impl FromSexp for Zone {
         }
         Ok(Zone {
             net: net,
-            net_name: net_name,
+            net_name: net_name.into(),
             layer: layer,
             tstamp: tstamp,
             hatch: hatch,

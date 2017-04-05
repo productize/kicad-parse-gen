@@ -63,7 +63,7 @@ pub struct Zone {
     /// net number of the zone
     pub net: i64,
     /// net name of the zone
-    pub net_name: String,
+    pub net_name: NetName,
     /// layer
     pub layer: footprint::Layer,
     /// tstamp
@@ -288,11 +288,12 @@ impl NetName {
         let n = self.0.replace(&from_pat, &to_pat);
         self.0 = n;
     }
-}
 
-impl<'a> AsRef<str> for NetName {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
+    /// rename a net
+    pub fn rename(&mut self, from:&str, to:&str) {
+        if &self.0 == from {
+            self.0 = to.into();
+        }
     }
 }
 
@@ -638,43 +639,44 @@ impl Layout {
 
     /// change net name
     pub fn change_net_name(&mut self, old_name: &str, new_name: &str) {
-        // 1. change name in list of nets
-        let mut found = false;
-        for element in &mut self.elements {
-            if let Element::Net(ref mut net) = *element {
-                if &net.name.0 == old_name {
-                    found = true;
-                    net.name.0.clear();
-                    net.name.0.push_str(new_name);
+        let update = |name:&mut NetName| {
+            name.rename(old_name, new_name);
+            Ok(())
+        };
+        self.update_net_names(update).unwrap();
+    }
+
+    /// update net names in a layout
+    pub fn update_net_names<F>(&mut self, update:F) -> Result<()>
+    where F: Fn(&mut NetName) -> Result<()>
+{
+    for element in &mut self.elements {
+        match *element {
+            Element::Net(ref mut net) => {
+                update(&mut net.name)?;
+            }
+            Element::NetClass(ref mut nc) => {
+                for name in &mut nc.nets {
+                    update(name)?;
                 }
             }
-        }
-        if !found {
-            return;
-        }
-        for element in &mut self.elements {
-            // 2. change net name in net_class (add_net)
-            if let Element::NetClass(ref mut net_class) = *element {
-                let mut not_old: Vec<NetName> =
-                    net_class.nets.iter().filter(|&x| &x.0[..] != old_name).cloned().collect();
-                if not_old.len() < net_class.nets.len() {
-                    // net was in the net list of the net_class
-                    not_old.push(new_name.into());
-                    net_class.nets = not_old;
+            Element::Module(ref mut module) => {
+                for m_e in &mut module.elements {
+                    if let footprint::Element::Pad(ref mut pad) = *m_e {
+                        if let Some(ref mut net) = pad.net {
+                            update(&mut net.name)?;
+                        }
+                    }
                 }
             }
-            // 3. change net name in pads in modules
-            else if let Element::Module(ref mut module) = *element {
-                module.rename_net(old_name, new_name)
+            Element::Zone(ref mut zone) => {
+                update(&mut zone.net_name)?;
             }
-            // 4. change net name in zones (net_name)
-            else if let Element::Zone(ref mut zone) = *element {
-                if &zone.net_name == old_name {
-                    zone.net_name = new_name.to_string()
-                }
-            }
+            _ => (),
         }
     }
+    Ok(())
+}
 
     /// get list of netclasses
     pub fn netclasses(&self) -> Vec<&NetClass> {
