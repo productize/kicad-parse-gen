@@ -92,7 +92,7 @@ pub enum Draw {
 
 // U (up) D (down) R (right) L (left).
 /// pin orientation
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,PartialEq)]
 pub enum PinOrientation {
     /// up
     Up,    // U
@@ -105,7 +105,7 @@ pub enum PinOrientation {
 }
 
 /// pin type
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,PartialEq)]
 pub enum PinType {
     /// input
     Input, // I
