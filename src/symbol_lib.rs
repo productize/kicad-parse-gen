@@ -132,7 +132,7 @@ pub enum PinType {
 }
 
 /// pin shape
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,PartialEq)]
 pub enum PinShape {
     /// line
     Line, // None (default)
@@ -158,7 +158,7 @@ pub enum PinShape {
 // X P1 1 -200 200 150 R 50 50 1 1 P
 // X +3.3V 1 0 0 0 U 30 30 0 0 W N
 /// draw a pin
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Default)]
 pub struct Pin {
     /// name of the pin
     pub name:String,
@@ -331,11 +331,15 @@ impl fmt::Display for Pin {
         write!(f, "{} ", self.orientation)?;
         write!(f, "{} {} ", self.num_size, self.name_size)?;
         write!(f, "{} {} ", self.unit, self.convert)?;
-        write!(f, "{} ", self.pin_type)?;
+        write!(f, "{}", self.pin_type)?;
         if self.pin_visible {
-            write!(f, "{}", self.pin_shape)
+            if self.pin_shape != PinShape::Line {
+                write!(f, " {}", self.pin_shape)
+            } else {
+                Ok(())
+            }
         } else {
-            write!(f, "N{}", self.pin_shape)
+            write!(f, " N{}", self.pin_shape)
         }
     }
 }
@@ -350,7 +354,25 @@ impl fmt::Display for PinOrientation {
         }
     }
 }
-    
+
+impl Default for PinOrientation {
+    fn default() -> PinOrientation {
+        PinOrientation::Up
+    }
+}
+
+impl PinOrientation {
+    fn from_str(s:&str) -> Result<PinOrientation> {
+        match s {
+            "U" => Ok(PinOrientation::Up),
+            "D" => Ok(PinOrientation::Down),
+            "L" => Ok(PinOrientation::Left),
+            "R" => Ok(PinOrientation::Right),
+            _ => Err(format!("unknown pin orientation {}", s).into())
+        }
+    }
+}
+
 impl fmt::Display for PinType {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
@@ -368,6 +390,32 @@ impl fmt::Display for PinType {
         }
     }
 }
+
+impl Default for PinType {
+    fn default() -> PinType {
+        PinType::Input
+    }
+}
+
+impl PinType {
+    fn from_str(s:&str) -> Result<PinType> {
+        match s {
+            "I" => Ok(PinType::Input),
+            "O" => Ok(PinType::Output),
+            "B" => Ok(PinType::Bidi),
+            "T" => Ok(PinType::Tristate),
+            "P" => Ok(PinType::Passive),
+            "U" => Ok(PinType::Unspecified),
+            "W" => Ok(PinType::PowerInput),
+            "w" => Ok(PinType::PowerOutput),
+            "C" => Ok(PinType::OpenCollector),
+            "E" => Ok(PinType::OpenEmitter),
+            "N" => Ok(PinType::NotConnected),
+            _ => Err(format!("unknown pin type {}", s).into())
+        }
+    }
+}
+
 impl fmt::Display for PinShape {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
@@ -380,6 +428,46 @@ impl fmt::Display for PinShape {
             PinShape::OutputLow => write!(f, "{}", "V"),
             PinShape::FallingEdgeClock => write!(f, "{}", "F"),
             PinShape::NonLogic => write!(f, "{}", "X"),
+        }
+    }
+}
+
+impl Default for PinShape {
+    fn default() -> PinShape {
+        PinShape::Line
+    }
+}
+
+impl PinShape {
+    fn from_str(s:&str) -> Result<PinShape> {
+        if s.is_empty() {
+            Ok(PinShape::Line)
+        } else {
+            let s = if s.starts_with("N") {
+                &s[1..]
+            } else {
+                &s[..]
+            };
+            match s {
+                "I" => Ok(PinShape::Inverted),
+                "C" => Ok(PinShape::Clock),
+                "CI" => Ok(PinShape::InvertedClock),
+                "L" => Ok(PinShape::InputLow),
+                "CL" => Ok(PinShape::ClockLow),
+                "V" => Ok(PinShape::OutputLow),
+                "F" => Ok(PinShape::FallingEdgeClock),
+                "X" => Ok(PinShape::NonLogic),
+                "" => Ok(PinShape::Line),
+                _ => Err(format!("unknown pinshape {}", s).into()),
+            }
+        }
+    }
+    
+    fn visible_from_str(s:&str) -> bool {
+        if s.is_empty() {
+            false
+        } else {
+            !s.starts_with("N")
         }
     }
 }
@@ -512,14 +600,13 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
             p.next();
             break;
         }
-        /*
+        
         if s2.starts_with("X ") {
-            let pin = parse_pin(s2)?;
+            let pin = parse_pin(p, &s2)?;
             s.draw.push(Draw::Pin(pin));
         } else {
-*/
             s.draw.push(Draw::Other(s2.clone()));
-        //}
+        }
         p.next()
     }
     assume_line!(p, "ENDDEF");
@@ -571,18 +658,31 @@ fn parse_field(p: &mut ParseState, line: &str) -> Result<Field> {
 }
 
 // X +3.3V 1 0 0 0 U 30 30 0 0 W N
-/*
-fn parse_pin(line: &str) -> Result<Pin> {
-    let mut p = Pin::default();
+
+fn parse_pin(p:&mut ParseState, line: &str) -> Result<Pin> {
+    let mut pin = Pin::default();
     let v = &parse_split_quote_aware(line);
-    if v.len() != 13 && v.len() != 14 {
+    if v.len() != 12 && v.len() != 13 {
         return str_error(format!("unexpected elements in {}", line));
     }
-    p.name = v[1].clone();
-    p.number = v[3].clone();
-    p.x = i64_from_string(p, &v[4])?;
-    p.y = i64_from_string(p, &v[5])?;
-}*/
+    pin.name = v[1].clone();
+    pin.number = v[2].clone();
+    pin.x = i64_from_string(p, &v[3])?;
+    pin.y = i64_from_string(p, &v[4])?;
+    pin.len = i64_from_string(p, &v[5])?;
+    pin.orientation = PinOrientation::from_str(&v[6])?;
+    pin.num_size = i64_from_string(p, &v[7])?;
+    pin.name_size = i64_from_string(p, &v[8])?;
+    pin.unit = i64_from_string(p, &v[9])?;
+    pin.convert = i64_from_string(p, &v[10])?;
+    pin.pin_type = PinType::from_str(&v[11])?;
+    pin.pin_visible = true;
+    if v.len() == 13 {
+        pin.pin_visible = PinShape::visible_from_str(&v[12]);
+        pin.pin_shape = PinShape::from_str(&v[12])?;
+    }
+    Ok(pin)
+}
 
 fn parse(s: &str) -> Result<SymbolLib> {
     let mut lib = SymbolLib::default();
