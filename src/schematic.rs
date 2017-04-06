@@ -67,6 +67,10 @@ impl Schematic {
     fn append_connection(&mut self, w: Connection) {
         self.elements.push(Element::Connection(w))
     }
+    
+    fn append_no_connect(&mut self, w: NoConnect) {
+        self.elements.push(Element::NoConnect(w))
+    }
 
     fn append_sheet(&mut self, c: Sheet) {
         self.sheets.push(c)
@@ -89,6 +93,7 @@ impl Schematic {
                 }
                 Element::Wire(_) |
                 Element::Connection(_) |
+                Element::NoConnect(_) |
                 Element::Other(_) => (),
             }
         }
@@ -103,6 +108,7 @@ impl Schematic {
                 Element::Component(ref mut c) => fun(c),
                 Element::Wire(_) |
                 Element::Connection(_) |
+                Element::NoConnect(_) |
                 Element::Other(_) => (),
             }
         }
@@ -115,6 +121,7 @@ impl Schematic {
                 Element::Component(ref c) => v.push(c.clone()),
                 Element::Wire(_) |
                 Element::Connection(_) |
+                Element::NoConnect(_) |
                 Element::Other(_) => (),
             }
         }
@@ -128,6 +135,7 @@ impl Schematic {
                 Element::Component(ref c) => v.push(c.clone()),
                 Element::Wire(_) |
                 Element::Connection(_) |
+                Element::NoConnect(_) |
                 Element::Other(_) => (),
             }
         }
@@ -142,6 +150,7 @@ impl Schematic {
                 Element::Component(ref c) => v.push(c.clone()),
                 Element::Wire(_) |
                 Element::Connection(_) |
+                Element::NoConnect(_) |
                 Element::Other(_) => (),
             }
         }
@@ -164,6 +173,7 @@ impl Schematic {
                 }
                 Element::Wire(_) |
                 Element::Connection(_) |
+                Element::NoConnect(_) |
                 Element::Other(_) => (),
             }
         }
@@ -330,6 +340,8 @@ pub enum Element {
     Wire(Wire),
     /// Connection
     Connection(Connection),
+    /// a no-connect
+    NoConnect(NoConnect),
     /// an unparsed other element
     Other(String),
 }
@@ -340,6 +352,7 @@ impl BoundingBox for Element {
             Element::Component(ref c) => c.bounding_box(),
             Element::Wire(_) |
             Element::Connection(_) |
+            Element::NoConnect(_) |
             Element::Other(_) => {
                 debug!("unhandled schematic element for bounding box");
                 Bound::default()
@@ -354,6 +367,7 @@ impl fmt::Display for Element {
             Element::Component(ref c) => write!(f, "{}", c),
             Element::Wire(ref c) => write!(f, "{}", c),
             Element::Connection(ref c) => write!(f, "{}", c),
+            Element::NoConnect(ref c) => write!(f, "{}", c),
             Element::Other(ref c) => write!(f, "{}\n", c),
         }
     }
@@ -988,6 +1002,21 @@ impl fmt::Display for Connection {
     }
 }
 
+/// a no-connect marker
+#[derive(Debug)]
+pub struct NoConnect {
+    /// no-connect x-coordinate
+    pub x:i64,
+    /// no-connect y-coordinate
+    pub y:i64,
+}
+
+impl fmt::Display for NoConnect {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        writeln!(f, "NoConn ~ {} {}", self.x, self.y)
+    }
+}
+
 fn char_at(s: &str, p: usize) -> char {
     let v: Vec<char> = s.chars().collect();
     v[..][p]
@@ -1284,6 +1313,17 @@ fn parse_connection(p: &mut ParseState) -> Result<Connection> {
     Ok(Connection { x:x, y:y })
 }
 
+// NoConnect ~ 5250 3050
+fn parse_no_connect(p: &mut ParseState) -> Result<NoConnect> {
+    let s = p.here();
+    let v: Vec<&str> = s.split_whitespace().collect();
+    if v.len() != 4 {
+        return str_error(format!("expecting 4 elements in {}", s));
+    }
+    let x = i64_from_string(p, &String::from(v[2]))?;
+    let y = i64_from_string(p, &String::from(v[3]))?;
+    Ok(NoConnect { x:x, y:y })
+}
 
 /// parse a &str to a Kicad schematic, optionally setting the filename
 pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
@@ -1331,6 +1371,10 @@ pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
                 Some("Connection") => {
                     let w = parse_connection(p)?;
                     sch.append_connection(w)
+                }
+                Some("NoConn") => {
+                    let w = parse_no_connect(p)?;
+                    sch.append_no_connect(w)
                 }
                 Some(_) => sch.append_other(p.here()),
                 None => unreachable!(),
