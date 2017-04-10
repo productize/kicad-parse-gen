@@ -71,6 +71,10 @@ impl Schematic {
     fn append_no_connect(&mut self, w: NoConnect) {
         self.elements.push(Element::NoConnect(w))
     }
+    
+    fn append_text(&mut self, w: Text) {
+        self.elements.push(Element::Text(w))
+    }
 
     fn append_sheet(&mut self, c: Sheet) {
         self.sheets.push(c)
@@ -1080,7 +1084,7 @@ pub struct Text {
     /// size of the text
     pub size:i64,
     /// shape of the text
-    pub shape:String, // TODO: implement more specified
+    pub shape:Option<String>, // TODO: implement more specified
     /// if it is italic
     pub italic: bool,
     /// thickness (for bold)
@@ -1097,10 +1101,15 @@ impl fmt::Display for Text {
             "~"
         };
         write!(f, "Text {} ", self.t)?;
-        write!(f, "{:4} {:4} ", self.x, self.y)?;
-        write!(f, "{:4} {:4} ", self.orientation, self.size)?;
-        if !self.t.is_local() {
-            write!(f, "{} ", self.shape)?;
+        // trick to get left-aligned adjusted numbers: convert to string first...
+        let x = format!("{}", self.x);
+        let y = format!("{}", self.y);
+        write!(f, "{:4} {:4} ", x, y)?;
+        let orientation = format!("{}", self.orientation);
+        let size = format!("{}", self.size);
+        write!(f, "{:4} {:4} ", orientation, size)?;
+        if let Some(ref shape) = self.shape {
+            write!(f, "{} ", shape)?;
         }
         writeln!(f, "{} {}", italic, self.thickness)?;
         // kicad has code here to escape \ns and sanitize unix/win/mac line endings; this is not needed as we assume the file was saved with kicad to begin with
@@ -1416,6 +1425,49 @@ fn parse_no_connect(p: &mut ParseState) -> Result<NoConnect> {
     Ok(NoConnect { x:x, y:y })
 }
 
+//Text Label 9300 2175 0    60   Italic 12
+//IAMBOLDITALIC
+//Text Notes 8025 5400 0    60   ~ 0
+//IAMANOTE
+fn parse_text(p:&mut ParseState) -> Result<Text> {
+    let s = p.here();
+    let v: Vec<&str> = s.split_whitespace().collect();
+    if v.len() < 8 {
+        return str_error(format!("expecting 8 or 9 elements in {}", s));
+    }
+    let t = match v[1] {
+        "Label" => TextType::Label,
+        "Notes" => TextType::Note,
+        "GLabel" => TextType::Global,
+        "HLabel" => TextType::Hierarchical,
+        x => return Err(format!("Unknown text type {} at {}", x, s).into()),
+    };
+    let x = i64_from_string(p, &String::from(v[2]))?;
+    let y = i64_from_string(p, &String::from(v[3]))?;
+    let orientation = i64_from_string(p, &String::from(v[4]))?;
+    let size = i64_from_string(p, &String::from(v[5]))?;
+    let mut i = 6;
+    let shape = if !t.is_local() {
+        i = 7;
+        Some(v[6].into())
+    } else {
+        None
+    };
+    let italic = match v[i] {
+        "Italic" => true,
+        _ => false,
+    };
+    let thickness = i64_from_string(p, &String::from(v[i+1]))?;
+    p.next();
+    let text = p.here();
+    Ok(Text {
+        t:t, x:x, y:y, orientation: orientation,
+        size:size, shape:shape, italic:italic, thickness:thickness,
+        text:text
+    })
+    
+}
+
 /// parse a &str to a Kicad schematic, optionally setting the filename
 pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
     let mut sch = Schematic::default();
@@ -1466,6 +1518,10 @@ pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
                 Some("NoConn") => {
                     let w = parse_no_connect(p)?;
                     sch.append_no_connect(w)
+                }
+                Some("Text") => {
+                    let w = parse_text(p)?;
+                    sch.append_text(w)
                 }
                 Some(_) => sch.append_other(p.here()),
                 None => unreachable!(),
