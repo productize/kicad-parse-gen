@@ -94,6 +94,7 @@ impl Schematic {
                 Element::Wire(_) |
                 Element::Connection(_) |
                 Element::NoConnect(_) |
+                Element::Text(_) |
                 Element::Other(_) => (),
             }
         }
@@ -109,6 +110,7 @@ impl Schematic {
                 Element::Wire(_) |
                 Element::Connection(_) |
                 Element::NoConnect(_) |
+                Element::Text(_) |
                 Element::Other(_) => (),
             }
         }
@@ -122,6 +124,7 @@ impl Schematic {
                 Element::Wire(_) |
                 Element::Connection(_) |
                 Element::NoConnect(_) |
+                Element::Text(_) |
                 Element::Other(_) => (),
             }
         }
@@ -136,6 +139,7 @@ impl Schematic {
                 Element::Wire(_) |
                 Element::Connection(_) |
                 Element::NoConnect(_) |
+                Element::Text(_) |
                 Element::Other(_) => (),
             }
         }
@@ -151,6 +155,7 @@ impl Schematic {
                 Element::Wire(_) |
                 Element::Connection(_) |
                 Element::NoConnect(_) |
+                Element::Text(_) |
                 Element::Other(_) => (),
             }
         }
@@ -174,6 +179,7 @@ impl Schematic {
                 Element::Wire(_) |
                 Element::Connection(_) |
                 Element::NoConnect(_) |
+                Element::Text(_) |
                 Element::Other(_) => (),
             }
         }
@@ -342,6 +348,8 @@ pub enum Element {
     Connection(Connection),
     /// a no-connect
     NoConnect(NoConnect),
+    /// a text element (label, hierachical label, global label, ...)
+    Text(Text),
     /// an unparsed other element
     Other(String),
 }
@@ -353,6 +361,7 @@ impl BoundingBox for Element {
             Element::Wire(_) |
             Element::Connection(_) |
             Element::NoConnect(_) |
+            Element::Text(_) |
             Element::Other(_) => {
                 debug!("unhandled schematic element for bounding box");
                 Bound::default()
@@ -368,6 +377,7 @@ impl fmt::Display for Element {
             Element::Wire(ref c) => write!(f, "{}", c),
             Element::Connection(ref c) => write!(f, "{}", c),
             Element::NoConnect(ref c) => write!(f, "{}", c),
+            Element::Text(ref c) => write!(f, "{}", c),
             Element::Other(ref c) => write!(f, "{}\n", c),
         }
     }
@@ -1014,6 +1024,87 @@ pub struct NoConnect {
 impl fmt::Display for NoConnect {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         writeln!(f, "NoConn ~ {} {}", self.x, self.y)
+    }
+}
+
+/// type of a text element
+#[derive(Debug)]
+pub enum TextType {
+    /// a text note
+    Note,
+    /// a global label
+    Global,
+    /// a hierarchical label
+    Hierarchical,
+    /// a local label
+    Label,
+}
+
+impl fmt::Display for TextType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        let x = match *self {
+            TextType::Note => "Notes",
+            TextType::Global => "GLabel",
+            TextType::Hierarchical => "HLabel",
+            TextType::Label => "Label",
+        };
+        write!(f, "{}", x)
+    }
+}
+
+impl TextType {
+    fn is_local(&self) -> bool {
+        match *self {
+            TextType::Note | TextType::Label => true,
+            TextType::Global | TextType::Hierarchical => false,
+        }
+    }
+}
+
+//Text Label 9300 2175 0    60   Italic 12
+//IAMBOLDITALIC
+//Text Notes 8025 5400 0    60   ~ 0
+//IAMANOTE
+
+/// a text
+#[derive(Debug)]
+pub struct Text {
+    /// type of  the text
+    pub t:TextType,
+    /// x-coordinate of the text
+    pub x:i64,
+    /// y-coordinate of the text
+    pub y:i64,
+    /// orientation of the text
+    pub orientation:i64, // TODO: implement more specified
+    /// size of the text
+    pub size:i64,
+    /// shape of the text
+    pub shape:String, // TODO: implement more specified
+    /// if it is italic
+    pub italic: bool,
+    /// thickness (for bold)
+    pub thickness: i64,
+    /// the contained text
+    pub text:String,
+}
+
+impl fmt::Display for Text {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        let italic = if self.italic {
+            "Italic"
+        } else {
+            "~"
+        };
+        write!(f, "Text {} ", self.t)?;
+        write!(f, "{:4} {:4} ", self.x, self.y)?;
+        write!(f, "{:4} {:4} ", self.orientation, self.size)?;
+        if !self.t.is_local() {
+            write!(f, "{} ", self.shape)?;
+        }
+        writeln!(f, "{} {}", italic, self.thickness)?;
+        // kicad has code here to escape \ns and sanitize unix/win/mac line endings; this is not needed as we assume the file was saved with kicad to begin with
+        writeln!(f, "{}", self.text)
     }
 }
 

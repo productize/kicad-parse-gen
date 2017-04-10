@@ -1,5 +1,4 @@
 EESchema Schematic File Version 2
-LIBS:schematic1-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
@@ -1038,4 +1037,10 @@ Text GLabel 8050 2050 3    60   Input ~ 0
 GLOBALDOWN
 Text Notes 8025 5400 0    60   ~ 0
 IAMANOTE
+Text Label 8800 2175 0    60   Italic 0
+IAMITALIC
+Text Label 8800 2350 0    60   ~ 12
+IAMBOLD
+Text Label 9300 2175 0    60   Italic 12
+IAMBOLDITALIC
 $EndSCHEMATC
