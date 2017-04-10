@@ -1,7 +1,6 @@
 EESchema Schematic File Version 2
-LIBS:power
-LIBS:conn
-EELAYER 26 0
+LIBS:schematic1-cache
+EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -1027,4 +1026,16 @@ Text Label 7050 3100 0    60   ~ 0
 D+2
 Text Label 7050 3200 0    60   ~ 0
 D-2
+Text GLabel 8175 1650 0    60   Input ~ 0
+IAMGLOBAL
+Text HLabel 9200 1650 0    60   Input ~ 0
+IAMHIERARCHICAL
+Text GLabel 8175 1875 2    60   Input ~ 0
+GLOBALRIGHT
+Text GLabel 7775 2400 1    60   Input ~ 0
+GLOBALUP
+Text GLabel 8050 2050 3    60   Input ~ 0
+GLOBALDOWN
+Text Notes 8025 5400 0    60   ~ 0
+IAMANOTE
 $EndSCHEMATC
