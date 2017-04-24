@@ -637,6 +637,8 @@ pub struct Pad {
     pub layers: Layers,
     /// associated net
     pub net: Option<Net>,
+    /// zone connect
+    pub zone_connect: Option<i64>,
     /// drill
     pub drill: Option<Drill>,
     /// solder paste margin
@@ -661,6 +663,7 @@ impl Pad {
             at: At::default(),
             layers: Layers::default(),
             net: None,
+            zone_connect: None,
             drill: None,
             solder_paste_margin: None,
             solder_mask_margin: None,

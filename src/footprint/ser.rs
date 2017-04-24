@@ -212,6 +212,9 @@ impl IntoSexp for Pad {
         if let Some(ref net) = self.net {
             v.push(net.into_sexp());
         }
+        if let Some(ref zc) = self.zone_connect {
+            v.push(("zone_connect", zc));
+        }
         if let Some(ref spm) = self.solder_paste_margin {
             v.push(("solder_paste_margin", spm));
         }

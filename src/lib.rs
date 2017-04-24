@@ -260,6 +260,7 @@ enum Part {
     SolderMaskMargin(f64),
     Clearance(f64),
     ThermalGap(f64),
+    ZoneConnect(i64),
     Italic,
 }
 
