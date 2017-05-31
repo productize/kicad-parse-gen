@@ -361,14 +361,10 @@ impl Bound {
     /// call this when you constructed a default bound and potentionally had zero updates
     pub fn swap_if_needed(&mut self) {
         if self.x1 > self.x2 {
-            let t = self.x1;
-            self.x1 = self.x2;
-            self.x2 = t;
+            std::mem::swap(&mut self.x1, &mut self.x2);
         }
         if self.y1 > self.y2 {
-            let t = self.y1;
-            self.y1 = self.y2;
-            self.y2 = t;
+            std::mem::swap(&mut self.y1, &mut self.y2);
         }
     }
 }

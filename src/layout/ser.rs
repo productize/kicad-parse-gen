@@ -255,7 +255,7 @@ impl IntoSexp for SetupElement {
 impl IntoSexp for Setup {
     fn into_sexp(&self) -> Sexp {
         let mut v = Sexp::start("setup");
-        for ref k in &self.elements {
+        for k in &self.elements {
             v.push(k.into_sexp())
         }
         let mut v2 = Sexp::start("pcbplotparams");

@@ -175,7 +175,7 @@ pub enum Element {
 
 impl BoundingBox for Element {
     fn bounding_box(&self) -> Bound {
-        let bb = match *self {
+        match *self {
             Element::Pad(ref x) => x.bounding_box(),
             Element::FpPoly(ref x) => x.bounding_box(),
             Element::FpLine(ref x) => x.bounding_box(),
@@ -194,8 +194,7 @@ impl BoundingBox for Element {
             Element::Tags(_) |
             Element::Locked |
             Element::TStamp(_) => Bound::default(),
-        };
-        bb
+        }
     }
 }
 
@@ -675,7 +674,7 @@ impl Pad {
     /// rename the net of a pad
     pub fn rename_net(&mut self, old_name: &str, new_name: &str) {
         let new_net = if let Some(ref net) = self.net {
-            if &net.name.0 == old_name {
+            if net.name.0 == old_name {
                 Some(Net { name: new_name.into(), ..*net })
             } else {
                 Some(net.clone())

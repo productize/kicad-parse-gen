@@ -133,7 +133,7 @@ impl FromSexp for LayerVec {
         let i = IterAtom::new(s, "layers")?;
         let mut v = vec![];
         for x in i.iter {
-            let layer = from_sexp(&x)?;
+            let layer = from_sexp(x)?;
             v.push(layer)
         }
         Ok(LayerVec(v))
@@ -251,7 +251,7 @@ impl FromSexp for Setup {
                     pcbplotparams.push(p_e)
                 }
             } else {
-                let setup_element = from_sexp(&v)?;
+                let setup_element = from_sexp(v)?;
                 elements.push(setup_element)
             }
         }
@@ -649,8 +649,8 @@ impl FromSexp for Layout {
             match &(e.list_name()?)[..] {
                 "version" => layout.version = Version::from_sexp(e)?.0,
                 "host" => layout.host = from_sexp(e)?,
-                "general" => layout.general = from_sexp(&e)?,
-                "page" => layout.page = Page::from_sexp(&e)?.0,
+                "general" => layout.general = from_sexp(e)?,
+                "page" => layout.page = Page::from_sexp(e)?.0,
                 "layers" => layout.layers = LayerVec::from_sexp(e)?.0,
                 "module" => {
                     let module = wrap(e, from_sexp, Element::Module)?;
@@ -696,7 +696,7 @@ impl FromSexp for Layout {
                     let g = wrap(e, from_sexp, Element::Via)?;
                     layout.elements.push(g)
                 }
-                "setup" => layout.setup = from_sexp(&e)?,
+                "setup" => layout.setup = from_sexp(e)?,
                 _ => {
                     // println!("unimplemented: {}", e);
                     layout.elements.push(parse_other(e))

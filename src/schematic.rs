@@ -164,7 +164,7 @@ impl Schematic {
             }
         }
         for sheet in &self.sheets {
-            let schematic = parse_file_for_sheet(&self, sheet)?;
+            let schematic = parse_file_for_sheet(self, sheet)?;
             let mut v2 = schematic.all_components()?;
             v.append(&mut v2)
         }
@@ -188,7 +188,7 @@ impl Schematic {
             }
         }
         for sheet in &self.sheets {
-            let schematic = parse_file_for_sheet(&self, sheet)?;
+            let schematic = parse_file_for_sheet(self, sheet)?;
             if let Ok(c) = schematic.component_by_reference(reference) {
                 return Ok(c);
             }
@@ -1408,9 +1408,9 @@ fn parse_connection(p: &mut ParseState) -> Result<Connection> {
     if v.len() != 4 {
         return str_error(format!("expecting 4 elements in {}", s));
     }
-    let x = i64_from_string(p, &String::from(v[2]))?;
-    let y = i64_from_string(p, &String::from(v[3]))?;
-    Ok(Connection { x:x, y:y })
+    let x1 = i64_from_string(p, &String::from(v[2]))?;
+    let y1 = i64_from_string(p, &String::from(v[3]))?;
+    Ok(Connection { x:x1, y:y1 })
 }
 
 // NoConnect ~ 5250 3050
@@ -1420,9 +1420,9 @@ fn parse_no_connect(p: &mut ParseState) -> Result<NoConnect> {
     if v.len() != 4 {
         return str_error(format!("expecting 4 elements in {}", s));
     }
-    let x = i64_from_string(p, &String::from(v[2]))?;
-    let y = i64_from_string(p, &String::from(v[3]))?;
-    Ok(NoConnect { x:x, y:y })
+    let x1 = i64_from_string(p, &String::from(v[2]))?;
+    let y1 = i64_from_string(p, &String::from(v[3]))?;
+    Ok(NoConnect { x:x1, y:y1 })
 }
 
 //Text Label 9300 2175 0    60   Italic 12
@@ -1442,26 +1442,26 @@ fn parse_text(p:&mut ParseState) -> Result<Text> {
         "HLabel" => TextType::Hierarchical,
         x => return Err(format!("Unknown text type {} at {}", x, s).into()),
     };
-    let x = i64_from_string(p, &String::from(v[2]))?;
-    let y = i64_from_string(p, &String::from(v[3]))?;
+    let x1 = i64_from_string(p, &String::from(v[2]))?;
+    let y1 = i64_from_string(p, &String::from(v[3]))?;
     let orientation = i64_from_string(p, &String::from(v[4]))?;
     let size = i64_from_string(p, &String::from(v[5]))?;
-    let mut i = 6;
+    let mut index = 6;
     let shape = if !t.is_local() {
-        i = 7;
+        index = 7;
         Some(v[6].into())
     } else {
         None
     };
-    let italic = match v[i] {
+    let italic = match v[index] {
         "Italic" => true,
         _ => false,
     };
-    let thickness = i64_from_string(p, &String::from(v[i+1]))?;
+    let thickness = i64_from_string(p, &String::from(v[index+1]))?;
     p.next();
     let text = p.here();
     Ok(Text {
-        t:t, x:x, y:y, orientation: orientation,
+        t:t, x:x1, y:y1, orientation: orientation,
         size:size, shape:shape, italic:italic, thickness:thickness,
         text:text
     })

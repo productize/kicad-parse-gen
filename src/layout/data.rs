@@ -291,7 +291,7 @@ impl NetName {
 
     /// rename a net
     pub fn rename(&mut self, from:&str, to:&str) {
-        if &self.0 == from {
+        if self.0 == from {
             self.0 = to.into();
         }
     }
@@ -429,7 +429,7 @@ impl BoundingBox for GrArc {
     }
 }
 
-/// gr_circle
+/// `gr_circle`
 // (gr_circle (center 178.6 68.8) (end 176.1 68.7) (layer Eco2.User) (width 0.2))
 #[derive(Clone,Debug)]
 pub struct GrCircle {
@@ -691,8 +691,8 @@ impl Layout {
 
     /// get module
     pub fn get_module(&self, reference: &str) -> Option<&footprint::Module> {
-        for ref x in &self.elements[..] {
-            match **x {
+        for x in &self.elements[..] {
+            match *x {
                 Element::Module(ref m) => {
                     if m.is_reference_with_name(reference) {
                         return Some(m);
@@ -718,9 +718,8 @@ impl Layout {
     pub fn get_modules(&self) -> Vec<&footprint::Module> {
         let mut v = vec![];
         for e in &self.elements {
-            match *e {
-                Element::Module(ref m) => v.push(m),
-                _ => (),
+            if let Element::Module(ref m) = *e {
+                v.push(m);
             }
         }
         v
@@ -840,7 +839,7 @@ impl Setup {
     /// get a setup element
     pub fn get(&self, s: &str) -> Option<&String> {
         for element in &self.elements {
-            if &element.name[..] == &s[..] {
+            if element.name[..] == s[..] {
                 return Some(&element.value1);
             }
         }
@@ -876,8 +875,8 @@ impl Adjust for Element {
             Element::Segment(ref mut e) => e.adjust(x, y),
             Element::Via(ref mut e) => e.adjust(x, y),
             Element::Zone(ref mut e) => e.adjust(x, y),
-            Element::Net(_) => (),
-            Element::NetClass(_) => (),
+            Element::Net(_) |
+            Element::NetClass(_) |
             Element::Other(_) => (),
         }
     }
@@ -895,8 +894,8 @@ impl BoundingBox for Element {
             Element::Segment(ref e) => e.bounding_box(),
             Element::Via(ref e) => e.bounding_box(),
             Element::Zone(ref e) => e.bounding_box(),
-            Element::Net(_) => Bound::default(),
-            Element::NetClass(_) => Bound::default(),
+            Element::Net(_) |
+            Element::NetClass(_) |
             Element::Other(_) => Bound::default(),
         }
     }

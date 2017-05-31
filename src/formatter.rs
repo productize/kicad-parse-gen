@@ -287,11 +287,9 @@ impl Formatter for KicadFormatter {
         // write an extra newline before the first element after the last module
         if let "module" = &ele[..] {
             self.seen_module = true;
-        } else {
-            if self.parent_is("kicad_pcb") && self.seen_module {
-                self.seen_module = false;
-                self.indent(writer, 1)?;
-            }
+        } else if self.parent_is("kicad_pcb") && self.seen_module {
+            self.seen_module = false;
+            self.indent(writer, 1)?;
         }
 
         // write an extra newline before the first segment
