@@ -362,7 +362,8 @@ impl Default for PinOrientation {
 }
 
 impl PinOrientation {
-    fn from_str(s:&str) -> Result<PinOrientation> {
+    
+    fn make(s:&str) -> Result<PinOrientation> {
         match s {
             "U" => Ok(PinOrientation::Up),
             "D" => Ok(PinOrientation::Down),
@@ -398,7 +399,7 @@ impl Default for PinType {
 }
 
 impl PinType {
-    fn from_str(s:&str) -> Result<PinType> {
+    fn make(s:&str) -> Result<PinType> {
         match s {
             "I" => Ok(PinType::Input),
             "O" => Ok(PinType::Output),
@@ -439,11 +440,11 @@ impl Default for PinShape {
 }
 
 impl PinShape {
-    fn from_str(s:&str) -> Result<PinShape> {
+    fn make(s:&str) -> Result<PinShape> {
         if s.is_empty() {
             Ok(PinShape::Line)
         } else {
-            let s = if s.starts_with("N") {
+            let s = if s.starts_with('N') {
                 &s[1..]
             } else {
                 &s[..]
@@ -467,7 +468,7 @@ impl PinShape {
         if s.is_empty() {
             false
         } else {
-            !s.starts_with("N")
+            !s.starts_with('N')
         }
     }
 }
@@ -670,16 +671,16 @@ fn parse_pin(p:&mut ParseState, line: &str) -> Result<Pin> {
     pin.x = i64_from_string(p, &v[3])?;
     pin.y = i64_from_string(p, &v[4])?;
     pin.len = i64_from_string(p, &v[5])?;
-    pin.orientation = PinOrientation::from_str(&v[6])?;
+    pin.orientation = PinOrientation::make(&v[6])?;
     pin.num_size = i64_from_string(p, &v[7])?;
     pin.name_size = i64_from_string(p, &v[8])?;
     pin.unit = i64_from_string(p, &v[9])?;
     pin.convert = i64_from_string(p, &v[10])?;
-    pin.pin_type = PinType::from_str(&v[11])?;
+    pin.pin_type = PinType::make(&v[11])?;
     pin.pin_visible = true;
     if v.len() == 13 {
         pin.pin_visible = PinShape::visible_from_str(&v[12]);
-        pin.pin_shape = PinShape::from_str(&v[12])?;
+        pin.pin_shape = PinShape::make(&v[12])?;
     }
     Ok(pin)
 }

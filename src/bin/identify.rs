@@ -9,6 +9,6 @@ fn main() {
     args.next();
     let name = args.next().unwrap();
     let name = Path::new(&name);
-    let f = kicad::read_kicad_file(&name, kicad::Expected::Any).unwrap();
+    let f = kicad::read_kicad_file(name, kicad::Expected::Any).unwrap();
     println!("found: {}", f);
 }

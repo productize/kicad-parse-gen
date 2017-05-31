@@ -122,12 +122,9 @@ impl KicadFormatter {
             }
         }
         if self.parent_is("dimension") {
-            match ele {
-                "gr_text" => {
-                    indent.close_on_new_line();
-                    return Some(indent);
-                }
-                _ => (),
+            if let "gr_text" = ele {
+                indent.close_on_new_line();
+                return Some(indent);
             }
         }
         if self.parent_is("fp_text") || self.parent_is("gr_text") {
