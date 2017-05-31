@@ -1,6 +1,6 @@
 [package]
 name = "kicad_parse_gen"
-version = "4.7.1"
+version = "4.7.2"
 authors = ["Joost Damad <joost@productize.be>"]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/productize/kicad-parse-gen"
@@ -12,7 +12,7 @@ description = "Kicad file format parser and generator library"
 symbolic_expressions = "~4.1.7"
 error-chain = "0.10"
 log = "0.3"
- env_logger = "0.4"
+env_logger = "0.4"
 
 [dev-dependencies]
 difference = "1.0"

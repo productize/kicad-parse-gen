@@ -385,6 +385,29 @@ pub trait Adjust {
     fn adjust(&mut self, x: f64, y: f64);
 }
 
+/// ordering used for ordering by component reference
+/// to e.g. avoid U1 U101 U2 and get U1 U2 U101
+pub fn reference_ord(r: &str) -> (char, i64) {
+    let c = r.chars().nth(0).unwrap();
+    let mut s = String::new();
+    for c in r.chars() {
+        if c >= '0' && c <= '9' {
+            s.push(c)
+        }
+        // if the &str contains a list of references,
+        // only take 1st element
+        if c == ',' {
+            break;
+        }
+    }
+    let num = match s.parse::<i64>() {
+        Ok(n) => n,
+        Err(_) => 0,
+    };
+    (c, num)
+}
+
+
 /// Kicad error handling code and types
 pub mod error;
 /// Kicad footprint format handling
