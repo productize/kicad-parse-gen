@@ -285,8 +285,9 @@ enum GrElement {
 }
 
 fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> SResult<Y>
-    where F: Fn(&Sexp) -> SResult<X>,
-          G: Fn(X) -> Y
+where
+    F: Fn(&Sexp) -> SResult<X>,
+    G: Fn(X) -> Y,
 {
     Ok(wrapper(make(s)?))
 }

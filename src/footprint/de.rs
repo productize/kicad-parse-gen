@@ -67,22 +67,21 @@ impl FromSexp for Font {
         for part in &parts[..] {
             // println!("part: {}", part);
             match *part {
-                    Part::Xy(ref xy) if xy.t == XyType::Size => {
-                        font.size.x = xy.x;
-                        font.size.y = xy.y;
-                        Ok(())
-                    }
-                    Part::Thickness(ref t) => {
-                        font.thickness = *t;
-                        Ok(())
-                    }
-                    Part::Italic => {
-                        font.italic = true;
-                        Ok(())
-                    }
-                    ref x => Err(format!("unknown element in font: {:?}", x)),
+                Part::Xy(ref xy) if xy.t == XyType::Size => {
+                    font.size.x = xy.x;
+                    font.size.y = xy.y;
+                    Ok(())
                 }
-                ?
+                Part::Thickness(ref t) => {
+                    font.thickness = *t;
+                    Ok(())
+                }
+                Part::Italic => {
+                    font.italic = true;
+                    Ok(())
+                }
+                ref x => Err(format!("unknown element in font: {:?}", x)),
+            }?
         }
         Ok(font)
     }
@@ -102,7 +101,8 @@ impl FromSexp for Layers {
 }
 
 fn parse_part_float<F>(e: &Sexp, make: F) -> SResult<Part>
-    where F: Fn(f64) -> Part
+where
+    F: Fn(f64) -> Part,
 {
     let v = e.list()?;
     if v.len() < 2 {
@@ -113,7 +113,8 @@ fn parse_part_float<F>(e: &Sexp, make: F) -> SResult<Part>
 }
 
 fn parse_part_int<F>(e: &Sexp, make: F) -> SResult<Part>
-    where F: Fn(i64) -> Part
+where
+    F: Fn(i64) -> Part,
 {
     let v = e.list()?;
     if v.len() < 2 {

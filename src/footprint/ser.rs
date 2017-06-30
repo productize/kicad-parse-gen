@@ -158,23 +158,21 @@ impl IntoSexp for Drill {
 impl IntoSexp for PadType {
     fn into_sexp(&self) -> Sexp {
         match *self {
-                PadType::Smd => "smd",
-                PadType::Pth => "thru_hole",
-                PadType::NpPth => "np_thru_hole",
-            }
-            .into()
+            PadType::Smd => "smd",
+            PadType::Pth => "thru_hole",
+            PadType::NpPth => "np_thru_hole",
+        }.into()
     }
 }
 
 impl IntoSexp for PadShape {
     fn into_sexp(&self) -> Sexp {
         match *self {
-                PadShape::Rect => "rect",
-                PadShape::Circle => "circle",
-                PadShape::Oval => "oval",
-                PadShape::Trapezoid => "trapezoid",
-            }
-            .into()
+            PadShape::Rect => "rect",
+            PadShape::Circle => "circle",
+            PadShape::Oval => "oval",
+            PadShape::Trapezoid => "trapezoid",
+        }.into()
     }
 }
 

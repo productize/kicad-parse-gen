@@ -6,7 +6,7 @@ use symbolic_expressions::iteratom::SResult;
 pub use layout::NetName;
 
 /// a Kicad module, with a name and a list of elements
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Module {
     /// name of the Kicad Module
     pub name: String,
@@ -133,7 +133,7 @@ impl Adjust for Module {
 }
 
 /// elements that can be found in a Module
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum Element {
     /// solder mask margin
     SolderMaskMargin(f64),
@@ -224,7 +224,7 @@ impl Named for Element {
 }
 
 /// text element
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct FpText {
     /// name
     pub name: String,
@@ -271,7 +271,7 @@ impl FpText {
 }
 
 /// a location and rotation in a layout
-#[derive(Debug,Clone,Default)]
+#[derive(Debug, Clone, Default)]
 pub struct At {
     /// x coordinate
     pub x: f64,
@@ -300,7 +300,7 @@ impl At {
 }
 
 /// font attributes for text
-#[derive(Debug,Clone,Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Font {
     /// size of the font
     pub size: Xy,
@@ -311,7 +311,7 @@ pub struct Font {
 }
 
 /// text effects
-#[derive(Debug,Clone,Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Effects {
     /// the font used
     pub font: Font,
@@ -330,7 +330,7 @@ impl Effects {
 }
 
 /// text justification
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum Justify {
     /// the text is mirrored
     Mirror,
@@ -341,7 +341,7 @@ pub enum Justify {
 }
 
 /// the type of X-Y element
-#[derive(Debug,Clone,PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum XyType {
     /// regular
     Xy,
@@ -364,7 +364,7 @@ impl Default for XyType {
 }
 
 /// X-Y element
-#[derive(Debug,Clone,Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Xy {
     /// x coordinate
     pub x: f64,
@@ -397,7 +397,7 @@ impl Xy {
 }
 
 /// a list of X-Y coordinates
-#[derive(Debug,Clone,Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Pts {
     /// the list of X-Y coordinates
     pub elements: Vec<Xy>,
@@ -424,7 +424,7 @@ impl BoundingBox for Pts {
 }
 
 /// a drill
-#[derive(Clone,Debug,Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Drill {
     /// shape of the drill
     pub shape: Option<String>,
@@ -439,7 +439,7 @@ pub struct Drill {
 }
 
 /// type of a Pad
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum PadType {
     /// surface mount
     Smd,
@@ -462,7 +462,7 @@ impl PadType {
 }
 
 /// shape of a pad
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum PadShape {
     /// rectangular
     Rect,
@@ -488,7 +488,7 @@ impl PadShape {
 }
 
 /// side of a layer
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum LayerSide {
     /// front side
     Front,
@@ -521,7 +521,7 @@ impl Default for LayerSide {
 }
 
 /// type of a layer
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum LayerType {
     /// copper layer
     Cu,
@@ -554,7 +554,7 @@ impl Default for LayerType {
 }
 
 /// a pcb layer, with a side and a type
-#[derive(Debug,Clone,Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Layer {
     /// side of the layer
     pub side: LayerSide,
@@ -604,7 +604,7 @@ impl Layer {
 }
 
 /// a list of layers
-#[derive(Debug,Clone,Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Layers {
     /// a list of layers
     pub layers: Vec<Layer>,
@@ -618,7 +618,7 @@ impl Layers {
 }
 
 /// a pad
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Pad {
     /// name
     pub name: String,
@@ -675,7 +675,10 @@ impl Pad {
     pub fn rename_net(&mut self, old_name: &str, new_name: &str) {
         let new_net = if let Some(ref net) = self.net {
             if net.name.0 == old_name {
-                Some(Net { name: new_name.into(), ..*net })
+                Some(Net {
+                    name: new_name.into(),
+                    ..*net
+                })
             } else {
                 Some(net.clone())
             }
@@ -710,7 +713,7 @@ impl BoundingBox for Pad {
 }
 
 /// a polygon
-#[derive(Debug,Clone,Default)]
+#[derive(Debug, Clone, Default)]
 pub struct FpPoly {
     /// points
     pub pts: Pts,
@@ -733,7 +736,7 @@ impl BoundingBox for FpPoly {
 }
 
 /// a line
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct FpLine {
     /// start point
     pub start: Xy,
@@ -763,7 +766,7 @@ impl BoundingBox for FpLine {
 }
 
 /// a circle
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct FpCircle {
     /// center point
     pub center: Xy,
@@ -792,15 +795,17 @@ impl BoundingBox for FpCircle {
         let dy = self.center.y - self.end.y;
         let d2 = dx * dx + dy * dy;
         let d = d2.sqrt();
-        Bound::new(self.center.x - d,
-                   self.center.y - d,
-                   self.center.x + d,
-                   self.center.y + d)
+        Bound::new(
+            self.center.x - d,
+            self.center.y - d,
+            self.center.x + d,
+            self.center.y + d,
+        )
     }
 }
 
 /// an arc
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct FpArc {
     /// start point
     pub start: Xy,
@@ -834,7 +839,7 @@ impl Default for FpArc {
 }
 
 /// a net
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Net {
     /// net number
     pub num: i64,
@@ -843,7 +848,7 @@ pub struct Net {
 }
 
 /// a 3D model
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Model {
     /// name
     pub name: String,
@@ -856,7 +861,7 @@ pub struct Model {
 }
 
 /// a 3D X-Y-Z coordinate
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Xyz {
     /// X coordinate
     pub x: f64,

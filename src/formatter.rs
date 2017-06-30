@@ -134,14 +134,12 @@ impl KicadFormatter {
         }
         if self.parent_is("pts") {
             if let "xy" = ele {
-                let wrap = if self.is("fp_poly") {
-                    4
-                } else {
-                    5
-                };
+                let wrap = if self.is("fp_poly") { 4 } else { 5 };
                 if self.pts_xy_count > 0 && self.pts_xy_count % wrap == 0 {
                     return Some(indent);
-                } else if self.pts_xy_count == 0 && (self.is("polygon") || self.is("filled_polygon")) {
+                } else if self.pts_xy_count == 0 &&
+                           (self.is("polygon") || self.is("filled_polygon"))
+                {
                     return Some(indent);
                 }
             }
@@ -270,7 +268,8 @@ impl KicadFormatter {
 
 impl Formatter for KicadFormatter {
     fn open<W>(&mut self, writer: &mut W, value: Option<&Sexp>) -> Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         let mut ele = String::new();
         // if first element is string
@@ -328,7 +327,8 @@ impl Formatter for KicadFormatter {
     }
 
     fn element<W>(&mut self, writer: &mut W, value: &Sexp) -> Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         // get rid of the space if we will be putting a newline next
         if self.want_indent(value).is_none() {
@@ -341,7 +341,8 @@ impl Formatter for KicadFormatter {
     }
 
     fn close<W>(&mut self, writer: &mut W) -> Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         if let Some(Some((s, want_indent))) = self.stack.pop() {
             if let Some(indent) = want_indent {

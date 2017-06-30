@@ -17,7 +17,7 @@ use parse_split_quote_aware;
 use parse_split_quote_aware_n;
 
 /// a Kicad schematic
-#[derive(Debug,Default)]
+#[derive(Debug, Default)]
 pub struct Schematic {
     /// filename of the schematic
     pub filename: Option<PathBuf>,
@@ -59,19 +59,19 @@ impl Schematic {
     fn append_component(&mut self, c: Component) {
         self.elements.push(Element::Component(c))
     }
-    
+
     fn append_wire(&mut self, w: Wire) {
         self.elements.push(Element::Wire(w))
     }
-    
+
     fn append_connection(&mut self, w: Connection) {
         self.elements.push(Element::Connection(w))
     }
-    
+
     fn append_no_connect(&mut self, w: NoConnect) {
         self.elements.push(Element::NoConnect(w))
     }
-    
+
     fn append_text(&mut self, w: Text) {
         self.elements.push(Element::Text(w))
     }
@@ -86,7 +86,8 @@ impl Schematic {
 
     /// modify the component by name
     pub fn modify_component<F>(&mut self, reference: &str, fun: F)
-        where F: Fn(&mut Component) -> ()
+    where
+        F: Fn(&mut Component) -> (),
     {
         for ref mut x in &mut self.elements[..] {
             match **x {
@@ -106,7 +107,8 @@ impl Schematic {
 
     /// modify all components
     pub fn modify_components<F>(&mut self, fun: F)
-        where F: Fn(&mut Component) -> ()
+    where
+        F: Fn(&mut Component) -> (),
     {
         for ref mut x in &mut self.elements[..] {
             match **x {
@@ -193,7 +195,10 @@ impl Schematic {
                 return Ok(c);
             }
         }
-        str_error(format!("could not find component {} in schematic", reference))
+        str_error(format!(
+            "could not find component {} in schematic",
+            reference
+        ))
     }
 
     /// increment the sheet counter of the schematic
@@ -274,7 +279,7 @@ impl ParseState {
 // $EndDesc
 //
 /// description of a schematic
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Description {
     /// size
     pub size: String,
@@ -546,11 +551,12 @@ impl Component {
     }
 
     /// update or add name and value of a component field
-    pub fn add_or_update_field(&mut self,
-                               template: &ComponentField,
-                               name: &str,
-                               value: &str)
-                               -> FieldUpdate {
+    pub fn add_or_update_field(
+        &mut self,
+        template: &ComponentField,
+        name: &str,
+        value: &str,
+    ) -> FieldUpdate {
         match self.get_field_value(name) {
             Some(old_value) => {
                 if old_value == value {
@@ -571,11 +577,13 @@ impl Component {
     /// with a new name and value
     pub fn add_new_field(&mut self, template: &ComponentField, name: &str, value: &str) {
         let i = self.get_available_field_num();
-        let mut c = ComponentField::new_from(i,
-                                             name.to_string(),
-                                             value.to_string(),
-                                             template.x,
-                                             template.y);
+        let mut c = ComponentField::new_from(
+            i,
+            name.to_string(),
+            value.to_string(),
+            template.x,
+            template.y,
+        );
         c.visible = false;
         self.fields.push(c)
     }
@@ -593,19 +601,21 @@ impl fmt::Display for Component {
         for x in &self.fields[..] {
             writeln!(f, "{}", x)?
         }
-        writeln!(f,
-                 "\t{:4} {:4} {:4}",
-                 "1",
-                 format!("{}", self.x),
-                 (format!("{}", self.y)))
-            ?;
-        writeln!(f,
-                 "\t{:4} {:4} {:4} {:4}",
-                 format!("{}", self.rotation.a),
-                 format!("{}", self.rotation.b),
-                 format!("{}", self.rotation.c),
-                 format!("{}", self.rotation.d))
-            ?;
+        writeln!(
+            f,
+            "\t{:4} {:4} {:4}",
+            "1",
+            format!("{}", self.x),
+            (format!("{}", self.y))
+        )?;
+        writeln!(
+            f,
+            "\t{:4} {:4} {:4} {:4}",
+            format!("{}", self.rotation.a),
+            format!("{}", self.rotation.b),
+            format!("{}", self.rotation.c),
+            format!("{}", self.rotation.d)
+        )?;
         writeln!(f, "$EndComp")
     }
 }
@@ -651,7 +661,7 @@ impl fmt::Display for Orientation {
 
 
 /// a text justification on a component
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum Justify {
     /// left justification
     Left,
@@ -693,7 +703,7 @@ impl fmt::Display for Justify {
 
 
 /// a component field
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct ComponentField {
     /// index of component field
     pub i: i64,
@@ -724,7 +734,11 @@ pub struct ComponentField {
 impl ComponentField {
     fn new(p: &ParseState, v: &[String]) -> Result<ComponentField> {
         if v.len() != 10 && v.len() != 11 {
-            return str_error(format!("expecting 10 or 11 parts got {} in {}", v.len(), p.here()));
+            return str_error(format!(
+                "expecting 10 or 11 parts got {} in {}",
+                v.len(),
+                p.here()
+            ));
         }
         let i = i64_from_string(p, &v[1])?;
         let name = if v.len() == 11 {
@@ -777,37 +791,17 @@ impl ComponentField {
 impl fmt::Display for ComponentField {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "F {} \"{}\" {} ", self.i, self.value, self.orientation)?;
-        write!(f,
-               "{:3} {:3} {:3} ",
-               format!("{}", self.x),
-               format!("{}", self.y),
-               format!("{}", self.size))
-            ?;
-        write!(f,
-               "{} ",
-               if self.visible {
-                   "0000"
-               } else {
-                   "0001"
-               })
-            ?;
+        write!(
+            f,
+            "{:3} {:3} {:3} ",
+            format!("{}", self.x),
+            format!("{}", self.y),
+            format!("{}", self.size)
+        )?;
+        write!(f, "{} ", if self.visible { "0000" } else { "0001" })?;
         write!(f, "{} {}", self.hjustify, self.vjustify)?;
-        write!(f,
-               "{}",
-               if self.italic {
-                   'I'
-               } else {
-                   'N'
-               })
-            ?;
-        write!(f,
-               "{}",
-               if self.bold {
-                   'B'
-               } else {
-                   'N'
-               })
-            ?;
+        write!(f, "{}", if self.italic { 'I' } else { 'N' })?;
+        write!(f, "{}", if self.bold { 'B' } else { 'N' })?;
         if self.i > 3 {
             write!(f, " \"{}\"", self.name)?
         };
@@ -816,7 +810,7 @@ impl fmt::Display for ComponentField {
 }
 
 /// a component sheet
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Sheet {
     /// X coordinate
     pub x: i64,
@@ -842,10 +836,12 @@ pub struct Sheet {
 
 impl BoundingBox for Sheet {
     fn bounding_box(&self) -> Bound {
-        Bound::new_from_i64(self.x,
-                            self.y - 100,
-                            self.x + self.dimx,
-                            self.y + self.dimy + 100)
+        Bound::new_from_i64(
+            self.x,
+            self.y - 100,
+            self.x + self.dimx,
+            self.y + self.dimy + 100,
+        )
     }
 }
 
@@ -886,7 +882,7 @@ impl fmt::Display for Sheet {
 // form = I (input) O (output) B (BiDi) T (tri state) U (unspecified)
 // side = R (right) , L (left)., T (tpo) , B (bottom)
 /// label on a sheet
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct SheetLabel {
     /// name
     pub name: String,
@@ -917,19 +913,21 @@ impl Default for SheetLabel {
 
 impl fmt::Display for SheetLabel {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        write!(f,
-               "\"{}\" {} {} {} {} {}",
-               self.name,
-               self.form,
-               self.side,
-               self.x,
-               self.y,
-               self.size)
+        write!(
+            f,
+            "\"{}\" {} {} {} {} {}",
+            self.name,
+            self.form,
+            self.side,
+            self.x,
+            self.y,
+            self.size
+        )
     }
 }
 
 /// form of a label
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum LabelForm {
     /// input
     Input,
@@ -957,7 +955,7 @@ impl fmt::Display for LabelForm {
 }
 
 /// a side of a label
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum LabelSide {
     /// left
     Left,
@@ -985,13 +983,13 @@ impl fmt::Display for LabelSide {
 #[derive(Debug)]
 pub struct Wire {
     /// x-coordinate of first point of wire
-    pub x1:i64,
+    pub x1: i64,
     /// y-coordinate of first point of wire
-    pub y1:i64,
+    pub y1: i64,
     /// x-coordinate of second point of wire
-    pub x2:i64,
+    pub x2: i64,
     /// y-coordinate of second point of wire
-    pub y2:i64,
+    pub y2: i64,
 }
 
 impl fmt::Display for Wire {
@@ -1005,9 +1003,9 @@ impl fmt::Display for Wire {
 #[derive(Debug)]
 pub struct Connection {
     /// connection x-coordinate
-    pub x:i64,
+    pub x: i64,
     /// connection y-coordinate
-    pub y:i64,
+    pub y: i64,
 }
 
 impl fmt::Display for Connection {
@@ -1020,9 +1018,9 @@ impl fmt::Display for Connection {
 #[derive(Debug)]
 pub struct NoConnect {
     /// no-connect x-coordinate
-    pub x:i64,
+    pub x: i64,
     /// no-connect y-coordinate
-    pub y:i64,
+    pub y: i64,
 }
 
 impl fmt::Display for NoConnect {
@@ -1074,32 +1072,28 @@ impl TextType {
 #[derive(Debug)]
 pub struct Text {
     /// type of  the text
-    pub t:TextType,
+    pub t: TextType,
     /// x-coordinate of the text
-    pub x:i64,
+    pub x: i64,
     /// y-coordinate of the text
-    pub y:i64,
+    pub y: i64,
     /// orientation of the text
-    pub orientation:i64, // TODO: implement more specified
+    pub orientation: i64, // TODO: implement more specified
     /// size of the text
-    pub size:i64,
+    pub size: i64,
     /// shape of the text
-    pub shape:Option<String>, // TODO: implement more specified
+    pub shape: Option<String>, // TODO: implement more specified
     /// if it is italic
     pub italic: bool,
     /// thickness (for bold)
     pub thickness: i64,
     /// the contained text
-    pub text:String,
+    pub text: String,
 }
 
 impl fmt::Display for Text {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        let italic = if self.italic {
-            "Italic"
-        } else {
-            "~"
-        };
+        let italic = if self.italic { "Italic" } else { "~" };
         write!(f, "Text {} ", self.t)?;
         // trick to get left-aligned adjusted numbers: convert to string first...
         let x = format!("{}", self.x);
@@ -1165,7 +1159,8 @@ fn bool_from<T: PartialEq + fmt::Display>(i: T, t: T, f: T) -> Result<bool> {
 }
 
 fn word_and_qstring<F>(d: &mut Description, name: &'static str, s: &str, setter: F) -> Result<()>
-    where F: Fn(&mut Description, String) -> ()
+where
+    F: Fn(&mut Description, String) -> (),
 {
     let v = parse_split_quote_aware_n(2, s)?;
     assume_string(name, &v[0])?;
@@ -1398,7 +1393,12 @@ fn parse_wire(p: &mut ParseState) -> Result<Wire> {
     let y1 = i64_from_string(p, &String::from(v[1]))?;
     let x2 = i64_from_string(p, &String::from(v[2]))?;
     let y2 = i64_from_string(p, &String::from(v[3]))?;
-    Ok(Wire { x1:x1, y1:y1, x2:x2, y2:y2 })
+    Ok(Wire {
+        x1: x1,
+        y1: y1,
+        x2: x2,
+        y2: y2,
+    })
 }
 
 // Connection ~ 5250 3050
@@ -1410,7 +1410,7 @@ fn parse_connection(p: &mut ParseState) -> Result<Connection> {
     }
     let x1 = i64_from_string(p, &String::from(v[2]))?;
     let y1 = i64_from_string(p, &String::from(v[3]))?;
-    Ok(Connection { x:x1, y:y1 })
+    Ok(Connection { x: x1, y: y1 })
 }
 
 // NoConnect ~ 5250 3050
@@ -1422,14 +1422,14 @@ fn parse_no_connect(p: &mut ParseState) -> Result<NoConnect> {
     }
     let x1 = i64_from_string(p, &String::from(v[2]))?;
     let y1 = i64_from_string(p, &String::from(v[3]))?;
-    Ok(NoConnect { x:x1, y:y1 })
+    Ok(NoConnect { x: x1, y: y1 })
 }
 
 //Text Label 9300 2175 0    60   Italic 12
 //IAMBOLDITALIC
 //Text Notes 8025 5400 0    60   ~ 0
 //IAMANOTE
-fn parse_text(p:&mut ParseState) -> Result<Text> {
+fn parse_text(p: &mut ParseState) -> Result<Text> {
     let s = p.here();
     let v: Vec<&str> = s.split_whitespace().collect();
     if v.len() < 8 {
@@ -1457,15 +1457,21 @@ fn parse_text(p:&mut ParseState) -> Result<Text> {
         "Italic" => true,
         _ => false,
     };
-    let thickness = i64_from_string(p, &String::from(v[index+1]))?;
+    let thickness = i64_from_string(p, &String::from(v[index + 1]))?;
     p.next();
     let text = p.here();
     Ok(Text {
-        t:t, x:x1, y:y1, orientation: orientation,
-        size:size, shape:shape, italic:italic, thickness:thickness,
-        text:text
+        t: t,
+        x: x1,
+        y: y1,
+        orientation: orientation,
+        size: size,
+        shape: shape,
+        italic: italic,
+        thickness: thickness,
+        text: text,
     })
-    
+
 }
 
 /// parse a &str to a Kicad schematic, optionally setting the filename
@@ -1547,15 +1553,17 @@ pub fn parse_file(filename: &Path) -> Result<Schematic> {
 /// get the filename for a sheet in a schematic
 pub fn filename_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<PathBuf> {
     let path = match schematic.filename {
-            Some(ref path) => Ok(path),
-            None => Err("can't load sheet when there is no filename for the schematic".to_string()),
-        }
-        ?;
+        Some(ref path) => Ok(path),
+        None => Err(
+            "can't load sheet when there is no filename for the schematic".to_string(),
+        ),
+    }?;
     let dir = match path.parent() {
-            Some(dir) => Ok(dir),
-            None => Err("can't load sheet when I don't know the dir of the schematic".to_string()),
-        }
-        ?;
+        Some(dir) => Ok(dir),
+        None => Err(
+            "can't load sheet when I don't know the dir of the schematic".to_string(),
+        ),
+    }?;
     Ok(dir.join(&sheet.filename))
 }
 

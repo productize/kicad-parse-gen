@@ -13,16 +13,16 @@ use difference::Changeset;
 
 #[test]
 fn parse_and_compare() {
-    env::set_var("RUST_LOG","trace");
-    env_logger::init().unwrap(); 
+    env::set_var("RUST_LOG", "trace");
+    env_logger::init().unwrap();
     let mut file_name = String::new();
     file_name.push_str(env!("CARGO_MANIFEST_DIR"));
     file_name.push_str("/tests/data/");
     file_name.push_str("layout2.kicad_pcb");
     let file_name = PathBuf::from(file_name);
-    
+
     let content = kicad::read_file(&file_name).unwrap();
-    
+
     let layout = kicad::read_layout(&file_name).unwrap();
     let s = kicad::layout::layout_to_string(&layout, 0).unwrap();
 
@@ -35,9 +35,9 @@ fn parse_and_compare() {
     }
 
     let b = layout.bounding_box();
-    assert!( (b.x1 - 99.1875).abs() < std::f64::EPSILON );
-    assert!( (b.y1 - 99.6).abs()    < std::f64::EPSILON );
-    assert!( (b.x2 - 101.9).abs()   < std::f64::EPSILON );
-    assert!( (b.y2 - 100.9).abs()   < std::f64::EPSILON );
+    assert!((b.x1 - 99.1875).abs() < std::f64::EPSILON);
+    assert!((b.y1 - 99.6).abs() < std::f64::EPSILON);
+    assert!((b.x2 - 101.9).abs() < std::f64::EPSILON);
+    assert!((b.y2 - 100.9).abs() < std::f64::EPSILON);
     info!("bound: {:?}", b);
 }

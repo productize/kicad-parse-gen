@@ -15,12 +15,12 @@ fn parse_and_compare() {
     file_name.push_str("/tests/data/");
     file_name.push_str("schematic1.sch");
     let file_name = PathBuf::from(file_name);
-    
+
     let content = kicad::read_file(&file_name).unwrap();
-    
+
     let s = kicad::read_schematic(&file_name).unwrap();
     let s = format!("{}", s);
-    
+
     let changeset = Changeset::new(&content, &s, "\n");
     if changeset.distance > 0 {
         println!("{}", changeset);

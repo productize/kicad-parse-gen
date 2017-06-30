@@ -16,7 +16,7 @@ use schematic;
 use str_error;
 
 /// a Kicad symbolic file
-#[derive(Debug,Default)]
+#[derive(Debug, Default)]
 pub struct SymbolLib {
     /// the symbols
     pub symbols: Vec<Symbol>,
@@ -24,7 +24,7 @@ pub struct SymbolLib {
 
 // DEF name reference unused text_offset draw_pinnumber draw_pinname unit_count units_locked option_flag
 /// a symbol
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Symbol {
     /// name
     pub name: String,
@@ -53,7 +53,7 @@ pub struct Symbol {
 // F0 "#PWR" 0 0 30 H I C CNN
 
 /// a field
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Field {
     /// field number
     pub i: i64,
@@ -82,7 +82,7 @@ pub struct Field {
 }
 
 /// a drawing
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum Draw {
     /// a pin
     Pin(Pin),
@@ -92,20 +92,20 @@ pub enum Draw {
 
 // U (up) D (down) R (right) L (left).
 /// pin orientation
-#[derive(Debug,Clone,PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PinOrientation {
     /// up
-    Up,    // U
+    Up, // U
     /// down
-    Down,  // D
+    Down, // D
     /// left
-    Left,  // L
+    Left, // L
     /// right
     Right, // R
 }
 
 /// pin type
-#[derive(Debug,Clone,PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PinType {
     /// input
     Input, // I
@@ -132,7 +132,7 @@ pub enum PinType {
 }
 
 /// pin shape
-#[derive(Debug,Clone,PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PinShape {
     /// line
     Line, // None (default)
@@ -158,24 +158,24 @@ pub enum PinShape {
 // X P1 1 -200 200 150 R 50 50 1 1 P
 // X +3.3V 1 0 0 0 U 30 30 0 0 W N
 /// draw a pin
-#[derive(Debug,Clone,Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Pin {
     /// name of the pin
-    pub name:String,
+    pub name: String,
     /// number of the pin, which doesn't have to be an actual number
-    pub number:String,
+    pub number: String,
     /// x position of the pin
-    pub x:i64,
+    pub x: i64,
     /// y position of the pin
-    pub y:i64,
+    pub y: i64,
     /// length of the pin
-    pub len:i64,
+    pub len: i64,
     /// orientation of the pin
-    pub orientation:PinOrientation,
+    pub orientation: PinOrientation,
     /// pin number text size
-    pub num_size:i64,
+    pub num_size: i64,
     /// pin name text size
-    pub name_size:i64,
+    pub name_size: i64,
     /// unit ??
     pub unit: i64,
     /// convert ??
@@ -186,13 +186,13 @@ pub struct Pin {
     pub pin_visible: bool,
     /// pin shape
     pub pin_shape: PinShape,
-    
 }
 
 impl SymbolLib {
     /// find a symbol in a symbol lib
     pub fn find<F>(&self, filter: F) -> Option<&Symbol>
-        where F: Fn(&Symbol) -> bool
+    where
+        F: Fn(&Symbol) -> bool,
     {
         for symbol in &self.symbols {
             if filter(symbol) {
@@ -249,15 +249,18 @@ impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         writeln!(f, "# {}", &&self.fields[1].value)?;
         writeln!(f, "#")?;
-        writeln!(f, "DEF {} {} 0 {} {} {} {} {} {}",
-                     self.name, self.reference, self.text_offset,
-                     if self.draw_pinnumber { "Y" } else { "N" },
-                     if self.draw_pinname { "Y" } else { "N" },
-                     self.unit_count,
-                     if self.unit_locked { "L" } else { "F" },
-                     if self.is_power { "P" } else { "N" },
-                     )
-            ?;
+        writeln!(
+            f,
+            "DEF {} {} 0 {} {} {} {} {} {}",
+            self.name,
+            self.reference,
+            self.text_offset,
+            if self.draw_pinnumber { "Y" } else { "N" },
+            if self.draw_pinname { "Y" } else { "N" },
+            self.unit_count,
+            if self.unit_locked { "L" } else { "F" },
+            if self.is_power { "P" } else { "N" },
+        )?;
         for field in &self.fields {
             writeln!(f, "{}", field)?
         }
@@ -300,15 +303,21 @@ impl Default for Field {
 
 impl fmt::Display for Field {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        write!(f, "F{} \"{}\" {} {} {} {} {} {} {}{}{}",
-               self.i, self.value, self.x, self.y, self.dimension,
-               self.orientation,
-               if self.visible { "V" } else { "I" },
-               self.hjustify, self.vjustify,
-               if self.italic { "I" } else { "N" },
-               if self.bold { "I" } else { "N" },
-                    )
-            ?;
+        write!(
+            f,
+            "F{} \"{}\" {} {} {} {} {} {} {}{}{}",
+            self.i,
+            self.value,
+            self.x,
+            self.y,
+            self.dimension,
+            self.orientation,
+            if self.visible { "V" } else { "I" },
+            self.hjustify,
+            self.vjustify,
+            if self.italic { "I" } else { "N" },
+            if self.bold { "I" } else { "N" },
+        )?;
         if self.i > 3 {
             write!(f, " \"{}\"", self.name)?
         };
@@ -362,14 +371,13 @@ impl Default for PinOrientation {
 }
 
 impl PinOrientation {
-    
-    fn make(s:&str) -> Result<PinOrientation> {
+    fn make(s: &str) -> Result<PinOrientation> {
         match s {
             "U" => Ok(PinOrientation::Up),
             "D" => Ok(PinOrientation::Down),
             "L" => Ok(PinOrientation::Left),
             "R" => Ok(PinOrientation::Right),
-            _ => Err(format!("unknown pin orientation {}", s).into())
+            _ => Err(format!("unknown pin orientation {}", s).into()),
         }
     }
 }
@@ -399,7 +407,7 @@ impl Default for PinType {
 }
 
 impl PinType {
-    fn make(s:&str) -> Result<PinType> {
+    fn make(s: &str) -> Result<PinType> {
         match s {
             "I" => Ok(PinType::Input),
             "O" => Ok(PinType::Output),
@@ -412,7 +420,7 @@ impl PinType {
             "C" => Ok(PinType::OpenCollector),
             "E" => Ok(PinType::OpenEmitter),
             "N" => Ok(PinType::NotConnected),
-            _ => Err(format!("unknown pin type {}", s).into())
+            _ => Err(format!("unknown pin type {}", s).into()),
         }
     }
 }
@@ -440,15 +448,11 @@ impl Default for PinShape {
 }
 
 impl PinShape {
-    fn make(s:&str) -> Result<PinShape> {
+    fn make(s: &str) -> Result<PinShape> {
         if s.is_empty() {
             Ok(PinShape::Line)
         } else {
-            let s = if s.starts_with('N') {
-                &s[1..]
-            } else {
-                &s[..]
-            };
+            let s = if s.starts_with('N') { &s[1..] } else { &s[..] };
             match s {
                 "I" => Ok(PinShape::Inverted),
                 "C" => Ok(PinShape::Clock),
@@ -463,8 +467,8 @@ impl PinShape {
             }
         }
     }
-    
-    fn visible_from_str(s:&str) -> bool {
+
+    fn visible_from_str(s: &str) -> bool {
         if s.is_empty() {
             false
         } else {
@@ -601,7 +605,7 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
             p.next();
             break;
         }
-        
+
         if s2.starts_with("X ") {
             let pin = parse_pin(p, &s2)?;
             s.draw.push(Draw::Pin(pin));
@@ -660,7 +664,7 @@ fn parse_field(p: &mut ParseState, line: &str) -> Result<Field> {
 
 // X +3.3V 1 0 0 0 U 30 30 0 0 W N
 
-fn parse_pin(p:&mut ParseState, line: &str) -> Result<Pin> {
+fn parse_pin(p: &mut ParseState, line: &str) -> Result<Pin> {
     let mut pin = Pin::default();
     let v = &parse_split_quote_aware(line);
     if v.len() != 12 && v.len() != 13 {

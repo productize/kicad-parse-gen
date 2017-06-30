@@ -16,8 +16,8 @@ use {Bound, BoundingBox, Adjust};
 /// convert a Kicad layout to a String
 pub fn layout_to_string(layout: &Layout, indent_level: i64) -> Result<String> {
     let formatter = KicadFormatter::new(indent_level);
-    let mut s = symbolic_expressions::ser::to_string_with_formatter(&layout.into_sexp(), formatter)
-        ?;
+    let mut s =
+        symbolic_expressions::ser::to_string_with_formatter(&layout.into_sexp(), formatter)?;
     s.push('\n');
     Ok(s)
 }

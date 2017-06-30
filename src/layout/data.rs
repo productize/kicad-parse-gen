@@ -28,7 +28,7 @@ pub struct Layout {
 }
 
 /// layout elements
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum Element {
     /// module
     Module(footprint::Module),
@@ -58,7 +58,7 @@ pub enum Element {
 }
 
 /// a zone region
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Zone {
     /// net number of the zone
     pub net: i64,
@@ -122,7 +122,7 @@ impl BoundingBox for Zone {
 }
 
 /// a zone hatch
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Hatch {
     /// hatching style
     pub style: String,
@@ -131,7 +131,7 @@ pub struct Hatch {
 }
 
 /// a zone connect pads
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct ConnectPads {
     /// connection type
     pub connection: Option<String>,
@@ -141,7 +141,7 @@ pub struct ConnectPads {
 
 /// keepout of a zone
 //  (keepout (tracks not_allowed) (vias not_allowed) (copperpour allowed))
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Keepout {
     /// tracks
     pub tracks: bool,
@@ -153,7 +153,7 @@ pub struct Keepout {
 
 /// fill of a zone
 //  (fill yes (arc_segments 16) (thermal_gap 0.508) (thermal_bridge_width 0.508))
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Fill {
     /// if it is filled (default no)
     pub filled: bool,
@@ -172,7 +172,7 @@ pub struct Fill {
 }
 
 /// build host info
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Host {
     /// tool name
     pub tool: String,
@@ -181,7 +181,7 @@ pub struct Host {
 }
 
 /// general information
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct General {
     /// number of links
     pub links: i64,
@@ -204,7 +204,7 @@ pub struct General {
 }
 
 /// area
-#[derive(Clone,Debug,Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Area {
     /// X1 coordinate
     pub x1: f64,
@@ -217,7 +217,7 @@ pub struct Area {
 }
 
 /// layer
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Layer {
     /// layer number
     pub num: i64,
@@ -230,7 +230,7 @@ pub struct Layer {
 }
 
 /// layer type
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum LayerType {
     /// signal layer
     Signal,
@@ -245,7 +245,7 @@ pub enum LayerType {
 }
 
 /// setup elements of the layout
-#[derive(Clone,Debug,Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Setup {
     /// the setup elements
     pub elements: Vec<SetupElement>,
@@ -254,7 +254,7 @@ pub struct Setup {
 }
 
 /// a generic setup element
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct SetupElement {
     /// a name
     pub name: String,
@@ -265,24 +265,24 @@ pub struct SetupElement {
 }
 
 /// a netname
-#[derive(Clone,Debug,PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct NetName(pub String);
 
 impl<'a> From<&'a str> for NetName {
-    fn from(s:&'a str) -> NetName {
+    fn from(s: &'a str) -> NetName {
         NetName(s.into())
     }
 }
 
 impl From<String> for NetName {
-    fn from(s:String) -> NetName {
+    fn from(s: String) -> NetName {
         NetName(s)
     }
 }
 
 impl NetName {
     /// replace the block_name in a net name
-    pub fn replace_block(&mut self, from:&str, to:&str) {
+    pub fn replace_block(&mut self, from: &str, to: &str) {
         let from_pat = format!("/{}/", from);
         let to_pat = format!("/{}/", to);
         let n = self.0.replace(&from_pat, &to_pat);
@@ -290,7 +290,7 @@ impl NetName {
     }
 
     /// rename a net
-    pub fn rename(&mut self, from:&str, to:&str) {
+    pub fn rename(&mut self, from: &str, to: &str) {
         if self.0 == from {
             self.0 = to.into();
         }
@@ -298,7 +298,7 @@ impl NetName {
 }
 
 /// a net
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Net {
     /// net number
     pub num: i64,
@@ -307,7 +307,7 @@ pub struct Net {
 }
 
 /// a net class
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct NetClass {
     /// name
     pub name: String,
@@ -334,7 +334,7 @@ pub struct NetClass {
 }
 
 /// text
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct GrText {
     /// text
     pub value: String,
@@ -362,7 +362,7 @@ impl BoundingBox for GrText {
 }
 
 /// line
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct GrLine {
     /// start point
     pub start: footprint::Xy,
@@ -396,7 +396,7 @@ impl BoundingBox for GrLine {
 }
 
 /// arc
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct GrArc {
     /// start point
     pub start: footprint::Xy,
@@ -431,7 +431,7 @@ impl BoundingBox for GrArc {
 
 /// `gr_circle`
 // (gr_circle (center 178.6 68.8) (end 176.1 68.7) (layer Eco2.User) (width 0.2))
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct GrCircle {
     /// center point
     pub center: footprint::Xy,
@@ -457,17 +457,19 @@ impl Adjust for GrCircle {
 impl BoundingBox for GrCircle {
     fn bounding_box(&self) -> Bound {
         let r = (self.center.x - self.end.x) * (self.center.x - self.end.x) +
-                (self.center.y - self.end.y) * (self.center.y - self.end.y);
+            (self.center.y - self.end.y) * (self.center.y - self.end.y);
         let r = r.sqrt();
-        Bound::new(self.center.x - r,
-                   self.center.y - r,
-                   self.center.x + r,
-                   self.center.y + r)
+        Bound::new(
+            self.center.x - r,
+            self.center.y - r,
+            self.center.x + r,
+            self.center.y + r,
+        )
     }
 }
 
 /// dimension
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Dimension {
     /// name
     pub name: String,
@@ -525,7 +527,7 @@ impl BoundingBox for Dimension {
 
 /// segment
 // (segment (start 117.5548 123.4602) (end 118.3848 122.6302) (width 0.2032) (layer B.Cu) (net 0) (tstamp 55E99398))
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Segment {
     /// start point
     pub start: footprint::Xy,
@@ -562,7 +564,7 @@ impl BoundingBox for Segment {
 
 /// via
 // (via (at 132.1948 121.2202) (size 0.675) (drill 0.25) (layers F.Cu B.Cu) (net 19))
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Via {
     /// at
     pub at: footprint::At,
@@ -639,7 +641,7 @@ impl Layout {
 
     /// change net name
     pub fn change_net_name(&mut self, old_name: &str, new_name: &str) {
-        let update = |name:&mut NetName| {
+        let update = |name: &mut NetName| {
             name.rename(old_name, new_name);
             Ok(())
         };
@@ -647,36 +649,37 @@ impl Layout {
     }
 
     /// update net names in a layout
-    pub fn update_net_names<F>(&mut self, update:F) -> Result<()>
-    where F: Fn(&mut NetName) -> Result<()>
-{
-    for element in &mut self.elements {
-        match *element {
-            Element::Net(ref mut net) => {
-                update(&mut net.name)?;
-            }
-            Element::NetClass(ref mut nc) => {
-                for name in &mut nc.nets {
-                    update(name)?;
+    pub fn update_net_names<F>(&mut self, update: F) -> Result<()>
+    where
+        F: Fn(&mut NetName) -> Result<()>,
+    {
+        for element in &mut self.elements {
+            match *element {
+                Element::Net(ref mut net) => {
+                    update(&mut net.name)?;
                 }
-            }
-            Element::Module(ref mut module) => {
-                for m_e in &mut module.elements {
-                    if let footprint::Element::Pad(ref mut pad) = *m_e {
-                        if let Some(ref mut net) = pad.net {
-                            update(&mut net.name)?;
+                Element::NetClass(ref mut nc) => {
+                    for name in &mut nc.nets {
+                        update(name)?;
+                    }
+                }
+                Element::Module(ref mut module) => {
+                    for m_e in &mut module.elements {
+                        if let footprint::Element::Pad(ref mut pad) = *m_e {
+                            if let Some(ref mut net) = pad.net {
+                                update(&mut net.name)?;
+                            }
                         }
                     }
                 }
+                Element::Zone(ref mut zone) => {
+                    update(&mut zone.net_name)?;
+                }
+                _ => (),
             }
-            Element::Zone(ref mut zone) => {
-                update(&mut zone.net_name)?;
-            }
-            _ => (),
         }
+        Ok(())
     }
-    Ok(())
-}
 
     /// get list of netclasses
     pub fn netclasses(&self) -> Vec<&NetClass> {
@@ -727,7 +730,8 @@ impl Layout {
 
     /// modify a module
     pub fn modify_module<F>(&mut self, reference: &str, fun: F) -> Result<()>
-        where F: Fn(&mut footprint::Module) -> ()
+    where
+        F: Fn(&mut footprint::Module) -> (),
     {
         for ref mut x in &mut self.elements {
             match **x {
@@ -761,18 +765,20 @@ impl Layout {
     }
 
     /// add a net class
-    pub fn add_netclass(&mut self,
-                        name: &'static str,
-                        desc: &'static str,
-                        clearance: f64,
-                        trace_width: f64,
-                        via_dia: f64,
-                        via_drill: f64,
-                        uvia_dia: f64,
-                        uvia_drill: f64,
-                        diff_pair_gap: Option<f64>,
-                        diff_pair_width: Option<f64>,
-                        nets: Vec<String>) {
+    pub fn add_netclass(
+        &mut self,
+        name: &'static str,
+        desc: &'static str,
+        clearance: f64,
+        trace_width: f64,
+        via_dia: f64,
+        via_drill: f64,
+        uvia_dia: f64,
+        uvia_drill: f64,
+        diff_pair_gap: Option<f64>,
+        diff_pair_width: Option<f64>,
+        nets: Vec<String>,
+    ) {
         self.elements.push(Element::NetClass(NetClass {
             name: String::from(name),
             desc: String::from(desc),
@@ -902,25 +908,24 @@ impl BoundingBox for Element {
 }
 
 impl NetName {
-
     /// check if a net is an unnamed net
     pub fn is_unnamed_net(&self) -> Option<(String, String)> {
         if self.0.starts_with("Net-(") {
-            let v:Vec<&str> = self.0.split(|c| c == '-' || c == '(' || c == ')').collect();
+            let v: Vec<&str> = self.0.split(|c| c == '-' || c == '(' || c == ')').collect();
             if v.len() != 5 {
                 None
             } else {
                 Some((v[2].into(), v[3].into()))
             }
-            
+
         } else {
             None
         }
     }
 
     /// update the component name in an unnamed net
-    pub fn set_unnamed_net(&mut self, new_name:&str) -> Result<()> {
-        if let Some((_,pad)) = self.is_unnamed_net() {
+    pub fn set_unnamed_net(&mut self, new_name: &str) -> Result<()> {
+        if let Some((_, pad)) = self.is_unnamed_net() {
             self.0 = format!("Net-({}-{})", new_name, pad);
             Ok(())
         } else {
@@ -937,16 +942,28 @@ impl fmt::Display for NetName {
 
 #[test]
 fn test_is_unnamed_net() {
-    let n = Net { num:1, name:"HELLO".into() };
+    let n = Net {
+        num: 1,
+        name: "HELLO".into(),
+    };
     assert_eq!(n.name.is_unnamed_net(), None);
-    let n = Net { num:1, name:"Net-(L1-Pad1)".into()};
+    let n = Net {
+        num: 1,
+        name: "Net-(L1-Pad1)".into(),
+    };
     assert_eq!(n.name.is_unnamed_net(), Some(("L1".into(), "Pad1".into())));
 }
 
 #[test]
 fn test_unnamed_rename() {
-    let mut n = Net { num:1, name:"Net-(L1-Pad1)".into()};
+    let mut n = Net {
+        num: 1,
+        name: "Net-(L1-Pad1)".into(),
+    };
     n.name.set_unnamed_net("L101").unwrap();
-    assert_eq!(n.name.is_unnamed_net(), Some(("L101".into(), "Pad1".into())));
-    
+    assert_eq!(
+        n.name.is_unnamed_net(),
+        Some(("L101".into(), "Pad1".into()))
+    );
+
 }

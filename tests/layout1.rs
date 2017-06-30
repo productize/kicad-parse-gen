@@ -15,9 +15,9 @@ fn parse_and_compare() {
     file_name.push_str("/tests/data/");
     file_name.push_str("layout1.kicad_pcb");
     let file_name = PathBuf::from(file_name);
-    
+
     let content = kicad::read_file(&file_name).unwrap();
-    
+
     let layout = kicad::read_layout(&file_name).unwrap();
     let s = kicad::layout::layout_to_string(&layout, 0).unwrap();
 
