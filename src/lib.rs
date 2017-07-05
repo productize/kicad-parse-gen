@@ -114,6 +114,8 @@ pub enum KicadFile {
     SymbolLib(symbol_lib::SymbolLib),
     /// a Kicad project file
     Project(project::Project),
+    /// a Kicad fp-lib-table file
+    FpLibTable(fp_lib_table::FpLibTable),
 }
 
 /// types of Kicad files that we expect to read
@@ -129,6 +131,8 @@ pub enum Expected {
     SymbolLib,
     /// a Kicad project file
     Project,
+    /// an fp-lib-table file
+    FpLibTable,
     /// any Kicad file
     Any,
 }
@@ -143,6 +147,7 @@ impl fmt::Display for KicadFile {
             KicadFile::Layout(_) => write!(f, "layout"),
             KicadFile::SymbolLib(_) => write!(f, "symbollib"),
             KicadFile::Project(_) => write!(f, "project"),
+            KicadFile::FpLibTable(_) => write!(f, "fp-lib-table"),
         }
     }
 }
@@ -237,6 +242,14 @@ pub fn read_symbol_lib(name: &Path) -> Result<symbol_lib::SymbolLib> {
 pub fn read_project(name: &Path) -> Result<project::Project> {
     match read_kicad_file(name, Expected::Project)? {
         KicadFile::Project(mo) => Ok(mo),
+        x => str_error(format!("unexpected {} in {}", x, name.display())),
+    }
+}
+
+/// read a file, expecting it to be an fp-lib-table
+pub fn read_fp_lib_table(name: &Path) -> Result<fp_lib_table::FpLibTable> {
+    match read_kicad_file(name, Expected::FpLibTable)? {
+        KicadFile::FpLibTable(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),
     }
 }
@@ -417,6 +430,8 @@ pub mod layout;
 pub mod symbol_lib;
 /// Kicad project format handling
 pub mod project;
+/// Kicad fp-lib-table format handling
+pub mod fp_lib_table;
 
 mod util;
 mod formatter;
