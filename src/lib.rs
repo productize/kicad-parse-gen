@@ -197,6 +197,14 @@ pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile> {
             }
         }
     }
+    match fp_lib_table::parse(&data) {
+        Ok(p) => return Ok(KicadFile::FpLibTable(p)),
+        Err(x) => {
+            if expected == Expected::FpLibTable {
+                return Err(x);
+            }
+        }
+    }
     Ok(KicadFile::Unknown(PathBuf::from(name)))
 }
 

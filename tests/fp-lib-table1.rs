@@ -20,9 +20,11 @@ fn parse_and_compare() {
 
     let s = kicad::read_fp_lib_table(&file_name).unwrap();
     let s = kicad::fp_lib_table::to_string(&s, 0).unwrap();
+    println!("string: {}", s);
+    //kicad::write_file("/tmp/test.txt", &s).unwrap();
 
     let changeset = Changeset::new(&content, &s, "\n");
-    if changeset.distance > 0 {
+    if changeset.distance > 1 {
         println!("{}", changeset);
         assert_eq!(changeset.distance, 0);
     }

@@ -103,6 +103,17 @@ impl KicadFormatter {
         res
     }
 
+    fn want_indent_fp_lib_table(&self, _ele: &str) -> Option<Indent> {
+        if !self.is("fp_lib_table") {
+            return None
+        }
+        let mut indent = Indent::default();
+        if self.parent_is("fp_lib_table") {
+            indent.before();
+        }
+        Some(indent)
+    }
+    
     fn want_indent_module(&self, ele: &str) -> Option<Indent> {
         // if !self.is("module") {
         //    return None
@@ -261,6 +272,10 @@ impl KicadFormatter {
             if i.is_some() {
                 return i;
             }
+            let i = self.want_indent_fp_lib_table(ele);
+            if i.is_some() {
+                return i;
+            }
         }
         None
     }
@@ -287,7 +302,7 @@ impl Formatter for KicadFormatter {
             self.seen_module = false;
             self.indent(writer, 1)?;
         }
-
+        
         // write an extra newline before the first segment
         if !self.seen_segment {
             if let "segment" = &ele[..] {
@@ -360,7 +375,7 @@ impl Formatter for KicadFormatter {
                     writer.write_all(b"\n")?;
                 }
                 return Ok(());
-            } else if self.stack.is_empty() && (&s == "module" || &s == "kicad_pcb") {
+            } else if self.stack.is_empty() && (&s == "module" || &s == "kicad_pcb" || &s == "fp_lib_table") {
                 writer.write_all(b"\n")?;
             }
         }
