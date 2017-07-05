@@ -22,7 +22,9 @@ pub fn parse_str(s: &str) -> Result<Project> {
     if !s.starts_with("update=") {
         str_error("not a kicad project file!".to_string())
     } else {
-        Ok(Project { data: String::from(s) })
+        Ok(Project {
+            data: String::from(s),
+        })
     }
 
 }

@@ -18,11 +18,11 @@ pub struct FpLibTable {
 /// a library entry
 #[derive(Debug, Clone)]
 pub struct Lib {
-    name:String,
-    type_:String,
-    uri:String,
-    options:String,
-    descr:String,
+    name: String,
+    type_: String,
+    uri: String,
+    options: String,
+    descr: String,
 }
 
 impl IntoSexp for FpLibTable {
