@@ -1,0 +1,5 @@
+(fp_lib_table
+  (lib (name button)(type KiCad)(uri ${MY_KICAD}/mod/button.pretty)(options "")(descr ""))
+  (lib (name ic)(type KiCad)(uri ${MY_KICAD}/mod/ic.pretty)(options "")(descr ""))
+  (lib (name led)(type KiCad)(uri ${MY_KICAD}/mod/led.pretty)(options "")(descr ""))
+)
