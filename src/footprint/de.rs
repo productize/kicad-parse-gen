@@ -375,6 +375,13 @@ fn parse_float_element(s: &Sexp) -> SResult<f64> {
     Ok(i.f("element")?)
 }
 
+fn parse_stamp_element(s: &Sexp) -> SResult<i64> {
+    let name = s.list_name()?;
+    let mut i = IterAtom::new(s, name)?;
+    let s = i.s("element")?;
+    let i = i64::from_str_radix(&s, 16)?;
+    Ok(i)
+}
 
 impl FromSexp for Element {
     fn from_sexp(s: &Sexp) -> SResult<Element> {
@@ -399,8 +406,8 @@ impl FromSexp for Element {
                     "fp_line" => wrap(s, from_sexp, Element::FpLine),
                     "fp_circle" => wrap(s, from_sexp, Element::FpCircle),
                     "fp_arc" => wrap(s, from_sexp, Element::FpArc),
-                    "tedit" => wrap(s, parse_string_element, Element::TEdit),
-                    "tstamp" => wrap(s, parse_string_element, Element::TStamp),
+                    "tedit" => wrap(s, parse_stamp_element, Element::TEdit),
+                    "tstamp" => wrap(s, parse_stamp_element, Element::TStamp),
                     "path" => wrap(s, parse_string_element, Element::Path),
                     "at" => wrap(s, from_sexp, Element::At),
                     "model" => wrap(s, from_sexp, Element::Model),

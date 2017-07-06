@@ -54,6 +54,26 @@ impl Module {
         None
     }
 
+    /// check if a Module has a tstamp Element and return it
+    pub fn get_tstamp(&self) -> Option<i64> {
+        for element in &self.elements[..] {
+            if let Element::TStamp(stamp) = *element {
+                return Some(stamp);
+            }
+        }
+        None
+    }
+
+    /// check if a Module has a tedit Element and return it
+    pub fn get_tedit(&self) -> Option<i64> {
+        for element in &self.elements[..] {
+            if let Element::TEdit(stamp) = *element {
+                return Some(stamp);
+            }
+        }
+        None
+    }
+
     /// update the name of the reference element specified by name, if found
     pub fn set_reference(&mut self, reference: &str, reference2: &str) {
         // println!("debug: searching '{}'", reference);
@@ -158,9 +178,9 @@ pub enum Element {
     /// arc
     FpArc(FpArc),
     /// edited time stamp
-    TEdit(String),
+    TEdit(i64),
     /// time stamp
-    TStamp(String),
+    TStamp(i64),
     /// Path element
     Path(String),
     /// location of module in layout
