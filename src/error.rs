@@ -3,6 +3,8 @@
 use std::io;
 use symbolic_expressions;
 use std::num;
+use std::env;
+use shellexpand;
 
 error_chain! {
 
@@ -18,6 +20,8 @@ error_chain! {
         Io(io::Error) #[doc = "IO error"];
         Float(num::ParseFloatError) #[doc = "Float error"];
         Int(num::ParseIntError) #[doc = "Int error"];
+        EnvVar(env::VarError) #[doc = "Env Var error"];
+        Shellexpand(shellexpand::LookupError<env::VarError>) #[doc = "Shell expand lookup error"];
     }
 
     links {

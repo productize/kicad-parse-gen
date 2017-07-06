@@ -9,6 +9,7 @@ extern crate symbolic_expressions;
 extern crate error_chain;
 #[macro_use]
 extern crate log;
+extern crate shellexpand;
 
 use std::fmt;
 use std::path::{PathBuf, Path};

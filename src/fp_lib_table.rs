@@ -8,6 +8,7 @@ use symbolic_expressions;
 use symbolic_expressions::{IntoSexp, Sexp};
 use formatter::KicadFormatter;
 use symbolic_expressions::iteratom::*;
+use shellexpand;
 
 /// a fp-lib-table
 #[derive(Debug, Clone)]
@@ -23,6 +24,14 @@ pub struct Lib {
     uri: String,
     options: String,
     descr: String,
+}
+
+impl Lib {
+    /// return the URI with environment variables substituted
+    pub fn get_expanded_uri(&self) -> Result<String> {
+        let s = shellexpand::full(&self.uri)?;
+        Ok(s.into())
+    }
 }
 
 impl IntoSexp for FpLibTable {
