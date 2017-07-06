@@ -13,17 +13,23 @@ use shellexpand;
 /// a fp-lib-table
 #[derive(Debug, Clone)]
 pub struct FpLibTable {
-    libs: Vec<Lib>,
+    /// the library references contained in the fp-lib-table
+    pub libs: Vec<Lib>,
 }
 
 /// a library entry
 #[derive(Debug, Clone)]
 pub struct Lib {
-    name: String,
-    type_: String,
-    uri: String,
-    options: String,
-    descr: String,
+    /// name of the library
+    pub name: String,
+    /// type of the library (typically Kicad)
+    pub type_: String,
+    /// the URI of the library (can contain shell variables)
+    pub uri: String,
+    /// options
+    pub options: String,
+    /// description
+    pub descr: String,
 }
 
 impl Lib {
