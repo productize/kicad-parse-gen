@@ -695,7 +695,8 @@ impl PartialEq for Pad {
         if self.shape != other.shape { return false }
         if self.size != other.size { return false }
         if self.rect_delta != other.rect_delta { return false }
-        if self.at != other.at { return false }
+        if self.at.x != other.at.x { return false }
+        if self.at.y != other.at.y { return false }
         if self.layers != other.layers { return false }
         if self.zone_connect != other.zone_connect { return false }
         if self.drill != other.drill { return false }
