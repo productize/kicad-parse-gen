@@ -656,7 +656,7 @@ impl Layers {
 }
 
 /// a pad
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Pad {
     /// name
     pub name: String,
@@ -686,6 +686,25 @@ pub struct Pad {
     pub clearance: Option<f64>,
     /// thermal gap
     pub thermal_gap: Option<f64>,
+}
+
+impl PartialEq for Pad {
+    fn eq(&self, other: &Pad) -> bool {
+        if self.name != other.name { return false }
+        if self.t != other.t { return false }
+        if self.shape != other.shape { return false }
+        if self.size != other.size { return false }
+        if self.rect_delta != other.rect_delta { return false }
+        if self.at != other.at { return false }
+        if self.layers != other.layers { return false }
+        if self.zone_connect != other.zone_connect { return false }
+        if self.drill != other.drill { return false }
+        if self.solder_paste_margin != other.solder_paste_margin { return false }
+        if self.solder_mask_margin != other.solder_mask_margin { return false }
+        if self.clearance != other.clearance { return false }
+        if self.thermal_gap != other.thermal_gap { return false }
+        true
+    }
 }
 
 impl Pad {
