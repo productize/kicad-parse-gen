@@ -602,7 +602,7 @@ pub struct Layer {
 
 impl PartialEq for Layer {
     fn eq(&self, other: &Layer) -> bool {
-        self.t != other.t
+        self.t == other.t
     }
 }
 
