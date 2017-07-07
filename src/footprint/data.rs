@@ -244,7 +244,7 @@ impl Named for Element {
 }
 
 /// text element
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct FpText {
     /// name
     pub name: String,
@@ -258,6 +258,24 @@ pub struct FpText {
     pub effects: Effects,
     /// is it a hidden text
     pub hide: bool,
+}
+
+impl PartialEq for FpText {
+    fn eq(&self, other: &FpText) -> bool {
+        if self.name == "reference" && other.name == "reference" {
+            return true
+        }
+        if self.name == "value" && other.name == "value" {
+            return true
+        }
+        if self.name != other.name { return false }
+        if self.value != other.value { return false }
+        if self.at != other.at { return false }
+        if self.layer != other.layer { return false }
+        if self.effects != other.effects { return false }
+        if self.hide != other.hide { return false }
+        true
+    }
 }
 
 impl BoundingBox for FpText {
