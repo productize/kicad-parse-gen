@@ -153,7 +153,7 @@ impl Adjust for Module {
 }
 
 /// elements that can be found in a Module
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Element {
     /// solder mask margin
     SolderMaskMargin(f64),
