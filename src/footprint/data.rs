@@ -592,12 +592,18 @@ impl Default for LayerType {
 }
 
 /// a pcb layer, with a side and a type
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default)]
 pub struct Layer {
     /// side of the layer
     pub side: LayerSide,
     /// type of the layer
     pub t: LayerType,
+}
+
+impl PartialEq for Layer {
+    fn eq(&self, other: &Layer) -> bool {
+        self.t != other.t
+    }
 }
 
 impl Layer {
