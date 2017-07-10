@@ -5,6 +5,12 @@ use symbolic_expressions::iteratom::SResult;
 
 pub use layout::NetName;
 
+/// implement to allow a Module and it's sub Element be flippable
+pub trait Flip {
+    /// flip me
+    fn flip(&mut self);
+}
+
 /// a Kicad module, with a name and a list of elements
 #[derive(Debug, Clone)]
 pub struct Module {
@@ -152,6 +158,14 @@ impl Adjust for Module {
     }
 }
 
+impl Flip for Module {
+    fn flip(&mut self) {
+        for mut e in &mut self.elements {
+            e.flip()
+        }
+    }
+}
+
 /// elements that can be found in a Module
 #[derive(Debug, Clone, PartialEq)]
 pub enum Element {
@@ -243,6 +257,43 @@ impl Named for Element {
     }
 }
 
+impl Flip for Element {
+    fn flip(&mut self) {
+        match *self {
+            Element::Pad(ref mut p) => p.flip(),
+            Element::FpPoly(ref mut p) => p.flip(),
+            Element::FpLine(ref mut p) => p.flip(),
+            Element::FpCircle(ref mut p) => p.flip(), 
+            Element::FpArc(ref mut p) => p.flip(),
+            Element::FpText(ref mut p) => p.flip(),
+            Element::At(ref mut p) => p.flip(),
+            Element::Layer(ref mut p) => {
+                match p.as_str() {
+                    "F.Cu" => {
+                        p.clear();
+                        p.push_str("B.Cu");
+                    }
+                    "B.Cu" => {
+                        p.clear();
+                        p.push_str("F.Cu");
+                    }
+                    _ => ()
+                }
+            }
+            Element::TEdit(_) => (),
+            Element::Descr(_) => (),
+            Element::Path(_) => (),
+            Element::Model(_) => (),
+            Element::TStamp(_) => (),
+            Element::SolderMaskMargin(_) => (),
+            Element::Clearance(_) => (),
+            Element::Tags(_) => (),
+            Element::Attr(_) => (),
+            Element::Locked => (),
+        }
+    }
+}
+
 /// text element
 #[derive(Debug, Clone)]
 pub struct FpText {
@@ -258,6 +309,14 @@ pub struct FpText {
     pub effects: Effects,
     /// is it a hidden text
     pub hide: bool,
+}
+
+impl Flip for FpText {
+    fn flip(&mut self) {
+        self.at.flip();
+        self.layer.flip();
+        self.effects.flip();
+    }
 }
 
 impl PartialEq for FpText {
@@ -319,6 +378,13 @@ pub struct At {
     pub rot: f64,
 }
 
+impl Flip for At {
+    fn flip(&mut self) {
+        self.y = - self.y;
+        self.rot = 360.0 - self.rot;
+    }
+}
+
 impl Adjust for At {
     fn adjust(&mut self, x: f64, y: f64) {
         self.x += x;
@@ -355,6 +421,15 @@ pub struct Effects {
     pub font: Font,
     /// the text justification
     pub justify: Option<Justify>,
+}
+
+impl Flip for Effects {
+    fn flip(&mut self) {
+        self.justify = match self.justify {
+            None => Some(Justify::Mirror),
+            Some(_) => None,
+        }
+    }
 }
 
 impl Effects {
@@ -410,6 +485,12 @@ pub struct Xy {
     pub y: f64,
     /// the type of X-Y
     pub t: XyType,
+}
+
+impl Flip for Xy {
+    fn flip(&mut self) {
+        self.y = - self.y;
+    }
 }
 
 impl Adjust for Xy {
@@ -552,6 +633,17 @@ pub enum LayerSide {
     None,
 }
 
+impl Flip for LayerSide {
+    fn flip(&mut self) {
+        let n = match *self {
+            LayerSide::Front => LayerSide::Back,
+            LayerSide::Back => LayerSide::Front,
+            ref x => x.clone(),
+        };
+        *self = n;
+    }
+}
+
 impl Default for LayerSide {
     fn default() -> LayerSide {
         LayerSide::Front
@@ -598,6 +690,12 @@ pub struct Layer {
     pub side: LayerSide,
     /// type of the layer
     pub t: LayerType,
+}
+
+impl Flip for Layer {
+    fn flip(&mut self) {
+        self.side.flip()
+    }
 }
 
 impl PartialEq for Layer {
@@ -654,6 +752,14 @@ pub struct Layers {
     pub layers: Vec<Layer>,
 }
 
+impl Flip for Layers {
+    fn flip(&mut self) {
+        for mut layer in &mut self.layers {
+            layer.flip()
+        }
+    }
+}
+
 impl Layers {
     /// append a layer to a list of layers
     pub fn append(&mut self, layer: Layer) {
@@ -692,6 +798,13 @@ pub struct Pad {
     pub clearance: Option<f64>,
     /// thermal gap
     pub thermal_gap: Option<f64>,
+}
+
+impl Flip for Pad {
+    fn flip(&mut self) {
+        self.at.flip();
+        self.layers.flip();
+    }
 }
 
 impl PartialEq for Pad {
@@ -787,6 +900,12 @@ pub struct FpPoly {
     pub layer: Layer,
 }
 
+impl Flip for FpPoly {
+    fn flip(&mut self) {
+        self.layer.flip()
+    }
+}
+
 impl BoundingBox for FpPoly {
     fn bounding_box(&self) -> Bound {
         let mut b = Bound::default();
@@ -810,6 +929,12 @@ pub struct FpLine {
     pub layer: Layer,
     /// width
     pub width: f64,
+}
+
+impl Flip for FpLine {
+    fn flip(&mut self) {
+        self.layer.flip()
+    }
 }
 
 impl Default for FpLine {
@@ -853,6 +978,12 @@ impl Default for FpCircle {
     }
 }
 
+impl Flip for FpCircle {
+    fn flip(&mut self) {
+        self.layer.flip()
+    }
+}
+
 impl BoundingBox for FpCircle {
     fn bounding_box(&self) -> Bound {
         let dx = self.center.x - self.end.x;
@@ -881,6 +1012,12 @@ pub struct FpArc {
     pub layer: Layer,
     /// width
     pub width: f64,
+}
+
+impl Flip for FpArc {
+    fn flip(&mut self) {
+        self.layer.flip()
+    }
 }
 
 impl BoundingBox for FpArc {
