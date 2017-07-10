@@ -11,6 +11,12 @@ pub trait Flip {
     fn flip(&mut self);
 }
 
+/// rotate a module to be able to compare rotated modules
+pub trait Rotate {
+    /// rotate
+    fn rotate(&mut self, rot:f64);
+}
+
 /// a Kicad module, with a name and a list of elements
 #[derive(Debug, Clone)]
 pub struct Module {
@@ -177,6 +183,14 @@ impl Flip for Module {
     }
 }
 
+impl Rotate for Module {
+    fn rotate(&mut self, rot:f64) {
+        for mut e in &mut self.elements {
+            e.rotate(rot)
+        }
+    }
+}
+
 /// elements that can be found in a Module
 #[derive(Debug, Clone, PartialEq)]
 pub enum Element {
@@ -305,6 +319,32 @@ impl Flip for Element {
     }
 }
 
+impl Rotate for Element {
+    fn rotate(&mut self, rot:f64) {
+        match *self {
+            Element::Pad(ref mut p) => p.rotate(rot),
+            Element::FpText(ref mut p) => p.rotate(rot),
+            Element::At(ref mut p) => p.rotate(rot),
+            Element::FpPoly(_) => (),
+            Element::FpLine(_) => (),
+            Element::FpCircle(_) => (),
+            Element::FpArc(_) => (),
+            Element::Layer(_) => (),
+            Element::TEdit(_) => (),
+            Element::Descr(_) => (),
+            Element::Path(_) => (),
+            Element::Model(_) => (),
+            Element::TStamp(_) => (),
+            Element::SolderMaskMargin(_) => (),
+            Element::Clearance(_) => (),
+            Element::Tags(_) => (),
+            Element::Attr(_) => (),
+            Element::Locked => (),
+        }
+    }
+}
+
+
 /// text element
 #[derive(Debug, Clone)]
 pub struct FpText {
@@ -330,6 +370,12 @@ impl Flip for FpText {
     }
 }
 
+impl Rotate for FpText {
+    fn rotate(&mut self, rot:f64) {
+        self.at.rotate(rot)
+    }
+}
+
 impl PartialEq for FpText {
     fn eq(&self, other: &FpText) -> bool {
         if self.name == "reference" && other.name == "reference" {
@@ -338,6 +384,7 @@ impl PartialEq for FpText {
         if self.name == "value" && other.name == "value" {
             return true
         }
+        if self.at != other.at { return false }
         if self.name != other.name { return false }
         if self.value != other.value { return false }
         if self.at != other.at { return false }
@@ -410,6 +457,18 @@ impl At {
             x: x,
             y: y,
             rot: rot,
+        }
+    }
+}
+
+impl Rotate for At {
+    fn rotate(&mut self, rot:f64) {
+        self.rot += rot;
+        if self.rot >= 360.0 {
+            self.rot -= 360.0
+        }
+        if self.rot < 0.0 {
+            self.rot += 360.0
         }
     }
 }
@@ -826,15 +885,20 @@ impl Flip for Pad {
     }
 }
 
+impl Rotate for Pad {
+    fn rotate(&mut self, rot:f64) {
+        self.at.rotate(rot)
+    }
+}
+
 impl PartialEq for Pad {
     fn eq(&self, other: &Pad) -> bool {
+        if self.at != other.at { return false }
         if self.name != other.name { return false }
         if self.t != other.t { return false }
         if self.shape != other.shape { return false }
         if self.size != other.size { return false }
         if self.rect_delta != other.rect_delta { return false }
-        if self.at.x != other.at.x { return false }
-        if self.at.y != other.at.y { return false }
         if self.layers != other.layers { return false }
         if self.zone_connect != other.zone_connect { return false }
         if self.drill != other.drill { return false }
