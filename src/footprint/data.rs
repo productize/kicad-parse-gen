@@ -8,7 +8,7 @@ pub use layout::NetName;
 /// implement to allow a Module and it's sub Element be flippable
 pub trait Flip {
     /// flip me
-    fn flip(&mut self);
+    pub fn flip(&mut self);
 }
 
 /// a Kicad module, with a name and a list of elements
