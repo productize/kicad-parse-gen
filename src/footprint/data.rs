@@ -103,6 +103,17 @@ impl Module {
         (0.0, 0.0)
     }
 
+    /// check if there is an At element and return the rotation found
+    /// returns the default of 0.0 if not found
+    pub fn get_rotation(&self) -> f64 {
+        for element in &self.elements[..] {
+            if let Element::At(ref at) = *element {
+                return at.rot;
+            }
+        }
+        0.0
+    }
+
     /// adjust the At element contained in the module
     pub fn adjust_at(&mut self, x: f64, y: f64) {
         for element in &mut self.elements[..] {
