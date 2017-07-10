@@ -522,6 +522,14 @@ pub struct Pts {
     pub elements: Vec<Xy>,
 }
 
+impl Flip for Pts {
+    fn flip(&mut self) {
+        for mut e in &mut self.elements {
+            e.flip()
+        }
+    }
+}
+
 impl Adjust for Pts {
     fn adjust(&mut self, x: f64, y: f64) {
         for e in &mut self.elements {
@@ -902,6 +910,7 @@ pub struct FpPoly {
 
 impl Flip for FpPoly {
     fn flip(&mut self) {
+        self.pts.flip();
         self.layer.flip()
     }
 }
@@ -982,6 +991,8 @@ impl Default for FpCircle {
 
 impl Flip for FpCircle {
     fn flip(&mut self) {
+        self.center.flip();
+        self.end.flip();
         self.layer.flip()
     }
 }
@@ -1018,6 +1029,8 @@ pub struct FpArc {
 
 impl Flip for FpArc {
     fn flip(&mut self) {
+        self.start.flip();
+        self.end.flip();
         self.layer.flip()
     }
 }
