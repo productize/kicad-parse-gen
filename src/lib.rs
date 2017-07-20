@@ -155,6 +155,7 @@ impl fmt::Display for KicadFile {
 
 /// try to read a file, trying to parse it as the different formats
 /// and matching it against the Expected type
+#[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile> {
 
     let data = read_file(name)?;

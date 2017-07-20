@@ -733,8 +733,8 @@ impl Layout {
     where
         F: Fn(&mut footprint::Module) -> (),
     {
-        for ref mut x in &mut self.elements {
-            match **x {
+        for mut x in &mut self.elements {
+            match *x {
                 Element::Module(ref mut m) => {
                     if m.is_reference_with_name(reference) {
                         return Ok(fun(m));

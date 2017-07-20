@@ -89,8 +89,8 @@ impl Schematic {
     where
         F: Fn(&mut Component) -> (),
     {
-        for ref mut x in &mut self.elements[..] {
-            match **x {
+        for mut x in &mut self.elements[..] {
+            match *x {
                 Element::Component(ref mut c) => {
                     if c.reference == *reference {
                         return fun(c);
@@ -110,8 +110,8 @@ impl Schematic {
     where
         F: Fn(&mut Component) -> (),
     {
-        for ref mut x in &mut self.elements[..] {
-            match **x {
+        for mut x in &mut self.elements[..] {
+            match *x {
                 Element::Component(ref mut c) => fun(c),
                 Element::Wire(_) |
                 Element::Connection(_) |
@@ -762,8 +762,8 @@ impl ComponentField {
             visible: bool_from_string(&v[7], "0000", "0001")?,
             hjustify: Justify::new(char_at(&v[8], 0))?,
             vjustify: Justify::new(char_at(&v[9], 0))?,
-            italic: bool_from(char_at(&v[9], 1), 'I', 'N')?,
-            bold: bool_from(char_at(&v[9], 2), 'B', 'N')?,
+            italic: bool_from(&char_at(&v[9], 1), &'I', &'N')?,
+            bold: bool_from(&char_at(&v[9], 2), &'B', &'N')?,
             name: name,
         };
         Ok(c)
@@ -1148,7 +1148,7 @@ fn bool_from_string(s: &str, t: &'static str, f: &'static str) -> Result<bool> {
     str_error(format!("unknown boolean {}, expected {} or {}", s, t, f))
 }
 
-fn bool_from<T: PartialEq + fmt::Display>(i: T, t: T, f: T) -> Result<bool> {
+fn bool_from<T: PartialEq + fmt::Display>(i: &T, t: &T, f: &T) -> Result<bool> {
     if i == t {
         return Ok(true);
     }

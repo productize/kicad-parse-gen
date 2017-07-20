@@ -619,6 +619,7 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
     Ok(s)
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 fn bool_from<T: PartialEq + fmt::Display>(i: T, t: T, f: T) -> Result<bool> {
     if i == t {
         return Ok(true);

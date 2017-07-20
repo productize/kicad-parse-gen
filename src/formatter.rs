@@ -181,15 +181,10 @@ impl KicadFormatter {
                     indent.before_double();
                     return Some(indent);
                 }
-                "module" => {
-                    indent.before_double();
-                    indent.close_on_new_line();
-                    return Some(indent);
-                }
                 "net" | "gr_circle" | "gr_line" | "gr_arc" | "segment" | "via" => {
                     return Some(indent)
                 }
-                "layers" | "gr_text" | "dimension" => {
+                "layers" | "gr_text" | "dimension" | "zone" => {
                     indent.close_on_new_line();
                     return Some(indent);
                 }
@@ -199,11 +194,7 @@ impl KicadFormatter {
                     indent.newline_after_closing();
                     return Some(indent);
                 }
-                "zone" => {
-                    indent.close_on_new_line();
-                    return Some(indent);
-                }
-                "general" | "net_class" => {
+                "general" | "net_class" | "module" => {
                     indent.before_double();
                     indent.close_on_new_line();
                     return Some(indent);

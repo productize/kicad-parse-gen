@@ -89,8 +89,8 @@ impl Module {
     /// update the name of the reference element specified by name, if found
     pub fn set_reference(&mut self, reference: &str, reference2: &str) {
         // println!("debug: searching '{}'", reference);
-        for ref mut element in &mut self.elements[..] {
-            if let Element::FpText(ref mut fp_text) = **element {
+        for mut element in &mut self.elements[..] {
+            if let Element::FpText(ref mut fp_text) = *element {
                 if fp_text.name == "reference" && fp_text.value == *reference {
                     fp_text.value.clear();
                     fp_text.value.push_str(reference2);
@@ -305,15 +305,15 @@ impl Flip for Element {
                     _ => ()
                 }
             }
-            Element::TEdit(_) => (),
-            Element::Descr(_) => (),
-            Element::Path(_) => (),
-            Element::Model(_) => (),
-            Element::TStamp(_) => (),
-            Element::SolderMaskMargin(_) => (),
-            Element::Clearance(_) => (),
-            Element::Tags(_) => (),
-            Element::Attr(_) => (),
+            Element::TEdit(_) |
+            Element::Descr(_) |
+            Element::Path(_) |
+            Element::Model(_) |
+            Element::TStamp(_) |
+            Element::SolderMaskMargin(_) |
+            Element::Clearance(_) |
+            Element::Tags(_)  |
+            Element::Attr(_) |
             Element::Locked => (),
         }
     }
@@ -325,20 +325,20 @@ impl Rotate for Element {
             Element::Pad(ref mut p) => p.rotate(rot),
             Element::FpText(ref mut p) => p.rotate(rot),
             Element::At(ref mut p) => p.rotate(rot),
-            Element::FpPoly(_) => (),
-            Element::FpLine(_) => (),
-            Element::FpCircle(_) => (),
-            Element::FpArc(_) => (),
-            Element::Layer(_) => (),
-            Element::TEdit(_) => (),
-            Element::Descr(_) => (),
-            Element::Path(_) => (),
-            Element::Model(_) => (),
-            Element::TStamp(_) => (),
-            Element::SolderMaskMargin(_) => (),
-            Element::Clearance(_) => (),
-            Element::Tags(_) => (),
-            Element::Attr(_) => (),
+            Element::FpPoly(_) |
+            Element::FpLine(_) |
+            Element::FpCircle(_) |
+            Element::FpArc(_) |
+            Element::Layer(_) |
+            Element::TEdit(_) |
+            Element::Descr(_) |
+            Element::Path(_) |
+            Element::Model(_) |
+            Element::TStamp(_) |
+            Element::SolderMaskMargin(_) |
+            Element::Clearance(_) |
+            Element::Tags(_) |
+            Element::Attr(_) |
             Element::Locked => (),
         }
     }
