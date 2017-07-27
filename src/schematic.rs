@@ -979,9 +979,33 @@ impl fmt::Display for LabelSide {
     }
 }
 
+/// the type of wire
+#[derive(Debug)]
+pub enum WireType {
+    /// an electronics wire
+    Wire,
+    /// a dashed notes wire
+    Notes,
+    /// a bus
+    Bus,
+}
+
+impl fmt::Display for WireType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        let c = match *self {
+            WireType::Wire => "Wire",
+            WireType::Notes => "Notes",
+            WireType::Bus => "Bus",
+        };
+        write!(f, "{}", c)
+    }
+}
+
 /// a wire part making a connection
 #[derive(Debug)]
 pub struct Wire {
+    /// the type of the wire
+    pub type_: WireType,
     /// x-coordinate of first point of wire
     pub x1: i64,
     /// y-coordinate of first point of wire
@@ -994,7 +1018,7 @@ pub struct Wire {
 
 impl fmt::Display for Wire {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        writeln!(f, "Wire Wire Line")?;
+        writeln!(f, "Wire {} Line", self.type_)?;
         writeln!(f, "\t{} {} {} {}", self.x1, self.y1, self.x2, self.y2)
     }
 }
@@ -1383,7 +1407,17 @@ fn parse_sheet(p: &mut ParseState) -> Result<Sheet> {
 // Wire Wire Line
 //	6100 3050 5850 3050
 fn parse_wire(p: &mut ParseState) -> Result<Wire> {
-    p.next(); // skip Wire Wire Line
+    let t = p.here();
+    let v: Vec<&str> = t.split_whitespace().collect();
+    if v.len() != 3 {
+        return str_error(format!("expecting 3 elements in {}", t));
+    }
+    let t = match v[1] {
+        "Notes" => WireType::Notes,
+        "Bus" => WireType::Bus,
+        _ => WireType::Wire,
+    };
+    p.next();
     let s = p.here();
     let v: Vec<&str> = s.split_whitespace().collect();
     if v.len() != 4 {
@@ -1394,6 +1428,7 @@ fn parse_wire(p: &mut ParseState) -> Result<Wire> {
     let x2 = i64_from_string(p, &String::from(v[2]))?;
     let y2 = i64_from_string(p, &String::from(v[3]))?;
     Ok(Wire {
+        type_: t,
         x1: x1,
         y1: y1,
         x2: x2,
