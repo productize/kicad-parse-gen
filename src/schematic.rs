@@ -89,7 +89,7 @@ impl Schematic {
     where
         F: Fn(&mut Component) -> (),
     {
-        for mut x in &mut self.elements[..] {
+        for x in &mut self.elements[..] {
             match *x {
                 Element::Component(ref mut c) => {
                     if c.reference == *reference {
@@ -110,7 +110,7 @@ impl Schematic {
     where
         F: Fn(&mut Component) -> (),
     {
-        for mut x in &mut self.elements[..] {
+        for x in &mut self.elements[..] {
             match *x {
                 Element::Component(ref mut c) => fun(c),
                 Element::Wire(_) |

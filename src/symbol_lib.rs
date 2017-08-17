@@ -240,7 +240,7 @@ impl Symbol {
         } else {
             self.name = name.to_string()
         }
-        let mut field = &mut self.fields[1];
+        let field = &mut self.fields[1];
         field.value = name.to_string()
     }
 }

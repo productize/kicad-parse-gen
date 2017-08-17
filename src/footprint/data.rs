@@ -89,7 +89,7 @@ impl Module {
     /// update the name of the reference element specified by name, if found
     pub fn set_reference(&mut self, reference: &str, reference2: &str) {
         // println!("debug: searching '{}'", reference);
-        for mut element in &mut self.elements[..] {
+        for element in &mut self.elements[..] {
             if let Element::FpText(ref mut fp_text) = *element {
                 if fp_text.name == "reference" && fp_text.value == *reference {
                     fp_text.value.clear();
@@ -177,7 +177,7 @@ impl Adjust for Module {
 
 impl Flip for Module {
     fn flip(&mut self) {
-        for mut e in &mut self.elements {
+        for e in &mut self.elements {
             e.flip()
         }
     }
@@ -185,7 +185,7 @@ impl Flip for Module {
 
 impl Rotate for Module {
     fn rotate(&mut self, rot:f64) {
-        for mut e in &mut self.elements {
+        for e in &mut self.elements {
             e.rotate(rot)
         }
     }
@@ -594,7 +594,7 @@ pub struct Pts {
 
 impl Flip for Pts {
     fn flip(&mut self) {
-        for mut e in &mut self.elements {
+        for e in &mut self.elements {
             e.flip()
         }
     }
@@ -832,7 +832,7 @@ pub struct Layers {
 
 impl Flip for Layers {
     fn flip(&mut self) {
-        for mut layer in &mut self.layers {
+        for layer in &mut self.layers {
             layer.flip()
         }
     }
