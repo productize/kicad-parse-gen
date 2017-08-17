@@ -86,6 +86,8 @@ pub struct Field {
 pub enum Draw {
     /// a pin
     Pin(Pin),
+    /// a rectangle
+    Rectangle(Rectangle),
     /// a non-parsed drawing part
     Other(String),
 }
@@ -186,6 +188,46 @@ pub struct Pin {
     pub pin_visible: bool,
     /// pin shape
     pub pin_shape: PinShape,
+}
+
+// S -800 1200 800 -1200 0 1 10 f
+// S startx starty endx endy unit convert thickness cc
+// cc = N F or F ( F = filled Rectangle,; f = . filled Rectangle, N = transparent background)
+/// draw a rectangle
+#[derive(Debug, Clone, Default)]
+pub struct Rectangle {
+    pub x1: i64,
+    pub y1: i64,
+    pub x2: i64,
+    pub y2: i64,
+    pub unit: i64,
+    pub convert: i64,
+    pub thickness: i64,
+    pub fill: Fill,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Fill {
+    Filled,
+    DotFilled,
+    Transparent,
+}
+
+impl Default for Fill {
+    fn default() -> Fill {
+        Fill::Transparent
+    }
+}
+
+impl Fill {
+    fn make(s:&str) -> Result<Fill> {
+        match s {
+            "F" => Ok(Fill::Filled),
+            "f" => Ok(Fill::DotFilled),
+            "N" => Ok(Fill::Transparent),
+            _ => Err(format!("unknown fill type {}", s).into())
+        }
+    }
 }
 
 impl SymbolLib {
@@ -329,9 +371,30 @@ impl fmt::Display for Draw {
         match *self {
             Draw::Other(ref s) => write!(f, "{}", s),
             Draw::Pin(ref p) => write!(f, "{}", p),
+            Draw::Rectangle(ref p) => write!(f, "{}", p),
         }
     }
 }
+
+impl fmt::Display for Rectangle {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        write!(f, "S {} {} ", self.x1, self.y1)?;
+        write!(f, "{} {} ", self.x2, self.y2)?;
+        write!(f, "{} {} ", self.unit, self.convert)?;
+        write!(f, "{} {}", self.thickness, self.fill)
+    }
+}
+
+impl fmt::Display for Fill {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        match *self {
+            Fill::Filled => write!(f, "F"),
+            Fill::DotFilled => write!(f, "f"),
+            Fill::Transparent => write!(f, "N"),
+        }
+    }
+}
+    
 
 impl fmt::Display for Pin {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
@@ -609,6 +672,10 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
         if s2.starts_with("X ") {
             let pin = parse_pin(p, &s2)?;
             s.draw.push(Draw::Pin(pin));
+        } else if s2.starts_with("S ") {
+            let rect = parse_rect(p, &s2)?;
+            s.draw.push(Draw::Rectangle(rect));
+            
         } else {
             s.draw.push(Draw::Other(s2.clone()));
         }
@@ -688,6 +755,24 @@ fn parse_pin(p: &mut ParseState, line: &str) -> Result<Pin> {
         pin.pin_shape = PinShape::make(&v[12])?;
     }
     Ok(pin)
+}
+
+// S -800 1200 800 -1200 0 1 10 f
+fn parse_rect(p: &mut ParseState, line: &str) -> Result<Rectangle> {
+    let mut rect = Rectangle::default();
+    let v = &parse_split_quote_aware(line);
+    if v.len() != 9 {
+        return str_error(format!("unexpected elements in {}", line));
+    }
+    rect.x1 = i64_from_string(p, &v[1])?;
+    rect.y1 = i64_from_string(p, &v[2])?;
+    rect.x2 = i64_from_string(p, &v[3])?;
+    rect.y2 = i64_from_string(p, &v[4])?;
+    rect.unit = i64_from_string(p, &v[5])?;
+    rect.convert = i64_from_string(p, &v[6])?;
+    rect.thickness = i64_from_string(p, &v[7])?;
+    rect.fill = Fill::make(&v[8])?;
+    Ok(rect)
 }
 
 fn parse(s: &str) -> Result<SymbolLib> {
