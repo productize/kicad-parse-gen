@@ -14,10 +14,144 @@ Filenames, symbol names, footprint names and model names must contain only valid
 */
 
 use symbol_lib::*;
+use std::fmt;
+use std::result;
+
+/// 
+pub trait KLCCheck {
+    /// check an item against the KLC
+    fn check(&self) -> Vec<KLCData>;
+}
+
+#[derive(Debug)]
+/// a KLC check result data
+pub enum KLCData {
+    /// a KLC check result item
+    Item(KLCItem),
+    /// a list of more KLC check result datas
+    More(Vec<KLCData>),
+}
+
+impl KLCData {
+    pub fn flatter(self) -> Self {
+        match self {
+            KLCData::Item(_) => self,
+            KLCData::More(v) => {
+                if v.len() == 1 {
+                    let e = v.into_iter().next().unwrap();
+                    e
+                } else {
+                    KLCData::More(v)
+                }
+            }
+        }
+    }
+    
+    pub fn new<A:fmt::Display, B:Into<String>>(section:i64, rule:i64, item:A, message:B) -> Self {
+        let i = KLCItem::new(section, rule, item, message.into());
+        KLCData::Item(i)
+    }
+    
+    pub fn info<A:fmt::Display, B:Into<String>>(section:i64, rule:i64, item:A, message:B) -> Self {
+        let i = KLCItem::new(section, rule, item, message.into()).info();
+        KLCData::Item(i)
+    }
+}
+
+#[derive(Debug)]
+/// a KLC check result item
+pub struct KLCItem {
+    /// KLC section
+    pub section:i64,
+    /// KLC rule in the section
+    pub rule:i64,
+    /// item that this is about
+    pub item:String,
+    /// message about the problem
+    pub message:String,
+    /// if the item is informational only
+    pub info:bool
+}
+impl KLCItem {
+    pub fn new<A:fmt::Display, B:Into<String>>(section:i64, rule:i64, item:A, message:B) -> Self
+    {
+        KLCItem {
+            section:section,
+            rule:rule,
+            item:format!("{}", item),
+            message: message.into(),
+            info:false,
+        }
+    }
+
+    pub fn info(self) -> KLCItem {
+        KLCItem {
+            info:true, .. self
+        }
+    }
+}
+
+#[derive(Debug)]
+/// KLC Section
+pub enum KLCSection {
+    /// General
+    General,
+    /// Symbol Library Names
+    SymbolLibraryNames,
+    /// Symbol Names
+    SymbolNames,
+    /// Symbol Rules
+    SymbolRules,
+    /// Footprint Library Names
+    FootprintLibraryNames,
+    /// Footprint Names
+    FootprintNames,
+    /// Footprint Rules
+    FootprintRules,
+    /// SMD Rules
+    SMDRules,
+    /// THT Rules
+    THTRules,
+    /// Footprint Properties
+    FootprintProperties,
+}
+
+impl Into<i64> for KLCSection {
+    fn into(self) -> i64 {
+        match self {
+            KLCSection::General => 1,
+            KLCSection::SymbolLibraryNames => 2,
+            KLCSection::SymbolNames => 3,
+            KLCSection::SymbolRules => 4,
+            KLCSection::FootprintLibraryNames => 5,
+            KLCSection::FootprintNames => 6,
+            KLCSection::FootprintRules => 7,
+            KLCSection::SMDRules => 8,
+            KLCSection::THTRules => 9,
+            KLCSection::FootprintProperties => 10,
+        }
+    }
+}
+
+impl fmt::Display for KLCSection {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        let s = match *self {
+            KLCSection::General => "General Rules",
+            KLCSection::SymbolLibraryNames => "Symbol Library Names",
+            KLCSection::SymbolNames => "Symbol Names",
+            KLCSection::SymbolRules => "General Rules for Symbols",
+            KLCSection::FootprintLibraryNames => "Footprint Library Names",
+            KLCSection::FootprintNames => "Footprint Names",
+            KLCSection::FootprintRules => "General Rules for Footprints",
+            KLCSection::SMDRules => "Rules for SMD Footprints",
+            KLCSection::THTRules => "Rules for Through-hole Footprints",
+            KLCSection::FootprintProperties => "Footprint Properties",
+        };
+        write!(f, "{}", s)
+    }
+}
 
 const ALLOWED_1_7:&'static str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-.";
-
-
 
 pub fn allowed_1_7(s:&str) -> Option<Vec<String>> {
     let mut v = vec![];
@@ -31,6 +165,16 @@ pub fn allowed_1_7(s:&str) -> Option<Vec<String>> {
     } else {
         Some(v)
     }
+}
+
+pub fn allowed_1_7_items(s:&str) -> Vec<KLCData> {
+    let mut v = vec![];
+    if let Some(v2) = allowed_1_7(s) {
+        for x in v2 {
+            v.push(KLCData::new(1,7,s , x))
+        }
+    }
+    v
 }
 
 pub fn is_allowed_1_7(s:&str) -> bool {
@@ -47,60 +191,6 @@ pub fn is_allowed_1_7(s:&str) -> bool {
 * Shorter pins may be allowed for simple symbols such as resistors, capacitors, diodes, etc
 
 */
-
-fn field_4_1(field:&Field) -> bool {
-    let mut res = true;
-    if ((field.x as i64) % 10) != 0 {
-        warn!("field x not on 100mil grid");
-        res = false;
-    }
-    if ((field.y as i64) % 10) != 0 {
-        warn!("field y not on 100mil grid");
-        res = false;
-    }
-    res
-}
-
-fn draw_4_1(draw:&Draw) -> bool {
-    let mut res = true;
-    if let Draw::Pin(ref pin) = *draw {
-        let name = format!("{}:{}", pin.name, pin.number);
-        if (pin.x % 10) != 0 {
-            warn!("{}: pin x not on 100mil grid", name);
-            res = false;
-        }
-        if (pin.y % 10) != 0 {
-            warn!("{}: pin y not on 100mil grid", name);
-            res = false;
-        }
-        if (pin.len % 5) != 0 {
-            warn!("{}: pin length not on a 50mil multiple", name);
-            res = false;
-        }
-        if pin.len < 10 {
-            info!("{}: pin should probably be >= 100mil", name);
-        }
-        if pin.len > 30 {
-            info!("{}: pin should probably be <= 300mil", name);
-        }
-    }
-    res
-}
-
-pub fn symbol_4_1(symbol:&Symbol) -> bool {
-    let mut res = true;
-    if !is_allowed_1_7(&symbol.name) {
-        warn!("Symbol name contains not allowed characters");
-        res = false;
-    }
-    for field in &symbol.fields {
-        res |= field_4_1(field)
-    }
-    for draw in &symbol.draw {
-        res |= draw_4_1(draw)
-    }
-    res
-}
 
 /*
 
@@ -128,6 +218,45 @@ fn draw_4_2(draw:&Draw) -> bool {
     }
     true
 }
+
+/*
+
+4.3 Pin stacking. Placing pins in the same position results in the circuits being connected. Pins may be placed in the same location under certain circumstances:
+* Pins must not be of type No Connect
+* Pins are logically connected in the symbol
+* Pins must have the same name
+* Pins must have the same electrical type
+* Only one pin must be visible (all others set to invisible)
+* Stacks of type Output, Power Output and Power Input are special cases. One visible pin must have the correct type, and all other pins in the stack must be passive and invisible.
+
+*/
+
+/* 
+
+4.4 Pins should be grouped logically, rather than physically
+* Pin location should not necessarily follow footprint pinout
+* Pins with similar functions should be placed together, e.g. SPI_MISO, SPI_MOSI, SPI_SCK, SPI_CS and UART_TX, UART_RX
+* Ports should be ordered from top to bottom, unless this conflicts with the above requirements
+
+ */
+
+/* 
+
+4.5 Whenever possible, pins should be arranged by function:
+* Positive Power pins should be placed at top of the symbol, e.g. Vcc, Vdd, Vin, V+, etc
+* Negative Power and Ground pins should be placed at the bottom of the symbol, e.g. GND, Vss, V-, etc
+* Input/Control/Logic pins should be placed on the left of the symbol, e.g. opamp +/-, NPN base, SPI pins on an DAC, transformer primary, UART Tx/Rx pins, etc.
+* Output/Controlled/Driver pins should be placed on the right of the symbol, e.g. opamp output, DAC output, transformer secondary, RS232 Tx/Rx, etc. 
+
+ */
+
+/*
+
+4.6 Pin Electrical type should be set to match the appropriate pin function
+* Power and Ground pins should be set to either POWER INPUT or POWER OUTPUT
+* Other pin types should be set as appropriate 
+
+ */
 
 #[cfg(test)]
 mod tests {

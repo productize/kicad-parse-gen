@@ -14,6 +14,7 @@ use util::read_file;
 use parse_split_quote_aware;
 use schematic;
 use str_error;
+use klc::{self, KLCCheck, KLCData};
 
 /// a Kicad symbolic file
 #[derive(Debug, Default)]
@@ -196,20 +197,32 @@ pub struct Pin {
 /// draw a rectangle
 #[derive(Debug, Clone, Default)]
 pub struct Rectangle {
+    /// x-coordinate of first corner of rectangle
     pub x1: i64,
+    /// y-coordinate of first corner of rectangle
     pub y1: i64,
+    /// x-coordinate of second corner of rectangle
     pub x2: i64,
+    /// y-coordinate of second corner of rectangle
     pub y2: i64,
+    /// unit ??
     pub unit: i64,
+    /// convert ???
     pub convert: i64,
+    /// thickness of the line
     pub thickness: i64,
+    /// `Fill` of the rectangle
     pub fill: Fill,
 }
 
 #[derive(Debug, Clone, PartialEq)]
+/// fill for a rectangle
 pub enum Fill {
+    /// fully filled
     Filled,
+    /// filled with dots
     DotFilled,
+    /// not filled
     Transparent,
 }
 
@@ -804,4 +817,65 @@ pub fn parse_file(filename: &PathBuf) -> Result<SymbolLib> {
     let name = filename.to_str().unwrap();
     let s = read_file(name)?;
     parse(&s[..])
+}
+
+impl KLCCheck for Field {
+    fn check(&self) -> Vec<KLCData> {
+        let mut v = vec![];
+        if ((self.x as i64) % 10) != 0 {
+            v.push(KLCData::new(4,1,self, "field x not on 100mil grid"));
+        }
+        if ((self.y as i64) % 10) != 0 {
+            v.push(KLCData::new(4,1,self, "field y not on 100mil grid"));
+        }
+        v
+    }
+}
+
+impl KLCCheck for Draw {
+    fn check(&self) -> Vec<KLCData> {
+        let mut v = vec![];
+        if let Draw::Pin(ref pin) = *self {
+            let name = format!("{}:{}", pin.name, pin.number);
+            if (pin.x % 10) != 0 {
+                v.push(KLCData::new(4,1,name.clone(), "pin x not on 100mil grid"));
+            }
+            if (pin.y % 10) != 0 {
+                v.push(KLCData::new(4,1,name.clone(), "pin y not on 100mil grid"));
+            }
+            if (pin.len % 5) != 0 {
+                v.push(KLCData::new(4,1,name.clone(), "pin length not on 50mil grid"));
+            }
+            if pin.len < 10 {
+                v.push(KLCData::info(4,1,name.clone(), "pin length < 100mil"));
+            }
+            if pin.len > 30 {
+                v.push(KLCData::info(4,1,name.clone(), "pin length > 300mil"));
+            }
+        }
+        v
+    }
+}
+
+impl KLCCheck for Symbol {
+    fn check(&self) -> Vec<KLCData> {
+        let mut v = vec![];
+        let allowed_1_7 = klc::allowed_1_7_items(&self.name);
+        if !allowed_1_7.is_empty() {
+            v.push(KLCData::More(allowed_1_7).flatter())
+        }
+        for field in &self.fields {
+            let f = field.check();
+            if !f.is_empty() {
+                v.push(KLCData::More(f).flatter())
+            }
+        }
+        for draw in &self.draw {
+            let f = draw.check();
+            if !f.is_empty() {
+                v.push(KLCData::More(f).flatter())
+            }
+        }
+        v
+    }
 }

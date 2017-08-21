@@ -14,6 +14,10 @@ error_chain! {
             description("parse error")
             display("parse error: '{}'", s)
         }
+        KLC(section:i64, rule:i64) {
+            description("KLC Violation")
+            display("KLC Violation: {}.{}", section, rule)
+        }
     }
 
     foreign_links {
