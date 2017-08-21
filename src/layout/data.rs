@@ -5,7 +5,7 @@ use Result;
 use str_error;
 use footprint;
 use Sexp;
-use layout::{Adjust, BoundingBox, Bound};
+use layout::{Adjust, Bound, BoundingBox};
 use std::{fmt, result};
 
 /// a Kicad layout
@@ -658,20 +658,16 @@ impl Layout {
                 Element::Net(ref mut net) => {
                     update(&mut net.name)?;
                 }
-                Element::NetClass(ref mut nc) => {
-                    for name in &mut nc.nets {
-                        update(name)?;
-                    }
-                }
-                Element::Module(ref mut module) => {
-                    for m_e in &mut module.elements {
-                        if let footprint::Element::Pad(ref mut pad) = *m_e {
-                            if let Some(ref mut net) = pad.net {
-                                update(&mut net.name)?;
-                            }
+                Element::NetClass(ref mut nc) => for name in &mut nc.nets {
+                    update(name)?;
+                },
+                Element::Module(ref mut module) => for m_e in &mut module.elements {
+                    if let footprint::Element::Pad(ref mut pad) = *m_e {
+                        if let Some(ref mut net) = pad.net {
+                            update(&mut net.name)?;
                         }
                     }
-                }
+                },
                 Element::Zone(ref mut zone) => {
                     update(&mut zone.net_name)?;
                 }
@@ -696,11 +692,9 @@ impl Layout {
     pub fn get_module(&self, reference: &str) -> Option<&footprint::Module> {
         for x in &self.elements[..] {
             match *x {
-                Element::Module(ref m) => {
-                    if m.is_reference_with_name(reference) {
-                        return Some(m);
-                    }
-                }
+                Element::Module(ref m) => if m.is_reference_with_name(reference) {
+                    return Some(m);
+                },
                 Element::Via(_) |
                 Element::Segment(_) |
                 Element::Net(_) |
@@ -735,11 +729,9 @@ impl Layout {
     {
         for x in &mut self.elements {
             match *x {
-                Element::Module(ref mut m) => {
-                    if m.is_reference_with_name(reference) {
-                        return Ok(fun(m));
-                    }
-                }
+                Element::Module(ref mut m) => if m.is_reference_with_name(reference) {
+                    return Ok(fun(m));
+                },
                 Element::Via(_) |
                 Element::Segment(_) |
                 Element::Net(_) |
@@ -881,9 +873,7 @@ impl Adjust for Element {
             Element::Segment(ref mut e) => e.adjust(x, y),
             Element::Via(ref mut e) => e.adjust(x, y),
             Element::Zone(ref mut e) => e.adjust(x, y),
-            Element::Net(_) |
-            Element::NetClass(_) |
-            Element::Other(_) => (),
+            Element::Net(_) | Element::NetClass(_) | Element::Other(_) => (),
         }
     }
 }
@@ -900,9 +890,7 @@ impl BoundingBox for Element {
             Element::Segment(ref e) => e.bounding_box(),
             Element::Via(ref e) => e.bounding_box(),
             Element::Zone(ref e) => e.bounding_box(),
-            Element::Net(_) |
-            Element::NetClass(_) |
-            Element::Other(_) => Bound::default(),
+            Element::Net(_) | Element::NetClass(_) | Element::Other(_) => Bound::default(),
         }
     }
 }

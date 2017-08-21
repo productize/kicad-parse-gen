@@ -233,12 +233,12 @@ impl Default for Fill {
 }
 
 impl Fill {
-    fn make(s:&str) -> Result<Fill> {
+    fn make(s: &str) -> Result<Fill> {
         match s {
             "F" => Ok(Fill::Filled),
             "f" => Ok(Fill::DotFilled),
             "N" => Ok(Fill::Transparent),
-            _ => Err(format!("unknown fill type {}", s).into())
+            _ => Err(format!("unknown fill type {}", s).into()),
         }
     }
 }
@@ -407,7 +407,7 @@ impl fmt::Display for Fill {
         }
     }
 }
-    
+
 
 impl fmt::Display for Pin {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
@@ -688,7 +688,7 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
         } else if s2.starts_with("S ") {
             let rect = parse_rect(p, &s2)?;
             s.draw.push(Draw::Rectangle(rect));
-            
+
         } else {
             s.draw.push(Draw::Other(s2.clone()));
         }
@@ -823,10 +823,10 @@ impl KLCCheck for Field {
     fn check(&self) -> Vec<KLCData> {
         let mut v = vec![];
         if ((self.x as i64) % 10) != 0 {
-            v.push(KLCData::new(4,1,self, "field x not on 100mil grid"));
+            v.push(KLCData::new(4, 1, self, "field x not on 100mil grid"));
         }
         if ((self.y as i64) % 10) != 0 {
-            v.push(KLCData::new(4,1,self, "field y not on 100mil grid"));
+            v.push(KLCData::new(4, 1, self, "field y not on 100mil grid"));
         }
         v
     }
@@ -838,19 +838,24 @@ impl KLCCheck for Draw {
         if let Draw::Pin(ref pin) = *self {
             let name = format!("{}:{}", pin.name, pin.number);
             if (pin.x % 10) != 0 {
-                v.push(KLCData::new(4,1,name.clone(), "pin x not on 100mil grid"));
+                v.push(KLCData::new(4, 1, name.clone(), "pin x not on 100mil grid"));
             }
             if (pin.y % 10) != 0 {
-                v.push(KLCData::new(4,1,name.clone(), "pin y not on 100mil grid"));
+                v.push(KLCData::new(4, 1, name.clone(), "pin y not on 100mil grid"));
             }
             if (pin.len % 5) != 0 {
-                v.push(KLCData::new(4,1,name.clone(), "pin length not on 50mil grid"));
+                v.push(KLCData::new(
+                    4,
+                    1,
+                    name.clone(),
+                    "pin length not on 50mil grid",
+                ));
             }
             if pin.len < 10 {
-                v.push(KLCData::info(4,1,name.clone(), "pin length < 100mil"));
+                v.push(KLCData::info(4, 1, name.clone(), "pin length < 100mil"));
             }
             if pin.len > 30 {
-                v.push(KLCData::info(4,1,name.clone(), "pin length > 300mil"));
+                v.push(KLCData::info(4, 1, name.clone(), "pin length > 300mil"));
             }
         }
         v

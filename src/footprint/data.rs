@@ -14,7 +14,7 @@ pub trait Flip {
 /// rotate a module to be able to compare rotated modules
 pub trait Rotate {
     /// rotate
-    fn rotate(&mut self, rot:f64);
+    fn rotate(&mut self, rot: f64);
 }
 
 /// a Kicad module, with a name and a list of elements
@@ -184,7 +184,7 @@ impl Flip for Module {
 }
 
 impl Rotate for Module {
-    fn rotate(&mut self, rot:f64) {
+    fn rotate(&mut self, rot: f64) {
         for e in &mut self.elements {
             e.rotate(rot)
         }
@@ -274,8 +274,7 @@ impl Named for Element {
             Element::Model(_) => "Model",
             Element::TStamp(_) => "Tstamp",
             Element::SolderMaskMargin(_) => "SolderMaskMargin",
-            Element::Clearance(_) |
-            Element::Tags(_) => "Tags",
+            Element::Clearance(_) | Element::Tags(_) => "Tags",
             Element::Attr(_) => "Attr",
             Element::Locked => "Locked",
         }
@@ -292,19 +291,17 @@ impl Flip for Element {
             Element::FpArc(ref mut p) => p.flip(),
             Element::FpText(ref mut p) => p.flip(),
             Element::At(ref mut p) => p.flip(),
-            Element::Layer(ref mut p) => {
-                match p.as_str() {
-                    "F.Cu" => {
-                        p.clear();
-                        p.push_str("B.Cu");
-                    }
-                    "B.Cu" => {
-                        p.clear();
-                        p.push_str("F.Cu");
-                    }
-                    _ => ()
+            Element::Layer(ref mut p) => match p.as_str() {
+                "F.Cu" => {
+                    p.clear();
+                    p.push_str("B.Cu");
                 }
-            }
+                "B.Cu" => {
+                    p.clear();
+                    p.push_str("F.Cu");
+                }
+                _ => (),
+            },
             Element::TEdit(_) |
             Element::Descr(_) |
             Element::Path(_) |
@@ -312,7 +309,7 @@ impl Flip for Element {
             Element::TStamp(_) |
             Element::SolderMaskMargin(_) |
             Element::Clearance(_) |
-            Element::Tags(_)  |
+            Element::Tags(_) |
             Element::Attr(_) |
             Element::Locked => (),
         }
@@ -320,7 +317,7 @@ impl Flip for Element {
 }
 
 impl Rotate for Element {
-    fn rotate(&mut self, rot:f64) {
+    fn rotate(&mut self, rot: f64) {
         match *self {
             Element::Pad(ref mut p) => p.rotate(rot),
             Element::FpText(ref mut p) => p.rotate(rot),
@@ -371,7 +368,7 @@ impl Flip for FpText {
 }
 
 impl Rotate for FpText {
-    fn rotate(&mut self, rot:f64) {
+    fn rotate(&mut self, rot: f64) {
         self.at.rotate(rot)
     }
 }
@@ -379,18 +376,32 @@ impl Rotate for FpText {
 impl PartialEq for FpText {
     fn eq(&self, other: &FpText) -> bool {
         if self.name == "reference" && other.name == "reference" {
-            return true
+            return true;
         }
         if self.name == "value" && other.name == "value" {
-            return true
+            return true;
         }
-        if self.at != other.at { return false }
-        if self.name != other.name { return false }
-        if self.value != other.value { return false }
-        if self.at != other.at { return false }
-        if self.layer != other.layer { return false }
-        if self.effects != other.effects { return false }
-        if self.hide != other.hide { return false }
+        if self.at != other.at {
+            return false;
+        }
+        if self.name != other.name {
+            return false;
+        }
+        if self.value != other.value {
+            return false;
+        }
+        if self.at != other.at {
+            return false;
+        }
+        if self.layer != other.layer {
+            return false;
+        }
+        if self.effects != other.effects {
+            return false;
+        }
+        if self.hide != other.hide {
+            return false;
+        }
         true
     }
 }
@@ -438,7 +449,7 @@ pub struct At {
 
 impl Flip for At {
     fn flip(&mut self) {
-        self.y = - self.y;
+        self.y = -self.y;
         self.rot = 360.0 - self.rot;
     }
 }
@@ -462,7 +473,7 @@ impl At {
 }
 
 impl Rotate for At {
-    fn rotate(&mut self, rot:f64) {
+    fn rotate(&mut self, rot: f64) {
         self.rot += rot;
         if self.rot >= 360.0 {
             self.rot -= 360.0
@@ -559,7 +570,7 @@ pub struct Xy {
 
 impl Flip for Xy {
     fn flip(&mut self) {
-        self.y = - self.y;
+        self.y = -self.y;
     }
 }
 
@@ -886,26 +897,52 @@ impl Flip for Pad {
 }
 
 impl Rotate for Pad {
-    fn rotate(&mut self, rot:f64) {
+    fn rotate(&mut self, rot: f64) {
         self.at.rotate(rot)
     }
 }
 
 impl PartialEq for Pad {
     fn eq(&self, other: &Pad) -> bool {
-        if self.at != other.at { return false }
-        if self.name != other.name { return false }
-        if self.t != other.t { return false }
-        if self.shape != other.shape { return false }
-        if self.size != other.size { return false }
-        if self.rect_delta != other.rect_delta { return false }
-        if self.layers != other.layers { return false }
-        if self.zone_connect != other.zone_connect { return false }
-        if self.drill != other.drill { return false }
-        if self.solder_paste_margin != other.solder_paste_margin { return false }
-        if self.solder_mask_margin != other.solder_mask_margin { return false }
-        if self.clearance != other.clearance { return false }
-        if self.thermal_gap != other.thermal_gap { return false }
+        if self.at != other.at {
+            return false;
+        }
+        if self.name != other.name {
+            return false;
+        }
+        if self.t != other.t {
+            return false;
+        }
+        if self.shape != other.shape {
+            return false;
+        }
+        if self.size != other.size {
+            return false;
+        }
+        if self.rect_delta != other.rect_delta {
+            return false;
+        }
+        if self.layers != other.layers {
+            return false;
+        }
+        if self.zone_connect != other.zone_connect {
+            return false;
+        }
+        if self.drill != other.drill {
+            return false;
+        }
+        if self.solder_paste_margin != other.solder_paste_margin {
+            return false;
+        }
+        if self.solder_mask_margin != other.solder_mask_margin {
+            return false;
+        }
+        if self.clearance != other.clearance {
+            return false;
+        }
+        if self.thermal_gap != other.thermal_gap {
+            return false;
+        }
         true
     }
 }

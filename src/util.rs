@@ -25,13 +25,11 @@ where
 {
     let mut f = match File::create(&name) {
         Ok(f) => Ok(f),
-        Err(err) => {
-            Err(format!(
-                "create error in file '{}': {}",
-                name.as_ref().display(),
-                err
-            ))
-        }
+        Err(err) => Err(format!(
+            "create error in file '{}': {}",
+            name.as_ref().display(),
+            err
+        )),
     }?;
     match write!(&mut f, "{}", data) {
         Ok(f) => Ok(f),

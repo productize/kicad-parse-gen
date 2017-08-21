@@ -17,7 +17,7 @@ use symbol_lib::*;
 use std::fmt;
 use std::result;
 
-/// 
+///
 pub trait KLCCheck {
     /// check an item against the KLC
     fn check(&self) -> Vec<KLCData>;
@@ -37,24 +37,32 @@ impl KLCData {
     pub fn flatter(self) -> Self {
         match self {
             KLCData::Item(_) => self,
-            KLCData::More(v) => {
-                if v.len() == 1 {
-                    v.into_iter().next().unwrap()
-                } else {
-                    KLCData::More(v)
-                }
-            }
+            KLCData::More(v) => if v.len() == 1 {
+                v.into_iter().next().unwrap()
+            } else {
+                KLCData::More(v)
+            },
         }
     }
 
     /// create a new `KLCData`
-    pub fn new<A:fmt::Display, B:Into<String>>(section:i64, rule:i64, item:A, message:B) -> Self {
+    pub fn new<A: fmt::Display, B: Into<String>>(
+        section: i64,
+        rule: i64,
+        item: A,
+        message: B,
+    ) -> Self {
         let i = KLCItem::new(section, rule, item, message.into());
         KLCData::Item(i)
     }
-    
+
     /// create a new informational `KLCData`
-    pub fn info<A:fmt::Display, B:Into<String>>(section:i64, rule:i64, item:A, message:B) -> Self {
+    pub fn info<A: fmt::Display, B: Into<String>>(
+        section: i64,
+        rule: i64,
+        item: A,
+        message: B,
+    ) -> Self {
         let i = KLCItem::new(section, rule, item, message.into()).info();
         KLCData::Item(i)
     }
@@ -64,35 +72,36 @@ impl KLCData {
 /// a KLC check result item
 pub struct KLCItem {
     /// KLC section
-    pub section:i64,
+    pub section: i64,
     /// KLC rule in the section
-    pub rule:i64,
+    pub rule: i64,
     /// item that this is about
-    pub item:String,
+    pub item: String,
     /// message about the problem
-    pub message:String,
+    pub message: String,
     /// if the item is informational only
-    pub info:bool
+    pub info: bool,
 }
 impl KLCItem {
-
     /// create a new `KLCItem`
-    pub fn new<A:fmt::Display, B:Into<String>>(section:i64, rule:i64, item:A, message:B) -> Self
-    {
+    pub fn new<A: fmt::Display, B: Into<String>>(
+        section: i64,
+        rule: i64,
+        item: A,
+        message: B,
+    ) -> Self {
         KLCItem {
-            section:section,
-            rule:rule,
-            item:format!("{}", item),
+            section: section,
+            rule: rule,
+            item: format!("{}", item),
             message: message.into(),
-            info:false,
+            info: false,
         }
     }
 
     /// create a new informational `KLCItem`
     pub fn info(self) -> KLCItem {
-        KLCItem {
-            info:true, .. self
-        }
+        KLCItem { info: true, ..self }
     }
 }
 
@@ -156,11 +165,11 @@ impl fmt::Display for KLCSection {
     }
 }
 
-const ALLOWED_1_7:&'static str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-.";
+const ALLOWED_1_7: &'static str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-.";
 
-fn allowed_1_7(s:&str) -> Option<Vec<String>> {
+fn allowed_1_7(s: &str) -> Option<Vec<String>> {
     let mut v = vec![];
-    for (i,c) in s.chars().enumerate() {
+    for (i, c) in s.chars().enumerate() {
         if ALLOWED_1_7.chars().find(|&x| x == c).is_none() {
             v.push(format!("Invalid char '{}' at {} in '{}'", c, i, s))
         }
@@ -173,31 +182,20 @@ fn allowed_1_7(s:&str) -> Option<Vec<String>> {
 }
 
 /// check if a name is allowed according to KLC 1.7
-pub fn allowed_1_7_items(s:&str) -> Vec<KLCData> {
+pub fn allowed_1_7_items(s: &str) -> Vec<KLCData> {
     let mut v = vec![];
     if let Some(v2) = allowed_1_7(s) {
         for x in v2 {
-            v.push(KLCData::new(1,7,s , x))
+            v.push(KLCData::new(1, 7, s, x))
         }
     }
     v
 }
 
 /// check if a name is allowed according to KLC 1.7
-pub fn is_allowed_1_7(s:&str) -> bool {
+pub fn is_allowed_1_7(s: &str) -> bool {
     allowed_1_7(s).is_none()
 }
-
-/*
-
-4.1 Pin placement
-* Using a 100mil grid, pin origin must lie on grid nodes (IEC-60617)
-* Pins should have a length of at least 100mils (2.54mm)
-* Pin length should not be more than 300mils (7.62mm)
-* Pin length can be incremented in steps of 50mils (1.27mm) if required e.g. for long pin numbers
-* Shorter pins may be allowed for simple symbols such as resistors, capacitors, diodes, etc
-
-*/
 
 /*
 
@@ -209,7 +207,7 @@ pub fn is_allowed_1_7(s:&str) -> bool {
 * IEC-style symbols are used whenever possible
 
 */
-pub fn symbol_4_2(symbol:&Symbol) -> bool {
+pub fn symbol_4_2(symbol: &Symbol) -> bool {
     let mut res = true;
     for draw in &symbol.draw {
         res |= draw_4_2(draw)
@@ -217,7 +215,7 @@ pub fn symbol_4_2(symbol:&Symbol) -> bool {
     res
 }
 
-fn draw_4_2(draw:&Draw) -> bool {
+fn draw_4_2(draw: &Draw) -> bool {
     if let Draw::Rectangle(ref rec) = *draw {
         if rec.fill != Fill::Filled {
             info!("Non-filled rect in drawing")
@@ -272,10 +270,14 @@ mod tests {
     fn test_allowed_1_7_1() {
         assert!(allowed_1_7("Hello_world_1.23-4").is_none())
     }
-    
+
     #[test]
     fn test_allowed_1_7_2() {
-        let t = allowed_1_7("Hello world").unwrap().into_iter().next().unwrap();
+        let t = allowed_1_7("Hello world")
+            .unwrap()
+            .into_iter()
+            .next()
+            .unwrap();
         assert_eq!(t, "Invalid char ' ' at 5 in 'Hello world'")
     }
 }

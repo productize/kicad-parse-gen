@@ -192,13 +192,11 @@ impl FromSexp for Drill {
 impl FromSexp for Part {
     fn from_sexp(s: &Sexp) -> SResult<Part> {
         match s.string() {
-            Ok(sx) => {
-                match &sx[..] {
-                    "hide" => Ok(Part::Hide),
-                    "italic" => Ok(Part::Italic),
-                    x => Err(format!("unknown part in element: {}", x).into()),
-                }
-            }
+            Ok(sx) => match &sx[..] {
+                "hide" => Ok(Part::Hide),
+                "italic" => Ok(Part::Italic),
+                x => Err(format!("unknown part in element: {}", x).into()),
+            },
             _ => {
                 let name = &(s.list_name()?)[..];
                 match name {
@@ -386,12 +384,10 @@ fn parse_stamp_element(s: &Sexp) -> SResult<i64> {
 impl FromSexp for Element {
     fn from_sexp(s: &Sexp) -> SResult<Element> {
         match *s {
-            Sexp::String(ref s) => {
-                match &s[..] {
-                    "locked" => Ok(Element::Locked),
-                    _ => Err(format!("unknown element in module: {}", s).into()),
-                }
-            }
+            Sexp::String(ref s) => match &s[..] {
+                "locked" => Ok(Element::Locked),
+                _ => Err(format!("unknown element in module: {}", s).into()),
+            },
             Sexp::List(_) => {
                 let name = s.list_name()?;
                 match &name[..] {

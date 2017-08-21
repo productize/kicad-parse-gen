@@ -149,7 +149,7 @@ impl KicadFormatter {
                 if self.pts_xy_count > 0 && self.pts_xy_count % wrap == 0 {
                     return Some(indent);
                 } else if self.pts_xy_count == 0 &&
-                           (self.is("polygon") || self.is("filled_polygon"))
+                    (self.is("polygon") || self.is("filled_polygon"))
                 {
                     return Some(indent);
                 }
@@ -219,8 +219,14 @@ impl KicadFormatter {
         }
         if self.parent_is("dimension") {
             match ele {
-                "gr_text" | "feature1" | "feature2" | "crossbar" | "arrow1a" | "arrow1b" |
-                "arrow2a" | "arrow2b" => return Some(indent),
+                "gr_text" |
+                "feature1" |
+                "feature2" |
+                "crossbar" |
+                "arrow1a" |
+                "arrow1b" |
+                "arrow2a" |
+                "arrow2b" => return Some(indent),
                 _ => (),
             }
         }
@@ -367,7 +373,7 @@ impl Formatter for KicadFormatter {
                 }
                 return Ok(());
             } else if self.stack.is_empty() &&
-                       (&s == "module" || &s == "kicad_pcb" || &s == "fp_lib_table")
+                (&s == "module" || &s == "kicad_pcb" || &s == "fp_lib_table")
             {
                 writer.write_all(b"\n")?;
             }

@@ -1,7 +1,6 @@
 // (c) 2016-2017 Productize SPRL <joost@productize.be>
 
 //! Kicad file format parser and generator library
-
 #![warn(missing_docs)]
 
 extern crate symbolic_expressions;
@@ -12,7 +11,7 @@ extern crate log;
 extern crate shellexpand;
 
 use std::fmt;
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 
 pub use symbolic_expressions::Sexp;
 pub use error::*;
@@ -161,51 +160,39 @@ pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile> {
     let data = read_file(name)?;
     match footprint::parse(&data) {
         Ok(module) => return Ok(KicadFile::Module(module)),
-        Err(x) => {
-            if expected == Expected::Module {
-                return Err(x);
-            }
-        }
+        Err(x) => if expected == Expected::Module {
+            return Err(x);
+        },
     }
     match schematic::parse(Some(PathBuf::from(name)), &data) {
         Ok(sch) => return Ok(KicadFile::Schematic(sch)),
-        Err(x) => {
-            if expected == Expected::Schematic {
-                return Err(x);
-            }
-        }
+        Err(x) => if expected == Expected::Schematic {
+            return Err(x);
+        },
     }
     match layout::parse(&data) {
         Ok(layout) => return Ok(KicadFile::Layout(layout)),
-        Err(x) => {
-            if expected == Expected::Layout {
-                return Err(x);
-            }
-        }
+        Err(x) => if expected == Expected::Layout {
+            return Err(x);
+        },
     }
     match symbol_lib::parse_str(&data) {
         Ok(sl) => return Ok(KicadFile::SymbolLib(sl)),
-        Err(x) => {
-            if expected == Expected::SymbolLib {
-                return Err(x);
-            }
-        }
+        Err(x) => if expected == Expected::SymbolLib {
+            return Err(x);
+        },
     }
     match project::parse_str(&data) {
         Ok(p) => return Ok(KicadFile::Project(p)),
-        Err(x) => {
-            if expected == Expected::Project {
-                return Err(x);
-            }
-        }
+        Err(x) => if expected == Expected::Project {
+            return Err(x);
+        },
     }
     match fp_lib_table::parse(&data) {
         Ok(p) => return Ok(KicadFile::FpLibTable(p)),
-        Err(x) => {
-            if expected == Expected::FpLibTable {
-                return Err(x);
-            }
-        }
+        Err(x) => if expected == Expected::FpLibTable {
+            return Err(x);
+        },
     }
     Ok(KicadFile::Unknown(PathBuf::from(name)))
 }

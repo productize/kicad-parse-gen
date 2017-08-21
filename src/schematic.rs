@@ -91,11 +91,9 @@ impl Schematic {
     {
         for x in &mut self.elements[..] {
             match *x {
-                Element::Component(ref mut c) => {
-                    if c.reference == *reference {
-                        return fun(c);
-                    }
-                }
+                Element::Component(ref mut c) => if c.reference == *reference {
+                    return fun(c);
+                },
                 Element::Wire(_) |
                 Element::Connection(_) |
                 Element::NoConnect(_) |
@@ -177,11 +175,9 @@ impl Schematic {
     pub fn component_by_reference(&self, reference: &str) -> Result<Component> {
         for x in &self.elements {
             match *x {
-                Element::Component(ref c) => {
-                    if c.reference == *reference {
-                        return Ok(c.clone());
-                    }
-                }
+                Element::Component(ref c) => if c.reference == *reference {
+                    return Ok(c.clone());
+                },
                 Element::Wire(_) |
                 Element::Connection(_) |
                 Element::NoConnect(_) |
@@ -456,8 +452,7 @@ impl Into<bool> for FieldUpdate {
     /// was the field updated
     fn into(self) -> bool {
         match self {
-            FieldUpdate::New |
-            FieldUpdate::Update(_) => true,
+            FieldUpdate::New | FieldUpdate::Update(_) => true,
             FieldUpdate::Same => false,
         }
     }
@@ -558,14 +553,12 @@ impl Component {
         value: &str,
     ) -> FieldUpdate {
         match self.get_field_value(name) {
-            Some(old_value) => {
-                if old_value == value {
-                    FieldUpdate::Same
-                } else {
-                    self.update_field(name, value);
-                    FieldUpdate::Update(old_value.into())
-                }
-            }
+            Some(old_value) => if old_value == value {
+                FieldUpdate::Same
+            } else {
+                self.update_field(name, value);
+                FieldUpdate::Update(old_value.into())
+            },
             None => {
                 self.add_new_field(template, name, value);
                 FieldUpdate::New
@@ -1390,13 +1383,11 @@ fn parse_sheet(p: &mut ParseState) -> Result<Sheet> {
         match st.split_whitespace().next() {
             Some("S") => parse_sheet_s(p, &mut s)?,
             Some("U") => parse_sheet_u(p, &mut s)?,
-            Some(x) => {
-                if x.starts_with('F') {
-                    parse_sheet_f(p, &mut s, x)?
-                } else {
-                    println!("skipping unknown sheet line {}", st)
-                }
-            }
+            Some(x) => if x.starts_with('F') {
+                parse_sheet_f(p, &mut s, x)?
+            } else {
+                println!("skipping unknown sheet line {}", st)
+            },
             _ => println!("skipping unknown sheet line {}", st),
         }
         p.next();

@@ -11,7 +11,7 @@ use formatter::KicadFormatter;
 
 pub use layout::data::*;
 
-use {Bound, BoundingBox, Adjust};
+use {Adjust, Bound, BoundingBox};
 
 /// convert a Kicad layout to a String
 pub fn layout_to_string(layout: &Layout, indent_level: i64) -> Result<String> {
