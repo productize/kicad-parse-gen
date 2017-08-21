@@ -298,6 +298,27 @@ impl Symbol {
         let field = &mut self.fields[1];
         field.value = name.to_string()
     }
+
+    /// get the list of pins on the symbol
+    pub fn pins(&self) -> Vec<&Pin> {
+        let mut v:Vec<&Pin> = vec![];
+        for d in &self.draw {
+            if let Draw::Pin(ref pin) = *d {
+                v.push(pin)
+            }
+        }
+        v
+    }
+
+    /// is a symbol a power symbol?
+    pub fn is_power(&self) -> bool {
+        self.reference.as_str() == "#PWR" && self.pins().len() == 1
+    }
+
+    /// is a symbol a graphics item?
+    pub fn is_graphics(&self) -> bool {
+        self.reference.starts_with("#") && self.pins().is_empty()
+    }
 }
 
 impl fmt::Display for Symbol {
@@ -904,10 +925,12 @@ impl KLCCheck for Symbol {
                 v.push(KLCData::More(f).flatter())
             }
         }
-        for draw in &self.draw {
-            let f = draw.check();
-            if !f.is_empty() {
-                v.push(KLCData::More(f).flatter())
+        if !(self.is_power() || self.is_graphics()) {
+            for draw in &self.draw {
+                let f = draw.check();
+                if !f.is_empty() {
+                    v.push(KLCData::More(f).flatter())
+                }
             }
         }
         v
