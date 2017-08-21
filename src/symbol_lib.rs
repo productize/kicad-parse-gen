@@ -842,16 +842,11 @@ pub fn parse_file(filename: &PathBuf) -> Result<SymbolLib> {
 
 impl KLCCheck for Field {
     fn check(&self) -> Vec<KLCData> {
-        let v = vec![];
-        // is this actually to be enforced by the KLC ???
-        /*
-        if ((self.x as i64) % 10) != 0 {
-            v.push(KLCData::new(4, 1, self, "field x not on 100mil grid"));
+        let mut v = vec![];
+        // 4.8 All text fields use a common size of 50mils (1.27mm)
+        if self.dimension != 50 {
+            v.push(KLCData::new(4, 8, self, "field text is not 50mil"));
         }
-        if ((self.y as i64) % 10) != 0 {
-            v.push(KLCData::new(4, 1, self, "field y not on 100mil grid"));
-        }
-         */
         v
     }
 }
@@ -883,6 +878,30 @@ impl KLCCheck for Pin {
         // 4.1 Pin length should not be more than 300mils (7.62mm)
         if self.len > 30 {
             v.push(KLCData::info(4, 1, name.clone(), "pin length > 300mil"));
+        }
+        // 4.7 NC pins should be of type NC
+        if self.name.to_lowercase().contains("nc") {
+            if self.pin_type != PinType::NotConnected {
+                v.push(KLCData::new(4,7, name.clone(), "Pin should be of type Not Connected"))
+            }
+        }
+        // 4.7 NC pins should be invisible, others should be visible
+        if self.pin_type == PinType::NotConnected {
+            if self.pin_visible {
+                v.push(KLCData::new(4,7, name.clone(), "Pin should be invisible"))
+            }
+        } else {
+            if !self.pin_visible {
+                v.push(KLCData::new(4,7, name.clone(), "Pin should be visible"))
+            }
+        }
+        // 4.8 All text fields use a common size of 50mils (1.27mm)
+        if self.num_size != 50 {
+            v.push(KLCData::new(4,8, name.clone(), "Pin Number should be 50mil"))
+        }
+        // 4.8 All text fields use a common size of 50mils (1.27mm)
+        if self.name_size != 50 {
+            v.push(KLCData::new(4,8, name.clone(), "Pin Name should be 50mil"))
         }
         v
     }
