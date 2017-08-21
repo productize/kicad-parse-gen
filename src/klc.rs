@@ -40,7 +40,7 @@ impl KLCData {
             KLCData::More(v) => if v.len() == 1 {
                 v.into_iter().next().unwrap()
             } else {
-                KLCData::More(v)
+                self
             },
         }
     }
@@ -195,33 +195,6 @@ pub fn allowed_1_7_items(s: &str) -> Vec<KLCData> {
 /// check if a name is allowed according to KLC 1.7
 pub fn is_allowed_1_7(s: &str) -> bool {
     allowed_1_7(s).is_none()
-}
-
-/*
-
-4.2 Symbol visual style
-
-* Origin is placed in the middle of symbol
-* Symbol body has a line width of 10mils (0.254mm)
-* Fill style of symbol body is set to Fill background
-* IEC-style symbols are used whenever possible
-
-*/
-pub fn symbol_4_2(symbol: &Symbol) -> bool {
-    let mut res = true;
-    for draw in &symbol.draw {
-        res |= draw_4_2(draw)
-    }
-    res
-}
-
-fn draw_4_2(draw: &Draw) -> bool {
-    if let Draw::Rectangle(ref rec) = *draw {
-        if rec.fill != Fill::Filled {
-            info!("Non-filled rect in drawing")
-        }
-    }
-    true
 }
 
 /*

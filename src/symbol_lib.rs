@@ -822,12 +822,15 @@ pub fn parse_file(filename: &PathBuf) -> Result<SymbolLib> {
 impl KLCCheck for Field {
     fn check(&self) -> Vec<KLCData> {
         let mut v = vec![];
+        // is this actually to be enforced by the KLC ???
+        /*
         if ((self.x as i64) % 10) != 0 {
             v.push(KLCData::new(4, 1, self, "field x not on 100mil grid"));
         }
         if ((self.y as i64) % 10) != 0 {
             v.push(KLCData::new(4, 1, self, "field y not on 100mil grid"));
         }
+         */
         v
     }
 }
@@ -835,28 +838,52 @@ impl KLCCheck for Field {
 impl KLCCheck for Draw {
     fn check(&self) -> Vec<KLCData> {
         let mut v = vec![];
-        if let Draw::Pin(ref pin) = *self {
-            let name = format!("{}:{}", pin.name, pin.number);
-            if (pin.x % 10) != 0 {
-                v.push(KLCData::new(4, 1, name.clone(), "pin x not on 100mil grid"));
+        match *self {
+            Draw::Pin(ref pin) => {
+                let name = format!("{}:{}", pin.name, pin.number);
+                // 4.1 Using a 100mil grid, pin origin must lie on grid nodes (IEC-60617)
+                if (pin.x % 10) != 0 {
+                    v.push(KLCData::new(4, 1, name.clone(), "pin x not on 100mil grid"));
+                }
+                if (pin.y % 10) != 0 {
+                    v.push(KLCData::new(4, 1, name.clone(), "pin y not on 100mil grid"));
+                }
+                // 4.1 Pin length can be incremented in steps of 50mils (1.27mm) if required e.g. for long pin numbers
+                if (pin.len % 5) != 0 {
+                    v.push(KLCData::new(
+                        4,
+                        1,
+                        name.clone(),
+                        "pin length not on 50mil grid",
+                    ));
+                }
+                // 4.1 Pins should have a length of at least 100mils (2.54mm)
+                if pin.len < 10 {
+                    v.push(KLCData::info(4, 1, name.clone(), "pin length < 100mil"));
+                }
+                // 4.1 Pin length should not be more than 300mils (7.62mm)
+                if pin.len > 30 {
+                    v.push(KLCData::info(4, 1, name.clone(), "pin length > 300mil"));
+                }
             }
-            if (pin.y % 10) != 0 {
-                v.push(KLCData::new(4, 1, name.clone(), "pin y not on 100mil grid"));
+            Draw::Rectangle(ref rect) => {
+                // 4.2 Fill style of symbol body is set to Fill background
+                if rec.fill != Fill::Filled {
+                    v.push(KLCData::new(4, 2, self, "Rectangle is not filled"))
+                }
+                // 4.2 Symbol body has a line width of 10mils (0.254mm)
+                if rec.thickness != 10 {
+                    v.push(KLCData::new(
+                        4,
+                        2,
+                        self,
+                        "Rectangle is not using a 10mil line",
+                    ))
+                }
+                // TODO 4.2 Origin is placed in the middle of symbol
+                // TODO 4.2 IEC-style symbols are used whenever possible
             }
-            if (pin.len % 5) != 0 {
-                v.push(KLCData::new(
-                    4,
-                    1,
-                    name.clone(),
-                    "pin length not on 50mil grid",
-                ));
-            }
-            if pin.len < 10 {
-                v.push(KLCData::info(4, 1, name.clone(), "pin length < 100mil"));
-            }
-            if pin.len > 30 {
-                v.push(KLCData::info(4, 1, name.clone(), "pin length > 300mil"));
-            }
+
         }
         v
     }
@@ -865,6 +892,7 @@ impl KLCCheck for Draw {
 impl KLCCheck for Symbol {
     fn check(&self) -> Vec<KLCData> {
         let mut v = vec![];
+        // 1.7 valid name
         let allowed_1_7 = klc::allowed_1_7_items(&self.name);
         if !allowed_1_7.is_empty() {
             v.push(KLCData::More(allowed_1_7).flatter())
