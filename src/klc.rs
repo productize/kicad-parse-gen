@@ -13,7 +13,6 @@ Filenames, symbol names, footprint names and model names must contain only valid
 
 */
 
-use symbol_lib::*;
 use std::fmt;
 use std::result;
 
@@ -40,7 +39,7 @@ impl KLCData {
             KLCData::More(v) => if v.len() == 1 {
                 v.into_iter().next().unwrap()
             } else {
-                self
+                KLCData::More(v)
             },
         }
     }

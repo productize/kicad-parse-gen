@@ -821,7 +821,7 @@ pub fn parse_file(filename: &PathBuf) -> Result<SymbolLib> {
 
 impl KLCCheck for Field {
     fn check(&self) -> Vec<KLCData> {
-        let mut v = vec![];
+        let v = vec![];
         // is this actually to be enforced by the KLC ???
         /*
         if ((self.x as i64) % 10) != 0 {
@@ -868,11 +868,11 @@ impl KLCCheck for Draw {
             }
             Draw::Rectangle(ref rect) => {
                 // 4.2 Fill style of symbol body is set to Fill background
-                if rec.fill != Fill::Filled {
+                if rect.fill != Fill::Filled {
                     v.push(KLCData::new(4, 2, self, "Rectangle is not filled"))
                 }
                 // 4.2 Symbol body has a line width of 10mils (0.254mm)
-                if rec.thickness != 10 {
+                if rect.thickness != 10 {
                     v.push(KLCData::new(
                         4,
                         2,
@@ -883,6 +883,7 @@ impl KLCCheck for Draw {
                 // TODO 4.2 Origin is placed in the middle of symbol
                 // TODO 4.2 IEC-style symbols are used whenever possible
             }
+            Draw::Other(_) => (),
 
         }
         v
