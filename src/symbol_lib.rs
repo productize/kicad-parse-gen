@@ -856,53 +856,74 @@ impl KLCCheck for Field {
     }
 }
 
+impl KLCCheck for Pin {
+    fn check(&self) -> Vec<KLCData> {
+        let mut v = vec![];
+        let name = format!("{}:{}", self.name, self.number);
+        // 4.1 Using a 100mil grid, pin origin must lie on grid nodes (IEC-60617)
+        if (self.x % 10) != 0 {
+            v.push(KLCData::new(4, 1, name.clone(), "pin x not on 100mil grid"));
+        }
+        if (self.y % 10) != 0 {
+            v.push(KLCData::new(4, 1, name.clone(), "pin y not on 100mil grid"));
+                }
+        // 4.1 Pin length can be incremented in steps of 50mils (1.27mm) if required e.g. for long pin numbers
+        if (self.len % 5) != 0 {
+            v.push(KLCData::new(
+                4,
+                1,
+                name.clone(),
+                "pin length not on 50mil grid",
+            ));
+                }
+        // 4.1 Pins should have a length of at least 100mils (2.54mm)
+        if self.len < 10 {
+            v.push(KLCData::info(4, 1, name.clone(), "pin length < 100mil"));
+        }
+        // 4.1 Pin length should not be more than 300mils (7.62mm)
+        if self.len > 30 {
+            v.push(KLCData::info(4, 1, name.clone(), "pin length > 300mil"));
+        }
+        v
+    }
+}
+impl KLCCheck for Rectangle {
+    fn check(&self) -> Vec<KLCData> {
+        let mut v = vec![];
+        // 4.2 Fill style of symbol body is set to Fill background
+        if self.fill != Fill::Filled {
+            v.push(KLCData::new(4, 2, self, "Rectangle is not filled"))
+        }
+        // 4.2 Symbol body has a line width of 10mils (0.254mm)
+        if self.thickness != 10 {
+            v.push(KLCData::new(
+                4,
+                2,
+                self,
+                "Rectangle is not using a 10mil line",
+            ))
+        }
+        // TODO 4.2 Origin is placed in the middle of symbol
+        // TODO 4.2 IEC-style symbols are used whenever possibl
+        v
+    }
+}
+
 impl KLCCheck for Draw {
     fn check(&self) -> Vec<KLCData> {
         let mut v = vec![];
         match *self {
             Draw::Pin(ref pin) => {
-                let name = format!("{}:{}", pin.name, pin.number);
-                // 4.1 Using a 100mil grid, pin origin must lie on grid nodes (IEC-60617)
-                if (pin.x % 10) != 0 {
-                    v.push(KLCData::new(4, 1, name.clone(), "pin x not on 100mil grid"));
-                }
-                if (pin.y % 10) != 0 {
-                    v.push(KLCData::new(4, 1, name.clone(), "pin y not on 100mil grid"));
-                }
-                // 4.1 Pin length can be incremented in steps of 50mils (1.27mm) if required e.g. for long pin numbers
-                if (pin.len % 5) != 0 {
-                    v.push(KLCData::new(
-                        4,
-                        1,
-                        name.clone(),
-                        "pin length not on 50mil grid",
-                    ));
-                }
-                // 4.1 Pins should have a length of at least 100mils (2.54mm)
-                if pin.len < 10 {
-                    v.push(KLCData::info(4, 1, name.clone(), "pin length < 100mil"));
-                }
-                // 4.1 Pin length should not be more than 300mils (7.62mm)
-                if pin.len > 30 {
-                    v.push(KLCData::info(4, 1, name.clone(), "pin length > 300mil"));
+                let p = pin.check();
+                for i in p {
+                    v.push(i)
                 }
             }
             Draw::Rectangle(ref rect) => {
-                // 4.2 Fill style of symbol body is set to Fill background
-                if rect.fill != Fill::Filled {
-                    v.push(KLCData::new(4, 2, self, "Rectangle is not filled"))
+                let p = rect.check();
+                for i in p {
+                    v.push(i)
                 }
-                // 4.2 Symbol body has a line width of 10mils (0.254mm)
-                if rect.thickness != 10 {
-                    v.push(KLCData::new(
-                        4,
-                        2,
-                        self,
-                        "Rectangle is not using a 10mil line",
-                    ))
-                }
-                // TODO 4.2 Origin is placed in the middle of symbol
-                // TODO 4.2 IEC-style symbols are used whenever possible
             }
             Draw::Other(_) => (),
 
