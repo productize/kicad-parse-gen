@@ -19,8 +19,9 @@ fn main() {
     let name = args.next().unwrap();
     let name = PathBuf::from(name);
     let symbol_lib = kicad::read_symbol_lib(&name).unwrap();
+    let config = kicad::klc::klc_default();
     for symbol in symbol_lib.symbols {
-        let checkres = symbol.check();
+        let checkres = symbol.check(&config);
         if !checkres.is_empty() {
             info!("Symbol {}", symbol.name);
             for v in checkres {

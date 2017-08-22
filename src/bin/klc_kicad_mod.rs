@@ -19,7 +19,8 @@ fn main() {
     let name = args.next().unwrap();
     let name = PathBuf::from(name);
     let module = kicad::read_module(&name).unwrap();
-    let checkres = module.check();
+    let config = kicad::klc::klc_default();
+    let checkres = module.check(&config);
     if !checkres.is_empty() {
         info!("Module {}", module.name);
         for v in checkres {

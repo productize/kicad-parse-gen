@@ -1,25 +1,42 @@
-// (c) 2016 Productize SPRL <joost@productize.be>
-
-
-/* 
-
-1.7 valid characters in string
-
-Filenames, symbol names, footprint names and model names must contain only valid characters, as below:
-* Alphanumeric characters (A-Z, a-z, 0-9)
-* Underscore _
-* Hyphen / dash -
-* Period / dot .
-
-*/
+// (c) 2017 Productize SPRL <joost@productize.be>
 
 use std::fmt;
 use std::result;
 
+pub const KLC_VERSION:&'static str = "2.0.10";
+
+/*
+pub struct KLCSymConfig {
+    text_size:i64,
+}*/
+
+/// settings for KLC, things that might be tuned
+pub struct KLCModConfig {
+    pub font_size:f64,
+}
+
+/// settings for KLC, things that might be tuned
+pub struct KLCConfig {
+    //pub s:KLCSymConfig,
+    pub m:KLCModConfig,
+}
+
+pub fn klc_default() -> KLCConfig {
+    KLCConfig {
+        /*
+        s:KLCSymConfig {
+            text_size:50,
+        },*/
+        m:KLCModConfig {
+            font_size:1.0,
+        }
+    }
+}
+
 ///
 pub trait KLCCheck {
     /// check an item against the KLC
-    fn check(&self) -> Vec<KLCData>;
+    fn check(&self, config:&KLCConfig) -> Vec<KLCData>;
 }
 
 #[derive(Debug)]
@@ -201,6 +218,19 @@ impl fmt::Display for KLCSection {
         write!(f, "{}", s)
     }
 }
+
+/* 
+
+1.7 valid characters in string
+
+Filenames, symbol names, footprint names and model names must contain only valid characters, as below:
+* Alphanumeric characters (A-Z, a-z, 0-9)
+* Underscore _
+* Hyphen / dash -
+* Period / dot .
+
+*/
+
 
 const ALLOWED_1_7: &'static str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-.";
 

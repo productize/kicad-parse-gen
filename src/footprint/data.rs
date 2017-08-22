@@ -5,7 +5,7 @@ use symbolic_expressions::iteratom::SResult;
 
 pub use layout::NetName;
 
-use klc::{KLCCheck, KLCData};
+use klc::{KLCCheck, KLCData, KLCConfig};
 
 /// implement to allow a Module and it's sub Element be flippable
 pub trait Flip {
@@ -1266,7 +1266,7 @@ impl Xyz {
 }
 
 impl KLCCheck for Module {
-    fn check(&self) -> Vec<KLCData> {
+    fn check(&self, config:&KLCConfig) -> Vec<KLCData> {
         let mut v = vec![];
         let name = &self.name;
 
@@ -1309,22 +1309,22 @@ impl KLCCheck for Module {
             }
             // 7.3 font height should be 1.0
             // this is kind of big :(
-            if reference.effects.font.size.y != 1.0 {
+            if reference.effects.font.size.y != config.m.font_size {
                 v.push(KLCData::info(
                     7,
                     3,
                     name.clone(),
-                    "reference label should have height 1.0",
+                    format!("reference label should have height {}", config.m.font_size),
                 ));
             }
             // 7.3 font width should be 1.0
             // this is kind of big :(
-            if reference.effects.font.size.x != 1.0 {
+            if reference.effects.font.size.x != config.m.font_size {
                 v.push(KLCData::info(
                     7,
                     3,
                     name.clone(),
-                    "reference label should have width 1.0",
+                    format!("reference label should have width {}", config.m.font_size),
                 ));
             }
         // 7.3 TODO: further silkscreen checks
