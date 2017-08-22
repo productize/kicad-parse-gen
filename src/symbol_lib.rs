@@ -319,6 +319,13 @@ impl Symbol {
     pub fn is_graphics(&self) -> bool {
         self.reference.starts_with("#") && self.pins().is_empty()
     }
+
+    pub fn is_basic(&self) -> bool {
+        match self.name.as_str() {
+            "L" | "R" | "C" | "D" => true,
+            _ => false,
+        }
+    }
 }
 
 impl fmt::Display for Symbol {
@@ -840,12 +847,56 @@ pub fn parse_file(filename: &PathBuf) -> Result<SymbolLib> {
     parse(&s[..])
 }
 
-impl KLCCheck for Field {
+struct SymbolField<'a> {
+    symbol:&'a Symbol,
+    field:&'a Field,
+}
+
+impl<'a> KLCCheck for SymbolField<'a> {
     fn check(&self) -> Vec<KLCData> {
+        let symbol = self.symbol;
+        let field = self.field;
         let mut v = vec![];
         // 4.8 All text fields use a common size of 50mils (1.27mm)
-        if self.dimension != 50 {
-            v.push(KLCData::new(4, 8, self, "field text is not 50mil"));
+        if field.dimension != 50 {
+            v.push(KLCData::new(4, 8, field, "field text is not 50mil"));
+        }
+        if field.i == 0 {
+            // 4.9 The Reference field contains the appropriate Reference Designator
+            if symbol.is_graphics() {
+                if field.visible {
+                    v.push(KLCData::new(4, 9, symbol.name.clone(), "reference field should be invisible for graphics"));
+                }
+            } else {
+                if !field.visible && !symbol.is_power() {
+                    v.push(KLCData::new(4, 9, symbol.name.clone(), "reference field should be visible for normal symbols"));
+                }
+            }
+        } else if field.i == 1 {
+            // 4.9 The Value field contains the name of the symbol and is visible. For power and graphical symbols, the value field must be invisible
+            if symbol.is_graphics() {
+                if field.visible {
+                    v.push(KLCData::new(4, 9, symbol.name.clone(), "value field should be invisible for graphics"));
+                }
+            } else if symbol.is_power() {
+                if field.visible {
+                    v.push(KLCData::new(4, 9, symbol.name.clone(), "value field should be invisible for power"));
+                }
+            } else {
+                if !field.visible {
+                    v.push(KLCData::new(4, 9, symbol.name.clone(), "value field should be visible for normal symbols"));
+                }
+            }
+        } else if field.i == 2 {
+            // 4.9 The Footprint field is filled according to rule 4.12 (below) and is invisible
+            if field.visible {
+                v.push(KLCData::new(4, 9, symbol.name.clone(), "Footprint field should be invisible"));
+            }
+        } else if field.i == 3 {
+            // 4.9 The Datasheet field is left blank and is invisible
+            if field.visible {
+                v.push(KLCData::new(4, 9, symbol.name.clone(), "Datasheet field should be invisible"));
+            }
         }
         v
     }
@@ -872,11 +923,11 @@ impl KLCCheck for Pin {
             ));
                 }
         // 4.1 Pins should have a length of at least 100mils (2.54mm)
-        if self.len < 10 {
+        if self.len < 100 {
             v.push(KLCData::info(4, 1, name.clone(), "pin length < 100mil"));
         }
         // 4.1 Pin length should not be more than 300mils (7.62mm)
-        if self.len > 30 {
+        if self.len > 300 {
             v.push(KLCData::info(4, 1, name.clone(), "pin length > 300mil"));
         }
         // 4.7 NC pins should be of type NC
@@ -955,12 +1006,18 @@ impl KLCCheck for Symbol {
     fn check(&self) -> Vec<KLCData> {
         let mut v = vec![];
         // 1.7 valid name
-        let allowed_1_7 = klc::allowed_1_7_items(&self.name);
+        let name = if self.name.starts_with("~") {
+            self.name.chars().skip(1).collect::<String>()
+        } else {
+            self.name.clone()
+        };
+        let allowed_1_7 = klc::allowed_1_7_items(&name);
         if !allowed_1_7.is_empty() {
             v.push(KLCData::More(allowed_1_7).flatter())
         }
         for field in &self.fields {
-            let f = field.check();
+            let f = SymbolField { symbol:self, field:field };
+            let f = f.check();
             if !f.is_empty() {
                 v.push(KLCData::More(f).flatter())
             }

@@ -5,6 +5,8 @@ use symbolic_expressions::iteratom::SResult;
 
 pub use layout::NetName;
 
+use klc::{self, KLCData, KLCCheck};
+
 /// implement to allow a Module and it's sub Element be flippable
 pub trait Flip {
     /// flip me
@@ -54,12 +56,16 @@ impl Module {
         false
     }
 
-    /// check if a Module has a reference Element with the specified name
+    /// get the Reference element from the Module if it exists
     pub fn get_reference(&self) -> Option<&String> {
+        self.get_reference_text().map(|a| &a.value)
+    }
+
+    pub fn get_reference_text(&self) -> Option<&FpText> {
         for element in &self.elements[..] {
             if let Element::FpText(ref fp_text) = *element {
                 if fp_text.name == "reference" {
-                    return Some(&fp_text.value);
+                    return Some(fp_text)
                 }
             }
         }
@@ -1203,5 +1209,18 @@ impl Xyz {
     /// create a X-Y-Z coordinate
     pub fn new(x: f64, y: f64, z: f64) -> Xyz {
         Xyz { x: x, y: y, z: z }
+    }
+}
+
+impl KLCCheck for Module {
+    fn check(&self) -> Vec<KLCData> {
+        let mut v = vec![];
+        let name = &self.name;
+        if let Some(reference) = self.get_reference_text() {
+            if reference.value.as_str() != "REF**" {
+                v.push(KLCData::new(7,3, name.clone(), "reference should be REF**"));
+            }
+        }
+        v
     }
 }
