@@ -1270,6 +1270,7 @@ impl KLCCheck for Module {
         let mut v = vec![];
         let name = &self.name;
         let font_size = config.m.font_size;
+        let font_thickness = config.m.font_thickness;
 
         if let Some(reference) = self.get_reference_text() {
             // 7.3 reference is correctly placed
@@ -1328,6 +1329,15 @@ impl KLCCheck for Module {
                     format!("reference label should have width {}", font_size),
                 ));
             }
+            // 7.4 font thickness should be 0.15
+            if reference.effects.font.thickness != font_thickness {
+                v.push(KLCData::info(
+                    7,
+                    3,
+                    name.clone(),
+                    format!("reference label thickness should be {}", font_thickness),
+                ))
+            }
         // 7.3 TODO: further silkscreen checks
         // 7.3 TODO: check for intersection with pads etc
         } else {
@@ -1383,13 +1393,13 @@ impl KLCCheck for Module {
                     format!("value label should have width {}", font_size),
                 ));
             }
-            // 7.4 font thickess should be 0.15
-            if value.effects.font.thickness != 0.15 {
+            // 7.4 font thickness should be 0.15
+            if value.effects.font.thickness != font_thickness {
                 v.push(KLCData::info(
                     7,
                     3,
                     name.clone(),
-                    "value label thickness should be 0.15",
+                    format!("value label thickness should be {}", font_thickness),
                 ))
             }
         // TODO
@@ -1428,7 +1438,7 @@ impl KLCCheck for Module {
                     7,
                     3,
                     name.clone(),
-                    "reference 2 label should have height 1.0",
+                    format!("reference 2 label should have height {}", font_size),
                 ));
             }
             // 7.4 font width should be 1.0
@@ -1438,8 +1448,17 @@ impl KLCCheck for Module {
                     7,
                     3,
                     name.clone(),
-                    "reference 2 label should have width 1.0",
+                    format!("reference 2 label should have width {}", font_size),
                 ));
+            }
+            // 7.4 font thickness should be 0.15
+            if reference.effects.font.thickness != font_thickness {
+                v.push(KLCData::info(
+                    7,
+                    3,
+                    name.clone(),
+                    format!("reference 2 label thickness should be {}", font_thickness),
+                ))
             }
         // 7.4 TODO: check for intersection with pads etc
         // 7.4 TODO: check Fab line widths

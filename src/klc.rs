@@ -13,6 +13,7 @@ pub struct KLCSymConfig {
 /// settings for KLC, things that might be tuned
 pub struct KLCModConfig {
     pub font_size:f64,
+    pub font_thickness:f64,
 }
 
 /// settings for KLC, things that might be tuned
@@ -29,6 +30,7 @@ pub fn klc_default() -> KLCConfig {
         },*/
         m:KLCModConfig {
             font_size:1.0,
+            font_thickness:0.15,
         }
     }
 }
