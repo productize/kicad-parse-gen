@@ -301,7 +301,7 @@ impl Symbol {
 
     /// get the list of pins on the symbol
     pub fn pins(&self) -> Vec<&Pin> {
-        let mut v:Vec<&Pin> = vec![];
+        let mut v: Vec<&Pin> = vec![];
         for d in &self.draw {
             if let Draw::Pin(ref pin) = *d {
                 v.push(pin)
@@ -848,8 +848,8 @@ pub fn parse_file(filename: &PathBuf) -> Result<SymbolLib> {
 }
 
 struct SymbolField<'a> {
-    symbol:&'a Symbol,
-    field:&'a Field,
+    symbol: &'a Symbol,
+    field: &'a Field,
 }
 
 impl<'a> KLCCheck for SymbolField<'a> {
@@ -865,37 +865,72 @@ impl<'a> KLCCheck for SymbolField<'a> {
             // 4.9 The Reference field contains the appropriate Reference Designator
             if symbol.is_graphics() {
                 if field.visible {
-                    v.push(KLCData::new(4, 9, symbol.name.clone(), "reference field should be invisible for graphics"));
+                    v.push(KLCData::new(
+                        4,
+                        9,
+                        symbol.name.clone(),
+                        "reference field should be invisible for graphics",
+                    ));
                 }
             } else {
                 if !field.visible && !symbol.is_power() {
-                    v.push(KLCData::new(4, 9, symbol.name.clone(), "reference field should be visible for normal symbols"));
+                    v.push(KLCData::new(
+                        4,
+                        9,
+                        symbol.name.clone(),
+                        "reference field should be visible for normal symbols",
+                    ));
                 }
             }
         } else if field.i == 1 {
             // 4.9 The Value field contains the name of the symbol and is visible. For power and graphical symbols, the value field must be invisible
             if symbol.is_graphics() {
                 if field.visible {
-                    v.push(KLCData::new(4, 9, symbol.name.clone(), "value field should be invisible for graphics"));
+                    v.push(KLCData::new(
+                        4,
+                        9,
+                        symbol.name.clone(),
+                        "value field should be invisible for graphics",
+                    ));
                 }
             } else if symbol.is_power() {
                 if field.visible {
-                    v.push(KLCData::new(4, 9, symbol.name.clone(), "value field should be invisible for power"));
+                    v.push(KLCData::new(
+                        4,
+                        9,
+                        symbol.name.clone(),
+                        "value field should be invisible for power",
+                    ));
                 }
             } else {
                 if !field.visible {
-                    v.push(KLCData::new(4, 9, symbol.name.clone(), "value field should be visible for normal symbols"));
+                    v.push(KLCData::new(
+                        4,
+                        9,
+                        symbol.name.clone(),
+                        "value field should be visible for normal symbols",
+                    ));
                 }
             }
         } else if field.i == 2 {
             // 4.9 The Footprint field is filled according to rule 4.12 (below) and is invisible
             if field.visible {
-                v.push(KLCData::new(4, 9, symbol.name.clone(), "Footprint field should be invisible"));
+                v.push(KLCData::new(
+                    4,
+                    9,
+                    symbol.name.clone(),
+                    "Footprint field should be invisible",
+                ));
             }
         } else if field.i == 3 {
             // 4.9 The Datasheet field is left blank and is invisible
             if field.visible {
-                v.push(KLCData::new(4, 9, symbol.name.clone(), "Datasheet field should be invisible"));
+                v.push(KLCData::new(
+                    4,
+                    9,
+                    symbol.name.clone(),
+                    "Datasheet field should be invisible",
+                ));
             }
         }
         v
@@ -912,7 +947,7 @@ impl KLCCheck for Pin {
         }
         if (self.y % 10) != 0 {
             v.push(KLCData::new(4, 1, name.clone(), "pin y not on 100mil grid"));
-                }
+        }
         // 4.1 Pin length can be incremented in steps of 50mils (1.27mm) if required e.g. for long pin numbers
         if (self.len % 5) != 0 {
             v.push(KLCData::new(
@@ -921,7 +956,7 @@ impl KLCCheck for Pin {
                 name.clone(),
                 "pin length not on 50mil grid",
             ));
-                }
+        }
         // 4.1 Pins should have a length of at least 100mils (2.54mm)
         if self.len < 100 {
             v.push(KLCData::info(4, 1, name.clone(), "pin length < 100mil"));
@@ -933,26 +968,36 @@ impl KLCCheck for Pin {
         // 4.7 NC pins should be of type NC
         if self.name.to_lowercase().contains("nc") {
             if self.pin_type != PinType::NotConnected {
-                v.push(KLCData::new(4,7, name.clone(), "Pin should be of type Not Connected"))
+                v.push(KLCData::new(
+                    4,
+                    7,
+                    name.clone(),
+                    "Pin should be of type Not Connected",
+                ))
             }
         }
         // 4.7 NC pins should be invisible, others should be visible
         if self.pin_type == PinType::NotConnected {
             if self.pin_visible {
-                v.push(KLCData::new(4,7, name.clone(), "Pin should be invisible"))
+                v.push(KLCData::new(4, 7, name.clone(), "Pin should be invisible"))
             }
         } else {
             if !self.pin_visible {
-                v.push(KLCData::new(4,7, name.clone(), "Pin should be visible"))
+                v.push(KLCData::new(4, 7, name.clone(), "Pin should be visible"))
             }
         }
         // 4.8 All text fields use a common size of 50mils (1.27mm)
         if self.num_size != 50 {
-            v.push(KLCData::new(4,8, name.clone(), "Pin Number should be 50mil"))
+            v.push(KLCData::new(
+                4,
+                8,
+                name.clone(),
+                "Pin Number should be 50mil",
+            ))
         }
         // 4.8 All text fields use a common size of 50mils (1.27mm)
         if self.name_size != 50 {
-            v.push(KLCData::new(4,8, name.clone(), "Pin Name should be 50mil"))
+            v.push(KLCData::new(4, 8, name.clone(), "Pin Name should be 50mil"))
         }
         v
     }
@@ -1016,7 +1061,10 @@ impl KLCCheck for Symbol {
             v.push(KLCData::More(allowed_1_7).flatter())
         }
         for field in &self.fields {
-            let f = SymbolField { symbol:self, field:field };
+            let f = SymbolField {
+                symbol: self,
+                field: field,
+            };
             let f = f.check();
             if !f.is_empty() {
                 v.push(KLCData::More(f).flatter())

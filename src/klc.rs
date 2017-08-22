@@ -66,17 +66,15 @@ impl KLCData {
         KLCData::Item(i)
     }
 
-    pub fn dump_on_logger(&self, indent:usize) {
+    pub fn dump_on_logger(&self, indent: usize) {
         match *self {
             KLCData::Item(ref item) => item.dump_on_logger(indent),
-            KLCData::More(ref more) => {
-                for klcdata in more {
-                    let new_indent = match *klcdata {
-                        KLCData::Item(_) => indent,
-                        KLCData::More(_) => indent+1,
-                    };
-                    klcdata.dump_on_logger(new_indent)
-                }
+            KLCData::More(ref more) => for klcdata in more {
+                let new_indent = match *klcdata {
+                    KLCData::Item(_) => indent,
+                    KLCData::More(_) => indent + 1,
+                };
+                klcdata.dump_on_logger(new_indent)
             },
         }
     }
@@ -118,12 +116,28 @@ impl KLCItem {
         KLCItem { info: true, ..self }
     }
 
-    pub fn dump_on_logger(&self, indent:usize) {
-        let indent = ::std::iter::repeat(" ").take(indent*2).collect::<String>();
+    pub fn dump_on_logger(&self, indent: usize) {
+        let indent = ::std::iter::repeat(" ")
+            .take(indent * 2)
+            .collect::<String>();
         if self.info {
-            info!("{}{}.{} {}:{}", indent, self.section, self.rule, self.item, self.message)
+            info!(
+                "{}{}.{} {}:{}",
+                indent,
+                self.section,
+                self.rule,
+                self.item,
+                self.message
+            )
         } else {
-            warn!("{}{}.{} {}:{}", indent, self.section, self.rule, self.item, self.message)
+            warn!(
+                "{}{}.{} {}:{}",
+                indent,
+                self.section,
+                self.rule,
+                self.item,
+                self.message
+            )
         }
     }
 }
