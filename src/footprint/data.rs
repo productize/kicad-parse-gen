@@ -46,7 +46,7 @@ impl Module {
     }
     /// check if a Module has a reference Element with the specified name
     pub fn is_reference_with_name(&self, reference: &str) -> bool {
-        for element in &self.elements[..] {
+        for element in &self.elements {
             if let Element::FpText(ref fp_text) = *element {
                 if fp_text.name == "reference" && fp_text.value == *reference {
                     return true;
@@ -62,7 +62,7 @@ impl Module {
     }
 
     pub fn get_reference_text(&self) -> Option<&FpText> {
-        for element in &self.elements[..] {
+        for element in &self.elements {
             if let Element::FpText(ref fp_text) = *element {
                 if fp_text.name == "reference" {
                     return Some(fp_text);
@@ -73,7 +73,7 @@ impl Module {
     }
 
     pub fn get_reference2_text(&self) -> Option<&FpText> {
-        for element in &self.elements[..] {
+        for element in &self.elements {
             if let Element::FpText(ref fp_text) = *element {
                 if fp_text.name == "user" {
                     return Some(fp_text);
@@ -83,8 +83,19 @@ impl Module {
         None
     }
 
+    pub fn has_smd_attr(&self) -> bool {
+        for element in &self.elements {
+            if let Element::Attr(ref attr) = *element {
+                if attr.as_str() == "smd" {
+                    return true
+                }
+            }
+        }
+        false
+    }
+
     pub fn get_value_text(&self) -> Option<&FpText> {
-        for element in &self.elements[..] {
+        for element in &self.elements {
             if let Element::FpText(ref fp_text) = *element {
                 if fp_text.name == "value" {
                     return Some(fp_text);
@@ -96,7 +107,7 @@ impl Module {
 
     /// check if a Module has a tstamp Element and return it
     pub fn get_tstamp(&self) -> Option<i64> {
-        for element in &self.elements[..] {
+        for element in &self.elements {
             if let Element::TStamp(stamp) = *element {
                 return Some(stamp);
             }
@@ -106,7 +117,7 @@ impl Module {
 
     /// check if a Module has a tedit Element and return it
     pub fn get_tedit(&self) -> Option<i64> {
-        for element in &self.elements[..] {
+        for element in &self.elements {
             if let Element::TEdit(stamp) = *element {
                 return Some(stamp);
             }
@@ -117,7 +128,7 @@ impl Module {
     /// update the name of the reference element specified by name, if found
     pub fn set_reference(&mut self, reference: &str, reference2: &str) {
         // println!("debug: searching '{}'", reference);
-        for element in &mut self.elements[..] {
+        for element in &mut self.elements {
             if let Element::FpText(ref mut fp_text) = *element {
                 if fp_text.name == "reference" && fp_text.value == *reference {
                     fp_text.value.clear();
@@ -129,7 +140,7 @@ impl Module {
     /// check if there is an At element and return the coordinates found
     /// returns the default of (0.0,0.0) if not found
     pub fn at(&self) -> (f64, f64) {
-        for element in &self.elements[..] {
+        for element in &self.elements {
             if let Element::At(ref at) = *element {
                 return (at.x, at.y);
             }
@@ -140,7 +151,7 @@ impl Module {
     /// check if there is an At element and return the rotation found
     /// returns the default of 0.0 if not found
     pub fn get_rotation(&self) -> f64 {
-        for element in &self.elements[..] {
+        for element in &self.elements {
             if let Element::At(ref at) = *element {
                 return at.rot;
             }
@@ -150,7 +161,7 @@ impl Module {
 
     /// adjust the At element contained in the module
     pub fn adjust_at(&mut self, x: f64, y: f64) {
-        for element in &mut self.elements[..] {
+        for element in &mut self.elements {
             if let Element::At(ref mut at) = *element {
                 at.x += x;
                 at.y += y;
@@ -160,7 +171,7 @@ impl Module {
 
     /// check if the Module is on the front layer
     pub fn is_front(&self) -> bool {
-        for element in &self.elements[..] {
+        for element in &self.elements {
             if let Element::Layer(ref layer) = *element {
                 return &layer[..] == "F.Cu";
             }
@@ -170,11 +181,31 @@ impl Module {
 
     /// rename a net
     pub fn rename_net(&mut self, old_name: &str, new_name: &str) {
-        for element in &mut self.elements[..] {
+        for element in &mut self.elements {
             if let Element::Pad(ref mut pad) = *element {
                 pad.rename_net(old_name, new_name)
             }
         }
+    }
+
+    pub fn pads(&self) -> Vec<&Pad> {
+        let mut v = vec![];
+        for element in &self.elements {
+            if let Element::Pad(ref pad) = *element {
+                v.push(pad)
+            }
+        }
+        v
+    }
+
+    pub fn lines(&self) -> Vec<&FpLine> {
+        let mut v = vec![];
+        for element in &self.elements {
+            if let Element::FpLine(ref line) = *element {
+                v.push(line)
+            }
+        }
+        v
     }
 }
 
@@ -1409,10 +1440,37 @@ impl KLCCheck for Module {
                     "reference 2 label should have width 1.0",
                 ));
             }
-        // 7.4 TODO: check for intersection with pads etc
+            // 7.4 TODO: check for intersection with pads etc
+            // 7.4 TODO: check Fab line widths
         } else {
             // 7.4 missing reference 2
             v.push(KLCData::new(7, 4, name.clone(), "reference 2 missing"));
+        }
+        // TODO 7.5 CrtYd checking
+        // for now just check that there are 4 CrtYd lines
+        let mut c = 0;
+        for line in self.lines() {
+            if line.layer.t == LayerType::CrtYd {
+                c += 1;
+            }
+        }
+        if c < 4 {
+            v.push(KLCData::new(7, 5, name.clone(), "missing courtyard on CrtYd layer"));
+        }
+        // 8.1 For surface-mount devices, placement type must be set to "Surface Mount"
+        let mut smd = 0;
+        let mut pth = 0;
+        for pad in self.pads() {
+            if pad.t == PadType::Smd {
+                smd +=1;
+            } else if pad.t == PadType::Pth {
+                pth +=1;
+            }
+        }
+        if pth == 0 && smd > 0 {
+            if !self.has_smd_attr() {
+                v.push(KLCData::new(8, 1, name.clone(), "SMD components need to have placement Smd (Normal+Insert in Properties)"));
+            }
         }
         v
     }
