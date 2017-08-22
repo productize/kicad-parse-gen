@@ -1269,6 +1269,7 @@ impl KLCCheck for Module {
     fn check(&self, config:&KLCConfig) -> Vec<KLCData> {
         let mut v = vec![];
         let name = &self.name;
+        let font_size = config.m.font_size;
 
         if let Some(reference) = self.get_reference_text() {
             // 7.3 reference is correctly placed
@@ -1309,22 +1310,22 @@ impl KLCCheck for Module {
             }
             // 7.3 font height should be 1.0
             // this is kind of big :(
-            if reference.effects.font.size.y != config.m.font_size {
+            if reference.effects.font.size.y != font_size {
                 v.push(KLCData::info(
                     7,
                     3,
                     name.clone(),
-                    format!("reference label should have height {}", config.m.font_size),
+                    format!("reference label should have height {}", font_size),
                 ));
             }
             // 7.3 font width should be 1.0
             // this is kind of big :(
-            if reference.effects.font.size.x != config.m.font_size {
+            if reference.effects.font.size.x != font_size {
                 v.push(KLCData::info(
                     7,
                     3,
                     name.clone(),
-                    format!("reference label should have width {}", config.m.font_size),
+                    format!("reference label should have width {}", font_size),
                 ));
             }
         // 7.3 TODO: further silkscreen checks
@@ -1364,26 +1365,26 @@ impl KLCCheck for Module {
             }
             // 7.4 font height should be 1.0
             // this is kind of big :(
-            if value.effects.font.size.y != 1.0 {
+            if value.effects.font.size.y != font_size {
                 v.push(KLCData::info(
                     7,
                     3,
                     name.clone(),
-                    "value label should have height 1.0",
+                    format!("value label should have height {}", font_size),
                 ));
             }
             // 7.4 font width should be 1.0
             // this is kind of big :(
-            if value.effects.font.size.x != 1.0 {
+            if value.effects.font.size.x != font_size {
                 v.push(KLCData::info(
                     7,
                     3,
                     name.clone(),
-                    "value label should have width 1.0",
+                    format!("value label should have width {}", font_size),
                 ));
             }
             // 7.4 font thickess should be 0.15
-            if value.effects.font.thickness != 1.0 {
+            if value.effects.font.thickness != 0.15 {
                 v.push(KLCData::info(
                     7,
                     3,
@@ -1422,7 +1423,7 @@ impl KLCCheck for Module {
             }
             // 7.4 font height should be 1.0
             // this is kind of big :(
-            if reference.effects.font.size.y != 1.0 {
+            if reference.effects.font.size.y != font_size {
                 v.push(KLCData::info(
                     7,
                     3,
@@ -1432,7 +1433,7 @@ impl KLCCheck for Module {
             }
             // 7.4 font width should be 1.0
             // this is kind of big :(
-            if reference.effects.font.size.x != 1.0 {
+            if reference.effects.font.size.x != font_size {
                 v.push(KLCData::info(
                     7,
                     3,
