@@ -5,7 +5,7 @@ use symbolic_expressions::iteratom::SResult;
 
 pub use layout::NetName;
 
-use klc::{self, KLCCheck, KLCData};
+use klc::{KLCCheck, KLCData};
 
 /// implement to allow a Module and it's sub Element be flippable
 pub trait Flip {
@@ -1481,7 +1481,27 @@ impl KLCCheck for Module {
                     "SMD components need to have placement Smd (Normal+Insert in Properties)",
                 ));
             }
+        } else if pth > 0 && smd == 0 {
+            // 9.1 For through-hole devices, placement type must be set to "Through Hole
+            if self.has_smd_attr() {
+                v.push(KLCData::new(
+                    9,
+                    1,
+                    name.clone(),
+                    "SMD components need to have placement Smd (Normal+Insert in Properties)",
+                ));
+            }
+            // TODO 9.2 For through-hole components, footprint anchor is set on pad 1
+            // TODO 9.4 Layer requirements
+            // TODO 9.5 Minimum drilled hole diameter is the maximum lead diameter plus 0.20mm (IPC-2222 Class 2)
+            // TODO 9.6 Minimum annular ring
         }
+        // TODO 8.2 For surface-mount devices, footprint anchor is placed in the middle of the footprint (IPC-7351).
+        // TODO 8.3 SMD pad layer requirements
+        // TODO 10.1 Footprint name must match its filename. (.kicad_mod files)
+        // TODO 10.2 description and keyword tags
+        // TODO 10.3 all other fields are at default
+        // TODO 10.4 3D model reference
         v
     }
 }
