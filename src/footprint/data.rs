@@ -87,7 +87,7 @@ impl Module {
         for element in &self.elements {
             if let Element::Attr(ref attr) = *element {
                 if attr.as_str() == "smd" {
-                    return true
+                    return true;
                 }
             }
         }
@@ -1440,8 +1440,8 @@ impl KLCCheck for Module {
                     "reference 2 label should have width 1.0",
                 ));
             }
-            // 7.4 TODO: check for intersection with pads etc
-            // 7.4 TODO: check Fab line widths
+        // 7.4 TODO: check for intersection with pads etc
+        // 7.4 TODO: check Fab line widths
         } else {
             // 7.4 missing reference 2
             v.push(KLCData::new(7, 4, name.clone(), "reference 2 missing"));
@@ -1455,21 +1455,31 @@ impl KLCCheck for Module {
             }
         }
         if c < 4 {
-            v.push(KLCData::new(7, 5, name.clone(), "missing courtyard on CrtYd layer"));
+            v.push(KLCData::new(
+                7,
+                5,
+                name.clone(),
+                "missing courtyard on CrtYd layer",
+            ));
         }
         // 8.1 For surface-mount devices, placement type must be set to "Surface Mount"
         let mut smd = 0;
         let mut pth = 0;
         for pad in self.pads() {
             if pad.t == PadType::Smd {
-                smd +=1;
+                smd += 1;
             } else if pad.t == PadType::Pth {
-                pth +=1;
+                pth += 1;
             }
         }
         if pth == 0 && smd > 0 {
             if !self.has_smd_attr() {
-                v.push(KLCData::new(8, 1, name.clone(), "SMD components need to have placement Smd (Normal+Insert in Properties)"));
+                v.push(KLCData::new(
+                    8,
+                    1,
+                    name.clone(),
+                    "SMD components need to have placement Smd (Normal+Insert in Properties)",
+                ));
             }
         }
         v
