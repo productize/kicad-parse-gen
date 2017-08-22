@@ -1217,8 +1217,29 @@ impl KLCCheck for Module {
         let mut v = vec![];
         let name = &self.name;
         if let Some(reference) = self.get_reference_text() {
+            // 7.3 reference is correctly placed
             if reference.value.as_str() != "REF**" {
                 v.push(KLCData::new(7,3, name.clone(), "reference should be REF**"));
+            }
+            // 7.3 reference is on F.SilkS or B.SilkS
+            if reference.layer.t != LayerType::SilkS {
+                v.push(KLCData::new(7,3, name.clone(), "reference should be on SilkS layertype"));
+            }
+            // 7.3 reference should not be hidden
+            if reference.hide {
+                v.push(KLCData::new(7,3, name.clone(), "reference should not be hidden"));
+            }
+            // 7.3 aspect ratio should be 1:1
+            if reference.effects.font.size.x != reference.effects.font.size.y {
+                v.push(KLCData::new(7,3, name.clone(), "reference label font aspect ratio should be 1:1"));
+            }
+            // 7.3 font height should be 1.0
+            if reference.effects.font.size.y != 1.0 {
+                v.push(KLCData::new(7,3, name.clone(), "reference label should have height 1.0")); 
+            }
+            // 7.3 font width should be 1.0
+            if reference.effects.font.size.x != 1.0 {
+                v.push(KLCData::new(7,3, name.clone(), "reference label should have width 1.0")); 
             }
         }
         v
