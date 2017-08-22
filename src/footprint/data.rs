@@ -72,6 +72,28 @@ impl Module {
         None
     }
 
+    pub fn get_reference2_text(&self) -> Option<&FpText> {
+        for element in &self.elements[..] {
+            if let Element::FpText(ref fp_text) = *element {
+                if fp_text.name == "user" {
+                    return Some(fp_text)
+                }
+            }
+        }
+        None
+    }
+
+    pub fn get_value_text(&self) -> Option<&FpText> {
+        for element in &self.elements[..] {
+            if let Element::FpText(ref fp_text) = *element {
+                if fp_text.name == "value" {
+                    return Some(fp_text)
+                }
+            }
+        }
+        None
+    }
+
     /// check if a Module has a tstamp Element and return it
     pub fn get_tstamp(&self) -> Option<i64> {
         for element in &self.elements[..] {
@@ -1216,6 +1238,7 @@ impl KLCCheck for Module {
     fn check(&self) -> Vec<KLCData> {
         let mut v = vec![];
         let name = &self.name;
+        
         if let Some(reference) = self.get_reference_text() {
             // 7.3 reference is correctly placed
             if reference.value.as_str() != "REF**" {
@@ -1234,13 +1257,82 @@ impl KLCCheck for Module {
                 v.push(KLCData::new(7,3, name.clone(), "reference label font aspect ratio should be 1:1"));
             }
             // 7.3 font height should be 1.0
+            // this is kind of big :(
             if reference.effects.font.size.y != 1.0 {
-                v.push(KLCData::new(7,3, name.clone(), "reference label should have height 1.0")); 
+                v.push(KLCData::info(7,3, name.clone(), "reference label should have height 1.0")); 
             }
             // 7.3 font width should be 1.0
+            // this is kind of big :(
             if reference.effects.font.size.x != 1.0 {
-                v.push(KLCData::new(7,3, name.clone(), "reference label should have width 1.0")); 
+                v.push(KLCData::info(7,3, name.clone(), "reference label should have width 1.0")); 
             }
+            // 7.3 TODO: further silkscreen checks
+            // 7.3 TODO: check for intersection with pads etc
+        } else {
+            // 7.3 missing reference
+            v.push(KLCData::new(7,3, name.clone(), "reference missing"));
+        }
+        
+        if let Some(value) = self.get_value_text() {
+            // 7.4 value text has to match value
+            if value.value.as_str() != name.as_str() {
+                v.push(KLCData::new(7,4, name.clone(), "value text has to match footprint name")); 
+            }
+            // 7.4 value has to be on F.Fab or B.Fab
+            if value.layer.t != LayerType::Fab {
+                v.push(KLCData::new(7,4, name.clone(), "value text has to be on Fab layer")); 
+            }
+            // 7.4 value should not be hidden
+            if value.hide {
+                v.push(KLCData::new(7,4, name.clone(), "value text should not be hidden")); 
+            }
+              // 7.4 font height should be 1.0
+            // this is kind of big :(
+            if value.effects.font.size.y != 1.0 {
+                v.push(KLCData::info(7,3, name.clone(), "value label should have height 1.0")); 
+            }
+            // 7.4 font width should be 1.0
+            // this is kind of big :(
+            if value.effects.font.size.x != 1.0 {
+                v.push(KLCData::info(7,3, name.clone(), "value label should have width 1.0")); 
+            }
+            // 7.4 font thickess should be 0.15
+            if value.effects.font.thickness != 1.0 {
+                v.push(KLCData::info(7,3, name.clone(), "value label thickness should be 0.15"))
+            }
+            // TODO
+        } else {
+            // 7.4 missing value
+            v.push(KLCData::new(7,4, name.clone(), "value missing")); 
+        }
+        
+        if let Some(reference) = self.get_reference2_text() {
+            // 7.4 reference 2 is correctly named
+            if reference.value.as_str() != "%R" {
+                v.push(KLCData::new(7,4, name.clone(), "reference 2 should be %R"));
+            }
+            // 7.4 reference 2 is on F.Fab or B.Fab
+            if reference.layer.t != LayerType::Fab {
+                v.push(KLCData::new(7,4, name.clone(), "reference 2 should be on Fab layertype"));
+            }
+            // 7.4 aspect ratio should be 1:1
+            if reference.effects.font.size.x != reference.effects.font.size.y {
+                v.push(KLCData::new(7,4, name.clone(), "reference 2 label font aspect ratio should be 1:1"));
+            }
+            // 7.4 font height should be 1.0
+            // this is kind of big :(
+            if reference.effects.font.size.y != 1.0 {
+                v.push(KLCData::info(7,3, name.clone(), "reference 2 label should have height 1.0")); 
+            }
+            // 7.4 font width should be 1.0
+            // this is kind of big :(
+            if reference.effects.font.size.x != 1.0 {
+                v.push(KLCData::info(7,3, name.clone(), "reference 2 label should have width 1.0")); 
+            }
+            // 7.4 TODO: check for intersection with pads etc
+        } else {
+            // 7.4 missing reference 2
+            v.push(KLCData::new(7,4, name.clone(), "reference 2 missing")); 
         }
         v
     }
