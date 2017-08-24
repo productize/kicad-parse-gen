@@ -1561,6 +1561,8 @@ impl CheckFix for Module {
             reference.effects.font.size.x = config.m.font_size;
             reference.effects.font.size.y = config.m.font_size;
             reference.effects.font.thickness = config.m.font_thickness;
+        } else {
+            // reference should always be there
         }
         // fix value
         if let Some(value) = self.get_value_text_mut() {
@@ -1571,9 +1573,33 @@ impl CheckFix for Module {
             value.effects.font.size.x = config.m.font_size;
             value.effects.font.size.y = config.m.font_size;
             value.effects.font.thickness = config.m.font_thickness;
+        } else {
+            // value should always be there
         }
         // fix reference2
-        if let Some(ref2) = self.get_reference2_text_mut() {
+        {
+            if self.get_reference2_text().is_none() {
+                let size = Xy {
+                    x: config.m.font_size,
+                    y: config.m.font_size,
+                    t: XyType::default(),
+                };
+                let font = Font {
+                    size: size,
+                    thickness: config.m.font_thickness,
+                    italic: false,
+                };
+                let ref2 = FpText {
+                    name: "user".into(),
+                    value: "%R".into(),
+                    at: At::new(0.0, 0.0, 0.0),
+                    layer: Layer::from_string("F.Fab").unwrap(),
+                    effects: Effects::from_font(font, None),
+                    hide: false
+                };
+                self.elements.push(Element::FpText(ref2));
+            };
+            let ref2 = self.get_reference2_text_mut().unwrap();
             ref2.value.clear();
             ref2.value.push_str("%R");
             ref2.layer.t = LayerType::Fab;
