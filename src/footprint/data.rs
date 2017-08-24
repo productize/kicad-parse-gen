@@ -1608,6 +1608,23 @@ impl CheckFix for Module {
             ref2.effects.font.size.y = config.m.font_size;
             ref2.effects.font.thickness = config.m.font_thickness;
         }
+        // set Surface Mount placement for SMD components
+        {
+            let mut smd = 0;
+            let mut pth = 0;
+            for pad in self.pads() {
+                if pad.t == PadType::Smd {
+                    smd += 1;
+                } else if pad.t == PadType::Pth {
+                    pth += 1;
+                }
+            }
+            if pth == 0 && smd > 0 {
+                if !self.has_smd_attr() {
+                    self.elements.push(Element::Attr("smd".into()))
+                }
+            }
+        }
         // TODO: generate CrtYd
     }
 }
