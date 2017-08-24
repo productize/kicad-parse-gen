@@ -14,7 +14,7 @@ use util::read_file;
 use parse_split_quote_aware;
 use schematic;
 use str_error;
-use klc::{self, KLCCheck, KLCData, KLCConfig};
+use klc::{self, KLCCheck, KLCConfig, KLCData};
 
 /// a Kicad symbolic file
 #[derive(Debug, Default)]
@@ -853,7 +853,7 @@ struct SymbolField<'a> {
 }
 
 impl<'a> KLCCheck for SymbolField<'a> {
-    fn check(&self, _config:&KLCConfig) -> Vec<KLCData> {
+    fn check(&self, config: &KLCConfig) -> Vec<KLCData> {
         let symbol = self.symbol;
         let field = self.field;
         let mut v = vec![];
@@ -938,7 +938,7 @@ impl<'a> KLCCheck for SymbolField<'a> {
 }
 
 impl KLCCheck for Pin {
-    fn check(&self, _config:&KLCConfig) -> Vec<KLCData> {
+    fn check(&self, _: &KLCConfig) -> Vec<KLCData> {
         let mut v = vec![];
         let name = format!("{}:{}", self.name, self.number);
         // 4.1 Using a 100mil grid, pin origin must lie on grid nodes (IEC-60617)
@@ -1003,7 +1003,7 @@ impl KLCCheck for Pin {
     }
 }
 impl KLCCheck for Rectangle {
-    fn check(&self, _config:&KLCConfig) -> Vec<KLCData> {
+    fn check(&self, _: &KLCConfig) -> Vec<KLCData> {
         let mut v = vec![];
         // 4.2 Fill style of symbol body is set to Fill background
         if self.fill != Fill::Filled {
@@ -1025,7 +1025,7 @@ impl KLCCheck for Rectangle {
 }
 
 impl KLCCheck for Draw {
-    fn check(&self, config:&KLCConfig) -> Vec<KLCData> {
+    fn check(&self, config: &KLCConfig) -> Vec<KLCData> {
         let mut v = vec![];
         match *self {
             Draw::Pin(ref pin) => {
@@ -1048,7 +1048,7 @@ impl KLCCheck for Draw {
 }
 
 impl KLCCheck for Symbol {
-    fn check(&self, config:&KLCConfig) -> Vec<KLCData> {
+    fn check(&self, config: &KLCConfig) -> Vec<KLCData> {
         let mut v = vec![];
         // 1.7 valid name
         let name = if self.name.starts_with("~") {

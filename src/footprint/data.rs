@@ -5,7 +5,7 @@ use symbolic_expressions::iteratom::SResult;
 
 pub use layout::NetName;
 
-use klc::{KLCCheck, KLCData, KLCConfig};
+use klc::{KLCCheck, KLCConfig, KLCData};
 
 /// implement to allow a Module and it's sub Element be flippable
 pub trait Flip {
@@ -64,6 +64,17 @@ impl Module {
     pub fn get_reference_text(&self) -> Option<&FpText> {
         for element in &self.elements {
             if let Element::FpText(ref fp_text) = *element {
+                if fp_text.name == "reference" {
+                    return Some(fp_text);
+                }
+            }
+        }
+        None
+    }
+
+    pub fn get_reference_text_mut(&mut self) -> Option<&mut FpText> {
+        for element in &mut self.elements {
+            if let Element::FpText(ref mut fp_text) = *element {
                 if fp_text.name == "reference" {
                     return Some(fp_text);
                 }
@@ -1266,7 +1277,7 @@ impl Xyz {
 }
 
 impl KLCCheck for Module {
-    fn check(&self, config:&KLCConfig) -> Vec<KLCData> {
+    fn check(&self, config: &KLCConfig) -> Vec<KLCData> {
         let mut v = vec![];
         let name = &self.name;
         let font_size = config.m.font_size;
@@ -1523,5 +1534,17 @@ impl KLCCheck for Module {
         // TODO 10.3 all other fields are at default
         // TODO 10.4 3D model reference
         v
+    }
+
+    fn fix(&mut self, config: &KLCConfig) {
+        if let Some(reference) = self.get_reference_text_mut() {
+            reference.value.clear();
+            reference.value.push_str("REF**");
+            reference.layer.t = LayerType::SilkS;
+            reference.hide = false;
+            reference.effects.font.size.x = config.m.font_size;
+            reference.effects.font.size.y = config.m.font_size;
+            reference.effects.font.thickness = config.m.font_thickness;
+        }
     }
 }

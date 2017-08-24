@@ -3,34 +3,40 @@
 use std::fmt;
 use std::result;
 
-pub const KLC_VERSION:&'static str = "2.0.10";
+pub const KLC_VERSION: &'static str = "2.0.10";
 
 /*
 pub struct KLCSymConfig {
     text_size:i64,
 }*/
 
+pub trait KLCConfigFactory {
+    fn make() -> KLCConfig;
+}
+
 /// settings for KLC, things that might be tuned
 pub struct KLCModConfig {
-    pub font_size:f64,
-    pub font_thickness:f64,
+    pub font_size: f64,
+    pub font_thickness: f64,
 }
 
 /// settings for KLC, things that might be tuned
 pub struct KLCConfig {
     //pub s:KLCSymConfig,
-    pub m:KLCModConfig,
+    pub m: KLCModConfig,
 }
 
-pub fn klc_default() -> KLCConfig {
-    KLCConfig {
-        /*
-        s:KLCSymConfig {
+impl Default for KLCConfig {
+    fn default() -> KLCConfig {
+        KLCConfig {
+            /*
+            s:KLCSymConfig {
             text_size:50,
         },*/
-        m:KLCModConfig {
-            font_size:1.0,
-            font_thickness:0.15,
+            m: KLCModConfig {
+                font_size: 1.0,
+                font_thickness: 0.15,
+            },
         }
     }
 }
@@ -38,7 +44,9 @@ pub fn klc_default() -> KLCConfig {
 ///
 pub trait KLCCheck {
     /// check an item against the KLC
-    fn check(&self, config:&KLCConfig) -> Vec<KLCData>;
+    fn check(&self, config: &KLCConfig) -> Vec<KLCData>;
+
+    fn fix(&mut self, _config: &KLCConfig) {}
 }
 
 #[derive(Debug)]
