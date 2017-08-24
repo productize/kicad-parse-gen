@@ -40,7 +40,7 @@ impl Config {
 }
 
 /// Check & Fix trait to be implemented for KLC checking and fixing
-pub trait KLCCheck {
+pub trait CheckFix {
     /// check an item against the KLC
     fn check(&self, config: &Config) -> Vec<KLCData>;
 

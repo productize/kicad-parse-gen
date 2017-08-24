@@ -14,7 +14,7 @@ use util::read_file;
 use parse_split_quote_aware;
 use schematic;
 use str_error;
-use checkfix::{self, KLCCheck, Config, KLCData};
+use checkfix::{self, CheckFix, Config, KLCData};
 
 /// a Kicad symbolic file
 #[derive(Debug, Default)]
@@ -853,7 +853,7 @@ struct SymbolField<'a> {
     field: &'a Field,
 }
 
-impl<'a> KLCCheck for SymbolField<'a> {
+impl<'a> CheckFix for SymbolField<'a> {
     fn check(&self, _: &Config) -> Vec<KLCData> {
         let symbol = self.symbol;
         let field = self.field;
@@ -938,7 +938,7 @@ impl<'a> KLCCheck for SymbolField<'a> {
     }
 }
 
-impl KLCCheck for Pin {
+impl CheckFix for Pin {
     fn check(&self, _: &Config) -> Vec<KLCData> {
         let mut v = vec![];
         let name = format!("{}:{}", self.name, self.number);
@@ -1003,7 +1003,7 @@ impl KLCCheck for Pin {
         v
     }
 }
-impl KLCCheck for Rectangle {
+impl CheckFix for Rectangle {
     fn check(&self, _: &Config) -> Vec<KLCData> {
         let mut v = vec![];
         // 4.2 Fill style of symbol body is set to Fill background
@@ -1025,7 +1025,7 @@ impl KLCCheck for Rectangle {
     }
 }
 
-impl KLCCheck for Draw {
+impl CheckFix for Draw {
     fn check(&self, config: &Config) -> Vec<KLCData> {
         let mut v = vec![];
         match *self {
@@ -1048,7 +1048,7 @@ impl KLCCheck for Draw {
     }
 }
 
-impl KLCCheck for Symbol {
+impl CheckFix for Symbol {
     fn check(&self, config: &Config) -> Vec<KLCData> {
         let mut v = vec![];
         // 1.7 valid name
