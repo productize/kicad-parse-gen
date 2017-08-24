@@ -227,6 +227,11 @@ pub fn write_layout(layout: &layout::Layout, name: &Path) -> Result<()> {
     write_file(name, &s)
 }
 
+pub fn write_module(module: &footprint::Module, name: &Path) -> Result<()> {
+    let s = footprint::module_to_string(&module, 0)?;
+    write_file(&name,&s)
+}
+
 /// read a file, expecting it to be a Kicad symbol library file
 pub fn read_symbol_lib(name: &Path) -> Result<symbol_lib::SymbolLib> {
     match read_kicad_file(name, Expected::SymbolLib)? {
