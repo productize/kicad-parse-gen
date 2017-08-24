@@ -5,7 +5,7 @@ use symbolic_expressions::iteratom::SResult;
 
 pub use layout::NetName;
 
-use checkfix::{CheckFix, Config, KLCData};
+use checkfix::{CheckFix, Config, CheckFixData};
 
 /// implement to allow a Module and it's sub Element be flippable
 pub trait Flip {
@@ -1291,7 +1291,7 @@ impl Xyz {
 }
 
 impl CheckFix for Module {
-    fn check(&self, config: &Config) -> Vec<KLCData> {
+    fn check(&self, config: &Config) -> Vec<CheckFixData> {
         let mut v = vec![];
         let name = &self.name;
         let font_size = config.m.font_size;
@@ -1300,7 +1300,7 @@ impl CheckFix for Module {
         if let Some(reference) = self.get_reference_text() {
             // 7.3 reference is correctly placed
             if reference.value.as_str() != "REF**" {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     7,
                     3,
                     name.clone(),
@@ -1309,7 +1309,7 @@ impl CheckFix for Module {
             }
             // 7.3 reference is on F.SilkS or B.SilkS
             if reference.layer.t != LayerType::SilkS {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     7,
                     3,
                     name.clone(),
@@ -1318,7 +1318,7 @@ impl CheckFix for Module {
             }
             // 7.3 reference should not be hidden
             if reference.hide {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     7,
                     3,
                     name.clone(),
@@ -1327,7 +1327,7 @@ impl CheckFix for Module {
             }
             // 7.3 aspect ratio should be 1:1
             if reference.effects.font.size.x != reference.effects.font.size.y {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     7,
                     3,
                     name.clone(),
@@ -1337,7 +1337,7 @@ impl CheckFix for Module {
             // 7.3 font height should be 1.0
             // this is kind of big :(
             if reference.effects.font.size.y != font_size {
-                v.push(KLCData::info(
+                v.push(CheckFixData::info(
                     7,
                     3,
                     name.clone(),
@@ -1347,7 +1347,7 @@ impl CheckFix for Module {
             // 7.3 font width should be 1.0
             // this is kind of big :(
             if reference.effects.font.size.x != font_size {
-                v.push(KLCData::info(
+                v.push(CheckFixData::info(
                     7,
                     3,
                     name.clone(),
@@ -1356,7 +1356,7 @@ impl CheckFix for Module {
             }
             // 7.4 font thickness should be 0.15
             if reference.effects.font.thickness != font_thickness {
-                v.push(KLCData::info(
+                v.push(CheckFixData::info(
                     7,
                     3,
                     name.clone(),
@@ -1367,13 +1367,13 @@ impl CheckFix for Module {
         // 7.3 TODO: check for intersection with pads etc
         } else {
             // 7.3 missing reference
-            v.push(KLCData::new(7, 3, name.clone(), "reference missing"));
+            v.push(CheckFixData::new(7, 3, name.clone(), "reference missing"));
         }
 
         if let Some(value) = self.get_value_text() {
             // 7.4 value text has to match value
             if value.value.as_str() != name.as_str() {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     7,
                     4,
                     name.clone(),
@@ -1382,7 +1382,7 @@ impl CheckFix for Module {
             }
             // 7.4 value has to be on F.Fab or B.Fab
             if value.layer.t != LayerType::Fab {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     7,
                     4,
                     name.clone(),
@@ -1391,7 +1391,7 @@ impl CheckFix for Module {
             }
             // 7.4 value should not be hidden
             if value.hide {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     7,
                     4,
                     name.clone(),
@@ -1401,7 +1401,7 @@ impl CheckFix for Module {
             // 7.4 font height should be 1.0
             // this is kind of big :(
             if value.effects.font.size.y != font_size {
-                v.push(KLCData::info(
+                v.push(CheckFixData::info(
                     7,
                     3,
                     name.clone(),
@@ -1411,7 +1411,7 @@ impl CheckFix for Module {
             // 7.4 font width should be 1.0
             // this is kind of big :(
             if value.effects.font.size.x != font_size {
-                v.push(KLCData::info(
+                v.push(CheckFixData::info(
                     7,
                     3,
                     name.clone(),
@@ -1420,7 +1420,7 @@ impl CheckFix for Module {
             }
             // 7.4 font thickness should be 0.15
             if value.effects.font.thickness != font_thickness {
-                v.push(KLCData::info(
+                v.push(CheckFixData::info(
                     7,
                     3,
                     name.clone(),
@@ -1430,17 +1430,17 @@ impl CheckFix for Module {
         // TODO
         } else {
             // 7.4 missing value
-            v.push(KLCData::new(7, 4, name.clone(), "value missing"));
+            v.push(CheckFixData::new(7, 4, name.clone(), "value missing"));
         }
 
         if let Some(reference) = self.get_reference2_text() {
             // 7.4 reference 2 is correctly named
             if reference.value.as_str() != "%R" {
-                v.push(KLCData::new(7, 4, name.clone(), "reference 2 should be %R"));
+                v.push(CheckFixData::new(7, 4, name.clone(), "reference 2 should be %R"));
             }
             // 7.4 reference 2 is on F.Fab or B.Fab
             if reference.layer.t != LayerType::Fab {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     7,
                     4,
                     name.clone(),
@@ -1449,7 +1449,7 @@ impl CheckFix for Module {
             }
             // 7.4 aspect ratio should be 1:1
             if reference.effects.font.size.x != reference.effects.font.size.y {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     7,
                     4,
                     name.clone(),
@@ -1459,7 +1459,7 @@ impl CheckFix for Module {
             // 7.4 font height should be 1.0
             // this is kind of big :(
             if reference.effects.font.size.y != font_size {
-                v.push(KLCData::info(
+                v.push(CheckFixData::info(
                     7,
                     3,
                     name.clone(),
@@ -1469,7 +1469,7 @@ impl CheckFix for Module {
             // 7.4 font width should be 1.0
             // this is kind of big :(
             if reference.effects.font.size.x != font_size {
-                v.push(KLCData::info(
+                v.push(CheckFixData::info(
                     7,
                     3,
                     name.clone(),
@@ -1478,7 +1478,7 @@ impl CheckFix for Module {
             }
             // 7.4 font thickness should be 0.15
             if reference.effects.font.thickness != font_thickness {
-                v.push(KLCData::info(
+                v.push(CheckFixData::info(
                     7,
                     3,
                     name.clone(),
@@ -1489,7 +1489,7 @@ impl CheckFix for Module {
         // 7.4 TODO: check Fab line widths
         } else {
             // 7.4 missing reference 2
-            v.push(KLCData::new(7, 4, name.clone(), "reference 2 missing"));
+            v.push(CheckFixData::new(7, 4, name.clone(), "reference 2 missing"));
         }
         // TODO 7.5 CrtYd checking
         // for now just check that there are 4 CrtYd lines
@@ -1500,7 +1500,7 @@ impl CheckFix for Module {
             }
         }
         if c < 4 {
-            v.push(KLCData::new(
+            v.push(CheckFixData::new(
                 7,
                 5,
                 name.clone(),
@@ -1519,7 +1519,7 @@ impl CheckFix for Module {
         }
         if pth == 0 && smd > 0 {
             if !self.has_smd_attr() {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     8,
                     1,
                     name.clone(),
@@ -1529,7 +1529,7 @@ impl CheckFix for Module {
         } else if pth > 0 && smd == 0 {
             // 9.1 For through-hole devices, placement type must be set to "Through Hole
             if self.has_smd_attr() {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     9,
                     1,
                     name.clone(),

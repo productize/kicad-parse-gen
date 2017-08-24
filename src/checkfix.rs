@@ -42,7 +42,7 @@ impl Config {
 /// Check & Fix trait to be implemented for KLC checking and fixing
 pub trait CheckFix {
     /// check an item against the KLC
-    fn check(&self, config: &Config) -> Vec<KLCData>;
+    fn check(&self, config: &Config) -> Vec<CheckFixData>;
 
     /// fix up an item against the KLC
     fn fix(&mut self, _config: &Config) {}
@@ -50,56 +50,56 @@ pub trait CheckFix {
 
 #[derive(Debug)]
 /// a KLC check result data
-pub enum KLCData {
+pub enum CheckFixData {
     /// a KLC check result item
-    Item(KLCItem),
+    Item(CheckFixItem),
     /// a list of more KLC check result datas
-    More(Vec<KLCData>),
+    More(Vec<CheckFixData>),
 }
 
-impl KLCData {
-    /// if a `KLCData` is of type `More` but contains only one item, change it into an `Item`
+impl CheckFixData {
+    /// if a `CheckFixData` is of type `More` but contains only one item, change it into an `Item`
     pub fn flatter(self) -> Self {
         match self {
-            KLCData::Item(_) => self,
-            KLCData::More(v) => if v.len() == 1 {
+            CheckFixData::Item(_) => self,
+            CheckFixData::More(v) => if v.len() == 1 {
                 v.into_iter().next().unwrap()
             } else {
-                KLCData::More(v)
+                CheckFixData::More(v)
             },
         }
     }
 
-    /// create a new `KLCData`
+    /// create a new `CheckFixData`
     pub fn new<A: fmt::Display, B: Into<String>>(
         section: i64,
         rule: i64,
         item: A,
         message: B,
     ) -> Self {
-        let i = KLCItem::new(section, rule, item, message.into());
-        KLCData::Item(i)
+        let i = CheckFixItem::new(section, rule, item, message.into());
+        CheckFixData::Item(i)
     }
 
-    /// create a new informational `KLCData`
+    /// create a new informational `CheckFixData`
     pub fn info<A: fmt::Display, B: Into<String>>(
         section: i64,
         rule: i64,
         item: A,
         message: B,
     ) -> Self {
-        let i = KLCItem::new(section, rule, item, message.into()).info();
-        KLCData::Item(i)
+        let i = CheckFixItem::new(section, rule, item, message.into()).info();
+        CheckFixData::Item(i)
     }
 
-    /// dump a `KLCData` on the `Log` logger
+    /// dump a `CheckFixData` on the `Log` logger
     pub fn dump_on_logger(&self, indent: usize) {
         match *self {
-            KLCData::Item(ref item) => item.dump_on_logger(indent),
-            KLCData::More(ref more) => for klcdata in more {
+            CheckFixData::Item(ref item) => item.dump_on_logger(indent),
+            CheckFixData::More(ref more) => for klcdata in more {
                 let new_indent = match *klcdata {
-                    KLCData::Item(_) => indent,
-                    KLCData::More(_) => indent + 1,
+                    CheckFixData::Item(_) => indent,
+                    CheckFixData::More(_) => indent + 1,
                 };
                 klcdata.dump_on_logger(new_indent)
             },
@@ -109,7 +109,7 @@ impl KLCData {
 
 #[derive(Debug)]
 /// a KLC check result item
-pub struct KLCItem {
+pub struct CheckFixItem {
     /// KLC section
     pub section: i64,
     /// KLC rule in the section
@@ -121,15 +121,15 @@ pub struct KLCItem {
     /// if the item is informational only
     pub info: bool,
 }
-impl KLCItem {
-    /// create a new `KLCItem`
+impl CheckFixItem {
+    /// create a new `CheckFixItem`
     pub fn new<A: fmt::Display, B: Into<String>>(
         section: i64,
         rule: i64,
         item: A,
         message: B,
     ) -> Self {
-        KLCItem {
+        CheckFixItem {
             section: section,
             rule: rule,
             item: format!("{}", item),
@@ -138,12 +138,12 @@ impl KLCItem {
         }
     }
 
-    /// create a new informational `KLCItem`
-    pub fn info(self) -> KLCItem {
-        KLCItem { info: true, ..self }
+    /// create a new informational `CheckFixItem`
+    pub fn info(self) -> CheckFixItem {
+        CheckFixItem { info: true, ..self }
     }
 
-    /// dump a `KLCItem` on a `Log` logger
+    /// dump a `CheckFixItem` on a `Log` logger
     pub fn dump_on_logger(&self, indent: usize) {
         let indent = ::std::iter::repeat(" ")
             .take(indent * 2)
@@ -260,11 +260,11 @@ fn allowed_1_7(s: &str) -> Option<Vec<String>> {
 }
 
 /// check if a name is allowed according to KLC 1.7
-pub fn allowed_1_7_items(s: &str) -> Vec<KLCData> {
+pub fn allowed_1_7_items(s: &str) -> Vec<CheckFixData> {
     let mut v = vec![];
     if let Some(v2) = allowed_1_7(s) {
         for x in v2 {
-            v.push(KLCData::new(1, 7, s, x))
+            v.push(CheckFixData::new(1, 7, s, x))
         }
     }
     v

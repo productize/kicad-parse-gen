@@ -14,7 +14,7 @@ use util::read_file;
 use parse_split_quote_aware;
 use schematic;
 use str_error;
-use checkfix::{self, CheckFix, Config, KLCData};
+use checkfix::{self, CheckFix, Config, CheckFixData};
 
 /// a Kicad symbolic file
 #[derive(Debug, Default)]
@@ -854,19 +854,19 @@ struct SymbolField<'a> {
 }
 
 impl<'a> CheckFix for SymbolField<'a> {
-    fn check(&self, _: &Config) -> Vec<KLCData> {
+    fn check(&self, _: &Config) -> Vec<CheckFixData> {
         let symbol = self.symbol;
         let field = self.field;
         let mut v = vec![];
         // 4.8 All text fields use a common size of 50mils (1.27mm)
         if field.dimension != 50 {
-            v.push(KLCData::new(4, 8, field, "field text is not 50mil"));
+            v.push(CheckFixData::new(4, 8, field, "field text is not 50mil"));
         }
         if field.i == 0 {
             // 4.9 The Reference field contains the appropriate Reference Designator
             if symbol.is_graphics() {
                 if field.visible {
-                    v.push(KLCData::new(
+                    v.push(CheckFixData::new(
                         4,
                         9,
                         symbol.name.clone(),
@@ -875,7 +875,7 @@ impl<'a> CheckFix for SymbolField<'a> {
                 }
             } else {
                 if !field.visible && !symbol.is_power() {
-                    v.push(KLCData::new(
+                    v.push(CheckFixData::new(
                         4,
                         9,
                         symbol.name.clone(),
@@ -887,7 +887,7 @@ impl<'a> CheckFix for SymbolField<'a> {
             // 4.9 The Value field contains the name of the symbol and is visible. For power and graphical symbols, the value field must be invisible
             if symbol.is_graphics() {
                 if field.visible {
-                    v.push(KLCData::new(
+                    v.push(CheckFixData::new(
                         4,
                         9,
                         symbol.name.clone(),
@@ -896,7 +896,7 @@ impl<'a> CheckFix for SymbolField<'a> {
                 }
             } else if symbol.is_power() {
                 if field.visible {
-                    v.push(KLCData::new(
+                    v.push(CheckFixData::new(
                         4,
                         9,
                         symbol.name.clone(),
@@ -905,7 +905,7 @@ impl<'a> CheckFix for SymbolField<'a> {
                 }
             } else {
                 if !field.visible {
-                    v.push(KLCData::new(
+                    v.push(CheckFixData::new(
                         4,
                         9,
                         symbol.name.clone(),
@@ -916,7 +916,7 @@ impl<'a> CheckFix for SymbolField<'a> {
         } else if field.i == 2 {
             // 4.9 The Footprint field is filled according to rule 4.12 (below) and is invisible
             if field.visible {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     4,
                     9,
                     symbol.name.clone(),
@@ -926,7 +926,7 @@ impl<'a> CheckFix for SymbolField<'a> {
         } else if field.i == 3 {
             // 4.9 The Datasheet field is left blank and is invisible
             if field.visible {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     4,
                     9,
                     symbol.name.clone(),
@@ -939,19 +939,19 @@ impl<'a> CheckFix for SymbolField<'a> {
 }
 
 impl CheckFix for Pin {
-    fn check(&self, _: &Config) -> Vec<KLCData> {
+    fn check(&self, _: &Config) -> Vec<CheckFixData> {
         let mut v = vec![];
         let name = format!("{}:{}", self.name, self.number);
         // 4.1 Using a 100mil grid, pin origin must lie on grid nodes (IEC-60617)
         if (self.x % 10) != 0 {
-            v.push(KLCData::new(4, 1, name.clone(), "pin x not on 100mil grid"));
+            v.push(CheckFixData::new(4, 1, name.clone(), "pin x not on 100mil grid"));
         }
         if (self.y % 10) != 0 {
-            v.push(KLCData::new(4, 1, name.clone(), "pin y not on 100mil grid"));
+            v.push(CheckFixData::new(4, 1, name.clone(), "pin y not on 100mil grid"));
         }
         // 4.1 Pin length can be incremented in steps of 50mils (1.27mm) if required e.g. for long pin numbers
         if (self.len % 5) != 0 {
-            v.push(KLCData::new(
+            v.push(CheckFixData::new(
                 4,
                 1,
                 name.clone(),
@@ -960,16 +960,16 @@ impl CheckFix for Pin {
         }
         // 4.1 Pins should have a length of at least 100mils (2.54mm)
         if self.len < 100 {
-            v.push(KLCData::info(4, 1, name.clone(), "pin length < 100mil"));
+            v.push(CheckFixData::info(4, 1, name.clone(), "pin length < 100mil"));
         }
         // 4.1 Pin length should not be more than 300mils (7.62mm)
         if self.len > 300 {
-            v.push(KLCData::info(4, 1, name.clone(), "pin length > 300mil"));
+            v.push(CheckFixData::info(4, 1, name.clone(), "pin length > 300mil"));
         }
         // 4.7 NC pins should be of type NC
         if self.name.to_lowercase().contains("nc") {
             if self.pin_type != PinType::NotConnected {
-                v.push(KLCData::new(
+                v.push(CheckFixData::new(
                     4,
                     7,
                     name.clone(),
@@ -980,16 +980,16 @@ impl CheckFix for Pin {
         // 4.7 NC pins should be invisible, others should be visible
         if self.pin_type == PinType::NotConnected {
             if self.pin_visible {
-                v.push(KLCData::new(4, 7, name.clone(), "Pin should be invisible"))
+                v.push(CheckFixData::new(4, 7, name.clone(), "Pin should be invisible"))
             }
         } else {
             if !self.pin_visible {
-                v.push(KLCData::new(4, 7, name.clone(), "Pin should be visible"))
+                v.push(CheckFixData::new(4, 7, name.clone(), "Pin should be visible"))
             }
         }
         // 4.8 All text fields use a common size of 50mils (1.27mm)
         if self.num_size != 50 {
-            v.push(KLCData::new(
+            v.push(CheckFixData::new(
                 4,
                 8,
                 name.clone(),
@@ -998,21 +998,21 @@ impl CheckFix for Pin {
         }
         // 4.8 All text fields use a common size of 50mils (1.27mm)
         if self.name_size != 50 {
-            v.push(KLCData::new(4, 8, name.clone(), "Pin Name should be 50mil"))
+            v.push(CheckFixData::new(4, 8, name.clone(), "Pin Name should be 50mil"))
         }
         v
     }
 }
 impl CheckFix for Rectangle {
-    fn check(&self, _: &Config) -> Vec<KLCData> {
+    fn check(&self, _: &Config) -> Vec<CheckFixData> {
         let mut v = vec![];
         // 4.2 Fill style of symbol body is set to Fill background
         if self.fill != Fill::Filled {
-            v.push(KLCData::new(4, 2, self, "Rectangle is not filled"))
+            v.push(CheckFixData::new(4, 2, self, "Rectangle is not filled"))
         }
         // 4.2 Symbol body has a line width of 10mils (0.254mm)
         if self.thickness != 10 {
-            v.push(KLCData::new(
+            v.push(CheckFixData::new(
                 4,
                 2,
                 self,
@@ -1026,7 +1026,7 @@ impl CheckFix for Rectangle {
 }
 
 impl CheckFix for Draw {
-    fn check(&self, config: &Config) -> Vec<KLCData> {
+    fn check(&self, config: &Config) -> Vec<CheckFixData> {
         let mut v = vec![];
         match *self {
             Draw::Pin(ref pin) => {
@@ -1049,7 +1049,7 @@ impl CheckFix for Draw {
 }
 
 impl CheckFix for Symbol {
-    fn check(&self, config: &Config) -> Vec<KLCData> {
+    fn check(&self, config: &Config) -> Vec<CheckFixData> {
         let mut v = vec![];
         // 1.7 valid name
         let name = if self.name.starts_with("~") {
@@ -1059,7 +1059,7 @@ impl CheckFix for Symbol {
         };
         let allowed_1_7 = checkfix::allowed_1_7_items(&name);
         if !allowed_1_7.is_empty() {
-            v.push(KLCData::More(allowed_1_7).flatter())
+            v.push(CheckFixData::More(allowed_1_7).flatter())
         }
         for field in &self.fields {
             let f = SymbolField {
@@ -1068,14 +1068,14 @@ impl CheckFix for Symbol {
             };
             let f = f.check(config);
             if !f.is_empty() {
-                v.push(KLCData::More(f).flatter())
+                v.push(CheckFixData::More(f).flatter())
             }
         }
         if !(self.is_power() || self.is_graphics()) {
             for draw in &self.draw {
                 let f = draw.check(config);
                 if !f.is_empty() {
-                    v.push(KLCData::More(f).flatter())
+                    v.push(CheckFixData::More(f).flatter())
                 }
             }
         }
