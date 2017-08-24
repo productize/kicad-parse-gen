@@ -3,37 +3,35 @@
 use std::fmt;
 use std::result;
 
-/// version of the KLC this is based upon
-pub const KLC_VERSION: &'static str = "2.0.10";
+/// symbol settings for checking and fixing
+pub struct SymConfig {
+}
 
-/*
-pub struct KLCSymConfig {
-    text_size:i64,
-}*/
-
-/// settings for KLC, things that might be tuned
-pub struct KLCModConfig {
+/// module settings for checking and fixing
+pub struct ModConfig {
     /// font size
     pub font_size: f64,
     /// font thickness
     pub font_thickness: f64,
 }
 
-/// settings for KLC, things that might be tuned
-pub struct KLCConfig {
-    //pub s:KLCSymConfig,
+/// config settings for checking and fixing
+pub struct Config {
+    /// name of the Config
+    pub name: String,
+    /// symbol configuration
+    pub s:SymConfig,
     /// module configuration
-    pub m: KLCModConfig,
+    pub m: ModConfig,
 }
 
-impl Default for KLCConfig {
-    fn default() -> KLCConfig {
-        KLCConfig {
-            /*
-            s:KLCSymConfig {
-            text_size:50,
-        },*/
-            m: KLCModConfig {
+impl Config {
+    pub fn klc() -> Config {
+        Config {
+            name:"KLC 2.0.10".into(),
+            s:SymConfig {
+            },
+            m: ModConfig {
                 font_size: 1.0,
                 font_thickness: 0.15,
             },
@@ -44,10 +42,10 @@ impl Default for KLCConfig {
 /// Check & Fix trait to be implemented for KLC checking and fixing
 pub trait KLCCheck {
     /// check an item against the KLC
-    fn check(&self, config: &KLCConfig) -> Vec<KLCData>;
+    fn check(&self, config: &Config) -> Vec<KLCData>;
 
     /// fix up an item against the KLC
-    fn fix(&mut self, _config: &KLCConfig) {}
+    fn fix(&mut self, _config: &Config) {}
 }
 
 #[derive(Debug)]
