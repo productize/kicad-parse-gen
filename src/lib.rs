@@ -429,8 +429,8 @@ pub mod symbol_lib;
 pub mod project;
 /// Kicad fp-lib-table format handling
 pub mod fp_lib_table;
-/// Kicad Library Convention checking
-pub mod klc;
+/// checking and fixing related to the Kicad Library Convention
+pub mod checkfix;
 
 mod util;
 mod formatter;

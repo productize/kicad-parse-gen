@@ -8,7 +8,7 @@ extern crate env_logger;
 use std::path::PathBuf;
 use std::env;
 
-use kicad::klc::KLCCheck;
+use kicad::checkfix::KLCCheck;
 
 fn main() {
     env::set_var("RUST_LOG", "debug");
@@ -19,7 +19,7 @@ fn main() {
     let name = args.next().unwrap();
     let name = PathBuf::from(name);
     let symbol_lib = kicad::read_symbol_lib(&name).unwrap();
-    let config = kicad::klc::Config::klc();
+    let config = kicad::checkfix::Config::klc();
     for symbol in symbol_lib.symbols {
         let checkres = symbol.check(&config);
         if !checkres.is_empty() {

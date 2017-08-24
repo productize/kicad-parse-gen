@@ -14,7 +14,7 @@ use util::read_file;
 use parse_split_quote_aware;
 use schematic;
 use str_error;
-use klc::{self, KLCCheck, Config, KLCData};
+use checkfix::{self, KLCCheck, Config, KLCData};
 
 /// a Kicad symbolic file
 #[derive(Debug, Default)]
@@ -1057,7 +1057,7 @@ impl KLCCheck for Symbol {
         } else {
             self.name.clone()
         };
-        let allowed_1_7 = klc::allowed_1_7_items(&name);
+        let allowed_1_7 = checkfix::allowed_1_7_items(&name);
         if !allowed_1_7.is_empty() {
             v.push(KLCData::More(allowed_1_7).flatter())
         }
