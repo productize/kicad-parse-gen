@@ -61,10 +61,11 @@ impl Module {
         self.get_reference_text().map(|a| &a.value)
     }
 
-    pub fn get_reference_text(&self) -> Option<&FpText> {
+    /// get a `FpText` field by name
+    pub fn get_text(&self, which:&'static str) -> Option<&FpText> {
         for element in &self.elements {
             if let Element::FpText(ref fp_text) = *element {
-                if fp_text.name == "reference" {
+                if fp_text.name == which {
                     return Some(fp_text);
                 }
             }
@@ -72,10 +73,11 @@ impl Module {
         None
     }
 
-    pub fn get_reference_text_mut(&mut self) -> Option<&mut FpText> {
+    /// mutably get a `FpText` field by name
+    pub fn get_text_mut(&mut self, which:&'static str) -> Option<&mut FpText> {
         for element in &mut self.elements {
             if let Element::FpText(ref mut fp_text) = *element {
-                if fp_text.name == "reference" {
+                if fp_text.name == which {
                     return Some(fp_text);
                 }
             }
@@ -83,17 +85,33 @@ impl Module {
         None
     }
 
+    /// get the reference `FpText`
+    pub fn get_reference_text(&self) -> Option<&FpText> {
+        self.get_text("reference")
+    }
+
+    /// mutably get the reference `FpText`
+    pub fn get_reference_text_mut(&mut self) -> Option<&mut FpText> {
+        self.get_text_mut("reference")
+    }
+
+    /// get the reference2 `FpText`
     pub fn get_reference2_text(&self) -> Option<&FpText> {
-        for element in &self.elements {
-            if let Element::FpText(ref fp_text) = *element {
-                if fp_text.name == "user" {
-                    return Some(fp_text);
-                }
-            }
-        }
-        None
+        self.get_text("user")
     }
 
+    /// mutably get the reference2 `FpText`
+    pub fn get_reference2_text_mut(&mut self) -> Option<&mut FpText> {
+        self.get_text_mut("user")
+    }
+
+    /// mutably get the value `FpText`
+    pub fn get_value_text_mut(&mut self) -> Option<&mut FpText> {
+        self.get_text_mut("value")
+    }
+
+
+    /// check if the module has the "smd" attribute
     pub fn has_smd_attr(&self) -> bool {
         for element in &self.elements {
             if let Element::Attr(ref attr) = *element {
@@ -105,15 +123,9 @@ impl Module {
         false
     }
 
+    /// get the value `FpText`
     pub fn get_value_text(&self) -> Option<&FpText> {
-        for element in &self.elements {
-            if let Element::FpText(ref fp_text) = *element {
-                if fp_text.name == "value" {
-                    return Some(fp_text);
-                }
-            }
-        }
-        None
+        self.get_text("value")
     }
 
     /// check if a Module has a tstamp Element and return it
@@ -199,6 +211,7 @@ impl Module {
         }
     }
 
+    /// return a list of `Pad`s contained in the module
     pub fn pads(&self) -> Vec<&Pad> {
         let mut v = vec![];
         for element in &self.elements {
@@ -209,6 +222,7 @@ impl Module {
         v
     }
 
+    /// return a list of `FpLine`s contained in the module
     pub fn lines(&self) -> Vec<&FpLine> {
         let mut v = vec![];
         for element in &self.elements {
@@ -1537,6 +1551,8 @@ impl KLCCheck for Module {
     }
 
     fn fix(&mut self, config: &KLCConfig) {
+        let name = self.name.clone();
+        // fix reference
         if let Some(reference) = self.get_reference_text_mut() {
             reference.value.clear();
             reference.value.push_str("REF**");
@@ -1546,5 +1562,26 @@ impl KLCCheck for Module {
             reference.effects.font.size.y = config.m.font_size;
             reference.effects.font.thickness = config.m.font_thickness;
         }
+        // fix value
+        if let Some(value) = self.get_value_text_mut() {
+            value.value.clear();
+            value.value.push_str(&name);
+            value.layer.t = LayerType::Fab;
+            value.hide = false;
+            value.effects.font.size.x = config.m.font_size;
+            value.effects.font.size.y = config.m.font_size;
+            value.effects.font.thickness = config.m.font_thickness;
+        }
+        // fix reference2
+        if let Some(ref2) = self.get_reference2_text_mut() {
+            ref2.value.clear();
+            ref2.value.push_str("%R");
+            ref2.layer.t = LayerType::Fab;
+            ref2.hide = false;
+            ref2.effects.font.size.x = config.m.font_size;
+            ref2.effects.font.size.y = config.m.font_size;
+            ref2.effects.font.thickness = config.m.font_thickness;
+        }
+        // TODO: generate CrtYd
     }
 }

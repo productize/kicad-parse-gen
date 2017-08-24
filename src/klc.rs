@@ -3,6 +3,7 @@
 use std::fmt;
 use std::result;
 
+/// version of the KLC this is based upon
 pub const KLC_VERSION: &'static str = "2.0.10";
 
 /*
@@ -10,19 +11,18 @@ pub struct KLCSymConfig {
     text_size:i64,
 }*/
 
-pub trait KLCConfigFactory {
-    fn make() -> KLCConfig;
-}
-
 /// settings for KLC, things that might be tuned
 pub struct KLCModConfig {
+    /// font size
     pub font_size: f64,
+    /// font thickness
     pub font_thickness: f64,
 }
 
 /// settings for KLC, things that might be tuned
 pub struct KLCConfig {
     //pub s:KLCSymConfig,
+    /// module configuration
     pub m: KLCModConfig,
 }
 
@@ -41,11 +41,12 @@ impl Default for KLCConfig {
     }
 }
 
-///
+/// Check & Fix trait to be implemented for KLC checking and fixing
 pub trait KLCCheck {
     /// check an item against the KLC
     fn check(&self, config: &KLCConfig) -> Vec<KLCData>;
 
+    /// fix up an item against the KLC
     fn fix(&mut self, _config: &KLCConfig) {}
 }
 
@@ -93,6 +94,7 @@ impl KLCData {
         KLCData::Item(i)
     }
 
+    /// dump a `KLCData` on the `Log` logger
     pub fn dump_on_logger(&self, indent: usize) {
         match *self {
             KLCData::Item(ref item) => item.dump_on_logger(indent),
@@ -143,6 +145,7 @@ impl KLCItem {
         KLCItem { info: true, ..self }
     }
 
+    /// dump a `KLCItem` on a `Log` logger
     pub fn dump_on_logger(&self, indent: usize) {
         let indent = ::std::iter::repeat(" ")
             .take(indent * 2)

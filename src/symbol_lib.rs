@@ -320,6 +320,7 @@ impl Symbol {
         self.reference.starts_with("#") && self.pins().is_empty()
     }
 
+    /// is a symbol a basic symbol?
     pub fn is_basic(&self) -> bool {
         match self.name.as_str() {
             "L" | "R" | "C" | "D" => true,
@@ -853,7 +854,7 @@ struct SymbolField<'a> {
 }
 
 impl<'a> KLCCheck for SymbolField<'a> {
-    fn check(&self, config: &KLCConfig) -> Vec<KLCData> {
+    fn check(&self, _: &KLCConfig) -> Vec<KLCData> {
         let symbol = self.symbol;
         let field = self.field;
         let mut v = vec![];
