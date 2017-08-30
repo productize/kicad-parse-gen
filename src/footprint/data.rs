@@ -1167,7 +1167,7 @@ impl FpLine {
         line1.start.x = x1;
         line1.start.y = y1;
         line1.end.x = x2;
-        line1.end.y = x1;
+        line1.end.y = y2;
         line1.layer.t = t;
         line1.width = width;
         line1
