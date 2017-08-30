@@ -1737,6 +1737,7 @@ impl CheckFix for Module {
             let y1 = y1a.min(y2a) - offset;
             let x2 = x1a.max(x2a) + offset;
             let y2 = y1a.max(y2a) + offset;
+            info!("Creating courtyard: {},{} -> {},{}", x1,y1,x2,y2);
             let line1 = FpLine::make(x1, y1, x2, y1, LayerType::CrtYd, 0.05);
             let line2 = FpLine::make(x2, y1, x2, y2, LayerType::CrtYd, 0.05);
             let line3 = FpLine::make(x2, y2, x1, y2, LayerType::CrtYd, 0.05);
