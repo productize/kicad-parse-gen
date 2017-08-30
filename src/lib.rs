@@ -383,6 +383,14 @@ impl Bound {
             std::mem::swap(&mut self.y1, &mut self.y2);
         }
     }
+
+    pub fn width(&self) -> f64 {
+        (self.x1 - self.x2).abs()
+    }
+    
+    pub fn height(&self) -> f64 {
+        (self.y1 - self.y2).abs()
+    }
 }
 
 /// calculate the bounding box of a layout item

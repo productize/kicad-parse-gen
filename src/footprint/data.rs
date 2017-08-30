@@ -1732,7 +1732,13 @@ impl CheckFix for Module {
             debug!("bound: {:?}", bound);
             let (x,y) = self.at();
             debug!("at: {:?}", (x,y));
-            let offset = 0.15; // TODO
+            let offset = if bound.width() < 2.0 && bound.height() < 2.0 {
+                0.15
+            } else if self.name.starts_with("BGA") {
+                0.1
+            } else {
+                0.25
+            };
             // make relative to center of module and add offset
             let x1a = bound.x1 - x;
             let y1a = bound.y1 - y;
