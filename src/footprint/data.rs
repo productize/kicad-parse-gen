@@ -1161,6 +1161,18 @@ impl BoundingBox for FpLine {
     }
 }
 
+impl FpLine {
+    fn make(x1:f64, y1:f64, x2:f64, y2:f64, t:LayerType) -> FpLine {
+        let mut line1 = FpLine::default();
+        line1.start.x = x1;
+        line1.start.y = y1;
+        line1.end.x = x2;
+        line1.end.y = x1;
+        line1.layer.t = t;
+        line1
+    }
+}
+
 /// a circle
 #[derive(Debug, Clone, PartialEq)]
 pub struct FpCircle {
@@ -1625,6 +1637,30 @@ impl CheckFix for Module {
                 }
             }
         }
-        // TODO: generate CrtYd
+        // Generate CrtYd if none found
+        let mut c = 0;
+        for line in self.lines() {
+            if line.layer.t == LayerType::CrtYd {
+                c += 1;
+            }
+        }
+        if c < 4 { // this is not perfect of course...
+            let bound = self.bounding_box();
+            let (x,y) = self.at();
+            let offset = 0.15; // TODO
+            // make relative to center of module and add offset
+            let x1 = bound.x1 - x - offset;
+            let y1 = bound.y1 - y - offset;
+            let x2 = bound.x2 - x + offset;
+            let y2 = bound.y2 - y + offset;
+            let line1 = FpLine::make(x1, y1, x2, y1, LayerType::CrtYd);
+            let line2 = FpLine::make(x2, y1, x2, y2, LayerType::CrtYd);
+            let line3 = FpLine::make(x2, y2, x1, y2, LayerType::CrtYd);
+            let line4 = FpLine::make(x1, y2, x1, y1, LayerType::CrtYd);
+            self.elements.push(Element::FpLine(line1));
+            self.elements.push(Element::FpLine(line2));
+            self.elements.push(Element::FpLine(line3));
+            self.elements.push(Element::FpLine(line4));
+        }
     }
 }
