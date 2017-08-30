@@ -5,7 +5,6 @@ use symbolic_expressions::iteratom::SResult;
 
 pub use layout::NetName;
 
-use std::f64::EPSILON;
 
 use checkfix::{CheckFix, Config, CheckFixData};
 
@@ -198,7 +197,7 @@ impl Module {
     pub fn is_front(&self) -> bool {
         for element in &self.elements {
             if let Element::Layer(ref layer) = *element {
-                return &layer[..] == "F.Cu";
+                return layer.side == LayerSide::Front
             }
         }
         true
@@ -286,7 +285,7 @@ pub enum Element {
     /// solder mask margin
     SolderMaskMargin(f64),
     /// layer name
-    Layer(String), // TODO: use Layer type
+    Layer(Layer),
     /// description
     Descr(String),
     /// Tags element
@@ -363,7 +362,8 @@ impl Named for Element {
             Element::Model(_) => "Model",
             Element::TStamp(_) => "Tstamp",
             Element::SolderMaskMargin(_) => "SolderMaskMargin",
-            Element::Clearance(_) | Element::Tags(_) => "Tags",
+            Element::Clearance(_) => "Clearance",
+            Element::Tags(_) => "Tags",
             Element::Attr(_) => "Attr",
             Element::Locked => "Locked",
         }
@@ -380,17 +380,7 @@ impl Flip for Element {
             Element::FpArc(ref mut p) => p.flip(),
             Element::FpText(ref mut p) => p.flip(),
             Element::At(ref mut p) => p.flip(),
-            Element::Layer(ref mut p) => match p.as_str() {
-                "F.Cu" => {
-                    p.clear();
-                    p.push_str("B.Cu");
-                }
-                "B.Cu" => {
-                    p.clear();
-                    p.push_str("F.Cu");
-                }
-                _ => (),
-            },
+            Element::Layer(ref mut p) => p.flip(),
             Element::TEdit(_) |
             Element::Descr(_) |
             Element::Path(_) |
@@ -1764,6 +1754,7 @@ impl CheckFix for Module {
 
 #[cfg(test)]
 mod test {
+    use std::f64::EPSILON;
     use super::*;
     #[test]
     fn pad_bound() {

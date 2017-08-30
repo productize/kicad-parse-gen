@@ -392,7 +392,7 @@ impl FromSexp for Element {
                 let name = s.list_name()?;
                 match &name[..] {
                     "solder_mask_margin" => wrap(s, parse_float_element, Element::SolderMaskMargin),
-                    "layer" => wrap(s, parse_string_element, Element::Layer),
+                    "layer" => wrap(s, from_sexp, Element::Layer),
                     "descr" => wrap(s, parse_string_element, Element::Descr),
                     "tags" => wrap(s, parse_string_element, Element::Tags),
                     "attr" => wrap(s, parse_string_element, Element::Attr),

@@ -9,6 +9,10 @@ extern crate error_chain;
 #[macro_use]
 extern crate log;
 extern crate shellexpand;
+// extern crate strum;
+// #[macro_use]
+// extern crate strum_macros;
+
 
 use std::fmt;
 use std::path::{Path, PathBuf};
