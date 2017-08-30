@@ -239,13 +239,15 @@ impl BoundingBox for Module {
         let (x, y) = self.at();
         let mut b = Bound::new(x, y, x, y);
         for element in self.elements.iter().filter(|&x| x.is_graphics()) {
-            let mut b2 = element.bounding_box();
-            b2.x1 += x;
-            b2.y1 += y;
-            b2.x2 += x;
-            b2.y2 += y;
-            // trace!("{}: {:?}", element.name(), b2);
-            b.update(&b2);
+            if element.is_fab() || element.is_pad() {
+                let mut b2 = element.bounding_box();
+                b2.x1 += x;
+                b2.y1 += y;
+                b2.x2 += x;
+                b2.y2 += y;
+                // trace!("{}: {:?}", element.name(), b2);
+                b.update(&b2);
+            }
         }
         b.swap_if_needed();
         // trace!("Module {} bb: {:?}", self.name, b);
@@ -446,6 +448,37 @@ impl Element {
             Element::Tags(_) |
             Element::Attr(_) |
             Element::Locked => false,
+        }
+    }
+
+    fn is_fab(&self) -> bool {
+        match *self {
+            Element::Pad(_) => false,
+            Element::FpPoly(ref e) => e.is_fab(),
+            Element::FpLine(ref e) => e.is_fab(),
+            Element::FpCircle(ref e) => e.is_fab(),
+            Element::FpArc(ref e) => e.is_fab(),
+            Element::FpText(_) |
+            Element::At(_) |
+            Element::Layer(_) |
+            Element::TEdit(_) |
+            Element::Descr(_) |
+            Element::Path(_) |
+            Element::Model(_) |
+            Element::TStamp(_) |
+            Element::SolderMaskMargin(_) |
+            Element::Clearance(_) |
+            Element::Tags(_) |
+            Element::Attr(_) |
+            Element::Locked => false,
+        }
+    }
+
+    fn is_pad(&self) -> bool {
+        if let Element::Pad(_) = *self {
+            true
+        } else {
+            false
         }
     }
 }
@@ -1147,6 +1180,12 @@ impl BoundingBox for FpPoly {
     }
 }
 
+impl FpPoly {
+    fn is_fab(&self) -> bool {
+        return self.layer.t == LayerType::Fab
+    }
+}
+
 /// a line
 #[derive(Debug, Clone, PartialEq)]
 pub struct FpLine {
@@ -1195,6 +1234,10 @@ impl FpLine {
         line1.layer.t = t;
         line1.width = width;
         line1
+    }
+    
+    fn is_fab(&self) -> bool {
+        self.layer.t == LayerType::Fab
     }
 }
 
@@ -1245,6 +1288,12 @@ impl BoundingBox for FpCircle {
     }
 }
 
+impl FpCircle {
+    fn is_fab(&self) -> bool {
+        self.layer.t == LayerType::Fab
+    }
+}
+
 /// an arc
 #[derive(Debug, Clone, PartialEq)]
 pub struct FpArc {
@@ -1284,6 +1333,12 @@ impl Default for FpArc {
             layer: Layer::default(),
             width: 0.0,
         }
+    }
+}
+
+impl FpArc {
+    fn is_fab(&self) -> bool {
+        self.layer.t == LayerType::Fab
     }
 }
 

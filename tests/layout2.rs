@@ -35,9 +35,9 @@ fn parse_and_compare() {
     }
 
     let b = layout.bounding_box();
-    assert!((b.x1 - 99.1875).abs() < std::f64::EPSILON);
-    assert!((b.y1 - 99.6).abs() < std::f64::EPSILON);
-    assert!((b.x2 - 101.9).abs() < std::f64::EPSILON);
-    assert!((b.y2 - 100.9).abs() < std::f64::EPSILON);
     info!("bound: {:?}", b);
+    assert!((b.x1 - 99.1875).abs() < std::f64::EPSILON);
+    assert!((b.y1 - 99.65).abs() < std::f64::EPSILON);
+    assert!((b.x2 - 100.8125).abs() < std::f64::EPSILON);
+    assert!((b.y2 - 100.35).abs() < std::f64::EPSILON);
 }
