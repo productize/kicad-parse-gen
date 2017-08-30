@@ -5,6 +5,8 @@ use symbolic_expressions::iteratom::SResult;
 
 pub use layout::NetName;
 
+use std::f64::EPSILON;
+
 use checkfix::{CheckFix, Config, CheckFixData};
 
 /// implement to allow a Module and it's sub Element be flippable
@@ -241,6 +243,7 @@ impl BoundingBox for Module {
         for element in self.elements.iter().filter(|&x| x.is_graphics()) {
             if element.is_fab() || element.is_pad() {
                 let mut b2 = element.bounding_box();
+                // make absolute
                 b2.x1 += x;
                 b2.y1 += y;
                 b2.x2 += x;
@@ -1141,7 +1144,7 @@ impl BoundingBox for Pad {
     fn bounding_box(&self) -> Bound {
         let x = self.at.x;
         let y = self.at.y;
-        let (dx, dy) = if self.at.rot < 0.1 {
+        let (dx, dy) = if self.at.rot < 0.1 || self.at.rot - 180.0 < 0.1 || self.at.rot + 180.0 < 0.1 {
             (self.size.x, self.size.y)
         } else {
             (self.size.y, self.size.x)
@@ -1750,5 +1753,41 @@ impl CheckFix for Module {
             self.elements.push(Element::FpLine(line3));
             self.elements.push(Element::FpLine(line4));
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn pad_bound() {
+        let mut pad = Pad::new("hello".into(), PadType::Smd, PadShape::Rect);
+        pad.at.x = 1.4;
+        pad.at.y = 0.95;
+        pad.at.rot = 0.0;
+        pad.size.x = 1.2;
+        pad.size.y = 0.6;
+        let bound = pad.bounding_box();
+        assert!(bound.x2 - 2.0 < EPSILON);
+        assert!(bound.y2 - 1.25 < EPSILON);
+        assert!(bound.x1 - 0.8 < EPSILON);
+        assert!(bound.y1 - 1.25 - 0.6 < EPSILON);
+        println!("bound: {:?}", bound);
+    }
+
+    #[test]
+    fn pad_bound_180() {
+        let mut pad = Pad::new("hello".into(), PadType::Smd, PadShape::Rect);
+        pad.at.x = 1.4;
+        pad.at.y = 0.95;
+        pad.at.rot = 180.0;
+        pad.size.x = 1.2;
+        pad.size.y = 0.6;
+        let bound = pad.bounding_box();
+        assert!(bound.x2 - 2.0 < EPSILON);
+        assert!(bound.y2 - 1.25 < EPSILON);
+        assert!(bound.x1 - 0.8 < EPSILON);
+        assert!(bound.y1 - 1.25 - 0.6 < EPSILON);
+        println!("bound: {:?}", bound);
     }
 }
