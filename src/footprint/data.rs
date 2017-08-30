@@ -1729,10 +1729,10 @@ impl CheckFix for Module {
             let (x,y) = self.at();
             let offset = 0.15; // TODO
             // make relative to center of module and add offset
-            let x1 = bound.x1 - x - offset;
-            let y1 = bound.y1 - y - offset;
-            let x2 = bound.x2 - x + offset;
-            let y2 = bound.y2 - y + offset;
+            let x1 = bound.x1.min(bound.x2) - offset;
+            let y1 = bound.y1.min(bound.y2) - offset;
+            let x2 = bound.x1.max(bound.x2) + offset;
+            let y2 = bound.y1.max(bound.y2) + offset;
             let line1 = FpLine::make(x1, y1, x2, y1, LayerType::CrtYd, 0.05);
             let line2 = FpLine::make(x2, y1, x2, y2, LayerType::CrtYd, 0.05);
             let line3 = FpLine::make(x2, y2, x1, y2, LayerType::CrtYd, 0.05);
