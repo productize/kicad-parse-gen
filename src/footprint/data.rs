@@ -1726,13 +1726,16 @@ impl CheckFix for Module {
         }
         if c < 4 { // this is not perfect of course...
             let bound = self.bounding_box();
+            debug!("bound: {:?}", bound);
             let (x,y) = self.at();
+            debug!("at: {:?}", (x,y));
             let offset = 0.15; // TODO
             // make relative to center of module and add offset
             let x1a = bound.x1 - x;
             let y1a = bound.y1 - y;
             let x2a = bound.x2 - x;
             let y2a = bound.y2 - y;
+            debug!("a: {:?}", ((x1a,y1a),(x2a, y2a)));
             let x1 = x1a.min(x2a) - offset;
             let y1 = y1a.min(y2a) - offset;
             let x2 = x1a.max(x2a) + offset;
