@@ -238,7 +238,7 @@ impl BoundingBox for Module {
     fn bounding_box(&self) -> Bound {
         let (x, y) = self.at();
         let mut b = Bound::new(x, y, x, y);
-        for element in &self.elements {
+        for element in self.elements.iter().filter(|&x| x.is_graphics()) {
             let mut b2 = element.bounding_box();
             b2.x1 += x;
             b2.y1 += y;
@@ -425,6 +425,30 @@ impl Rotate for Element {
     }
 }
 
+impl Element {
+    fn is_graphics(&self) -> bool {
+        match *self {
+            Element::Pad(_) |
+            Element::FpPoly(_) |
+            Element::FpLine(_) |
+            Element::FpCircle(_) |
+            Element::FpArc(_) => true,
+            Element::FpText(_) |
+            Element::At(_) |
+            Element::Layer(_) |
+            Element::TEdit(_) |
+            Element::Descr(_) |
+            Element::Path(_) |
+            Element::Model(_) |
+            Element::TStamp(_) |
+            Element::SolderMaskMargin(_) |
+            Element::Clearance(_) |
+            Element::Tags(_) |
+            Element::Attr(_) |
+            Element::Locked => false,
+        }
+    }
+}
 
 /// text element
 #[derive(Debug, Clone)]
