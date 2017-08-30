@@ -1144,7 +1144,7 @@ impl BoundingBox for Pad {
     fn bounding_box(&self) -> Bound {
         let x = self.at.x;
         let y = self.at.y;
-        let (dx, dy) = if self.at.rot < 0.1 || self.at.rot - 180.0 < 0.1 || self.at.rot + 180.0 < 0.1 {
+        let (dx, dy) = if self.at.rot - 9.0 > 0.1 || self.at.rot + 90.0 > 0.1 {
             (self.size.x, self.size.y)
         } else {
             (self.size.y, self.size.x)
