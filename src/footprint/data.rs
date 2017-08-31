@@ -20,12 +20,6 @@ pub trait Rotate {
     fn rotate(&mut self, rot: f64);
 }
 
-/// get the layer
-pub trait GetDrawingLayer {
-    /// get the layer used in this
-    fn get_drawing_layer(&self) -> &Layer;
-}
-
 /// a Kicad module, with a name and a list of elements
 #[derive(Debug, Clone)]
 pub struct Module {
@@ -1179,12 +1173,6 @@ impl BoundingBox for FpPoly {
     }
 }
 
-impl GetDrawingLayer for FpPoly {
-    fn get_drawing_layer(&self) -> &Layer {
-        &self.layer
-    }
-}
-
 impl FpPoly {
     fn is_fab(&self) -> bool {
         return self.layer.t == LayerType::Fab
@@ -1226,12 +1214,6 @@ impl Default for FpLine {
 impl BoundingBox for FpLine {
     fn bounding_box(&self) -> Bound {
         Bound::new(self.start.x, self.start.y, self.end.x, self.end.y)
-    }
-}
-
-impl GetDrawingLayer for FpLine {
-    fn get_drawing_layer(&self) -> &Layer {
-        &self.layer
     }
 }
 
@@ -1299,12 +1281,6 @@ impl BoundingBox for FpCircle {
     }
 }
 
-impl GetDrawingLayer for FpCircle {
-    fn get_drawing_layer(&self) -> &Layer {
-        &self.layer
-    }
-}
-
 impl FpCircle {
     fn is_fab(&self) -> bool {
         self.layer.t == LayerType::Fab
@@ -1350,12 +1326,6 @@ impl Default for FpArc {
             layer: Layer::default(),
             width: 0.0,
         }
-    }
-}
-
-impl GetDrawingLayer for FpArc {
-    fn get_drawing_layer(&self) -> &Layer {
-        &self.layer
     }
 }
 
