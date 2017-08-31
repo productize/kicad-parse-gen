@@ -1140,10 +1140,10 @@ impl BoundingBox for Pad {
     fn bounding_box(&self) -> Bound {
         let x = self.at.x;
         let y = self.at.y;
-        let (dx, dy) = if self.at.rot - 9.0 > 0.1 || self.at.rot + 90.0 > 0.1 {
-            (self.size.x, self.size.y)
-        } else {
+        let (dx, dy) = if (self.at.rot - 90.0).abs() < 0.1 || (self.at.rot + 90.0).abs() < 0.1 || (self.at.rot - 270.0).abs() < 0.1 || (self.at.rot + 270.0).abs() < 0.1 {
             (self.size.y, self.size.x)
+        } else {
+            (self.size.x, self.size.y)
         };
         Bound::new(x - dx / 2.0, y - dy / 2.0, x + dx / 2.0, y + dy / 2.0)
     }
@@ -1785,6 +1785,8 @@ impl CheckFix for Module {
 #[cfg(test)]
 mod test {
     use std::f64::EPSILON;
+    use std::path::PathBuf;
+    
     use super::*;
     #[test]
     fn pad_bound() {
@@ -1795,11 +1797,11 @@ mod test {
         pad.size.x = 1.2;
         pad.size.y = 0.6;
         let bound = pad.bounding_box();
-        assert!(bound.x2 - 2.0 < EPSILON);
-        assert!(bound.y2 - 1.25 < EPSILON);
-        assert!(bound.x1 - 0.8 < EPSILON);
-        assert!(bound.y1 - 1.25 - 0.6 < EPSILON);
         println!("bound: {:?}", bound);
+        assert!((bound.x2 - pad.at.x - pad.size.x/2.0).abs() < EPSILON);
+        assert!((bound.y2 - pad.at.y - pad.size.y/2.0).abs() < EPSILON);
+        assert!((bound.x1 - pad.at.x + pad.size.x/2.0).abs() < EPSILON);
+        assert!((bound.y1 - pad.at.y + pad.size.y/2.0).abs() < EPSILON);
     }
 
     #[test]
@@ -1811,10 +1813,22 @@ mod test {
         pad.size.x = 1.2;
         pad.size.y = 0.6;
         let bound = pad.bounding_box();
-        assert!(bound.x2 - 2.0 < EPSILON);
-        assert!(bound.y2 - 1.25 < EPSILON);
-        assert!(bound.x1 - 0.8 < EPSILON);
-        assert!(bound.y1 - 1.25 - 0.6 < EPSILON);
-        println!("bound: {:?}", bound);
+        println!("180 bound: {:?}", bound);
+        assert!((bound.x2 - pad.at.x - pad.size.x/2.0).abs() < EPSILON);
+        assert!((bound.y2 - pad.at.y - pad.size.y/2.0).abs() < EPSILON);
+        assert!((bound.x1 - pad.at.x + pad.size.x/2.0).abs() < EPSILON);
+        assert!((bound.y1 - pad.at.y + pad.size.y/2.0).abs() < EPSILON);
+    }
+
+    #[test]
+    fn bound_fail_cy() {
+        let cy = include_str!("../../tests/data/cy.kicad_mod");
+        let module = ::footprint::parse(cy).unwrap();
+        let bound = module.bounding_box();
+        println!("cy bound: {:?}", bound);
+        assert!((bound.x2 - 2.95).abs() < EPSILON);
+        assert!((bound.y2 - 2.95).abs() < EPSILON);
+        assert!((bound.x1 + 2.95).abs() < EPSILON);
+        assert!((bound.y1 + 2.95).abs() < EPSILON);
     }
 }
