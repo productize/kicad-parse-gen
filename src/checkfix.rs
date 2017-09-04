@@ -26,6 +26,8 @@ pub struct Config {
 }
 
 impl Config {
+
+    /// create a `Config` based on the Kicad KLC
     pub fn klc() -> Config {
         Config {
             name:"KLC 2.0.10".into(),

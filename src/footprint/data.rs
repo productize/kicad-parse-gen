@@ -1755,7 +1755,6 @@ impl CheckFix for Module {
 #[cfg(test)]
 mod test {
     use std::f64::EPSILON;
-    use std::path::PathBuf;
     
     use super::*;
     #[test]

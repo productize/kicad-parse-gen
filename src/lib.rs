@@ -231,6 +231,7 @@ pub fn write_layout(layout: &layout::Layout, name: &Path) -> Result<()> {
     write_file(name, &s)
 }
 
+/// write out a kicad `Module` to a file
 pub fn write_module(module: &footprint::Module, name: &Path) -> Result<()> {
     let s = footprint::module_to_string(&module, 0)?;
     write_file(&name,&s)
@@ -388,10 +389,12 @@ impl Bound {
         }
     }
 
+    /// calculate the width of the `Bound`
     pub fn width(&self) -> f64 {
         (self.x1 - self.x2).abs()
     }
     
+    /// calculate the height of the `Bound`
     pub fn height(&self) -> f64 {
         (self.y1 - self.y2).abs()
     }
