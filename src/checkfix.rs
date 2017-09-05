@@ -4,8 +4,7 @@ use std::fmt;
 use std::result;
 
 /// symbol settings for checking and fixing
-pub struct SymConfig {
-}
+pub struct SymConfig {}
 
 /// module settings for checking and fixing
 pub struct ModConfig {
@@ -20,19 +19,17 @@ pub struct Config {
     /// name of the Config
     pub name: String,
     /// symbol configuration
-    pub s:SymConfig,
+    pub s: SymConfig,
     /// module configuration
     pub m: ModConfig,
 }
 
 impl Config {
-
     /// create a `Config` based on the Kicad KLC
     pub fn klc() -> Config {
         Config {
-            name:"KLC 2.0.10".into(),
-            s:SymConfig {
-            },
+            name: "KLC 2.0.10".into(),
+            s: SymConfig {},
             m: ModConfig {
                 font_size: 1.0,
                 font_thickness: 0.15,

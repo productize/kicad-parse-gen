@@ -639,7 +639,6 @@ impl Orientation {
             'V' => Ok(Orientation::Vertical),
             _ => str_error(format!("unknown orientation {}", c)),
         }
-
     }
 }
 
@@ -1497,7 +1496,6 @@ fn parse_text(p: &mut ParseState) -> Result<Text> {
         thickness: thickness,
         text: text,
     })
-
 }
 
 /// parse a &str to a Kicad schematic, optionally setting the filename

@@ -26,5 +26,4 @@ pub fn parse_str(s: &str) -> Result<Project> {
             data: String::from(s),
         })
     }
-
 }

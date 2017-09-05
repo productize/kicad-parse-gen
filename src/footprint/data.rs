@@ -6,7 +6,7 @@ use symbolic_expressions::iteratom::SResult;
 pub use layout::NetName;
 
 
-use checkfix::{CheckFix, Config, CheckFixData};
+use checkfix::{CheckFix, CheckFixData, Config};
 
 /// implement to allow a Module and it's sub Element be flippable
 pub trait Flip {
@@ -63,7 +63,7 @@ impl Module {
     }
 
     /// get a `FpText` field by name
-    pub fn get_text(&self, which:&'static str) -> Option<&FpText> {
+    pub fn get_text(&self, which: &'static str) -> Option<&FpText> {
         for element in &self.elements {
             if let Element::FpText(ref fp_text) = *element {
                 if fp_text.name == which {
@@ -75,7 +75,7 @@ impl Module {
     }
 
     /// mutably get a `FpText` field by name
-    pub fn get_text_mut(&mut self, which:&'static str) -> Option<&mut FpText> {
+    pub fn get_text_mut(&mut self, which: &'static str) -> Option<&mut FpText> {
         for element in &mut self.elements {
             if let Element::FpText(ref mut fp_text) = *element {
                 if fp_text.name == which {
@@ -197,7 +197,7 @@ impl Module {
     pub fn is_front(&self) -> bool {
         for element in &self.elements {
             if let Element::Layer(ref layer) = *element {
-                return layer.side == LayerSide::Front
+                return layer.side == LayerSide::Front;
             }
         }
         true
@@ -376,7 +376,7 @@ impl Flip for Element {
             Element::Pad(ref mut p) => p.flip(),
             Element::FpPoly(ref mut p) => p.flip(),
             Element::FpLine(ref mut p) => p.flip(),
-            Element::FpCircle(ref mut p) => p.flip(), 
+            Element::FpCircle(ref mut p) => p.flip(),
             Element::FpArc(ref mut p) => p.flip(),
             Element::FpText(ref mut p) => p.flip(),
             Element::At(ref mut p) => p.flip(),
@@ -1134,7 +1134,10 @@ impl BoundingBox for Pad {
     fn bounding_box(&self) -> Bound {
         let x = self.at.x;
         let y = self.at.y;
-        let (dx, dy) = if (self.at.rot - 90.0).abs() < 0.1 || (self.at.rot + 90.0).abs() < 0.1 || (self.at.rot - 270.0).abs() < 0.1 || (self.at.rot + 270.0).abs() < 0.1 {
+        let (dx, dy) = if (self.at.rot - 90.0).abs() < 0.1 || (self.at.rot + 90.0).abs() < 0.1 ||
+            (self.at.rot - 270.0).abs() < 0.1 ||
+            (self.at.rot + 270.0).abs() < 0.1
+        {
             (self.size.y, self.size.x)
         } else {
             (self.size.x, self.size.y)
@@ -1175,7 +1178,7 @@ impl BoundingBox for FpPoly {
 
 impl FpPoly {
     fn is_fab(&self) -> bool {
-        return self.layer.t == LayerType::Fab
+        return self.layer.t == LayerType::Fab;
     }
 }
 
@@ -1218,7 +1221,7 @@ impl BoundingBox for FpLine {
 }
 
 impl FpLine {
-    fn make(x1:f64, y1:f64, x2:f64, y2:f64, t:LayerType, width:f64) -> FpLine {
+    fn make(x1: f64, y1: f64, x2: f64, y2: f64, t: LayerType, width: f64) -> FpLine {
         let mut line1 = FpLine::default();
         line1.start.x = x1;
         line1.start.y = y1;
@@ -1228,7 +1231,7 @@ impl FpLine {
         line1.width = width;
         line1
     }
-    
+
     fn is_fab(&self) -> bool {
         self.layer.t == LayerType::Fab
     }
@@ -1521,7 +1524,12 @@ impl CheckFix for Module {
         if let Some(reference) = self.get_reference2_text() {
             // 7.4 reference 2 is correctly named
             if reference.value.as_str() != "%R" {
-                v.push(CheckFixData::new(7, 4, name.clone(), "reference 2 should be %R"));
+                v.push(CheckFixData::new(
+                    7,
+                    4,
+                    name.clone(),
+                    "reference 2 should be %R",
+                ));
             }
             // 7.4 reference 2 is on F.Fab or B.Fab
             if reference.layer.t != LayerType::Fab {
@@ -1680,7 +1688,7 @@ impl CheckFix for Module {
                     at: At::new(0.0, 0.0, 0.0),
                     layer: Layer::from_string("F.Fab").unwrap(),
                     effects: Effects::from_font(font, None),
-                    hide: false
+                    hide: false,
                 };
                 self.elements.push(Element::FpText(ref2));
             };
@@ -1717,11 +1725,12 @@ impl CheckFix for Module {
                 c += 1;
             }
         }
-        if c < 4 { // this is not perfect of course...
+        if c < 4 {
+            // this is not perfect of course...
             let bound = self.bounding_box();
             debug!("bound: {:?}", bound);
-            let (x,y) = self.at();
-            debug!("at: {:?}", (x,y));
+            let (x, y) = self.at();
+            debug!("at: {:?}", (x, y));
             let offset = if bound.width() < 2.0 && bound.height() < 2.0 {
                 0.15
             } else if self.name.starts_with("BGA") {
@@ -1734,12 +1743,12 @@ impl CheckFix for Module {
             let y1a = bound.y1 - y;
             let x2a = bound.x2 - x;
             let y2a = bound.y2 - y;
-            debug!("a: {:?}", ((x1a,y1a),(x2a, y2a)));
+            debug!("a: {:?}", ((x1a, y1a), (x2a, y2a)));
             let x1 = x1a.min(x2a) - offset;
             let y1 = y1a.min(y2a) - offset;
             let x2 = x1a.max(x2a) + offset;
             let y2 = y1a.max(y2a) + offset;
-            info!("Creating courtyard: {},{} -> {},{}", x1,y1,x2,y2);
+            info!("Creating courtyard: {},{} -> {},{}", x1, y1, x2, y2);
             let line1 = FpLine::make(x1, y1, x2, y1, LayerType::CrtYd, 0.05);
             let line2 = FpLine::make(x2, y1, x2, y2, LayerType::CrtYd, 0.05);
             let line3 = FpLine::make(x2, y2, x1, y2, LayerType::CrtYd, 0.05);
@@ -1755,7 +1764,7 @@ impl CheckFix for Module {
 #[cfg(test)]
 mod test {
     use std::f64::EPSILON;
-    
+
     use super::*;
     #[test]
     fn pad_bound() {
@@ -1767,10 +1776,10 @@ mod test {
         pad.size.y = 0.6;
         let bound = pad.bounding_box();
         println!("bound: {:?}", bound);
-        assert!((bound.x2 - pad.at.x - pad.size.x/2.0).abs() < EPSILON);
-        assert!((bound.y2 - pad.at.y - pad.size.y/2.0).abs() < EPSILON);
-        assert!((bound.x1 - pad.at.x + pad.size.x/2.0).abs() < EPSILON);
-        assert!((bound.y1 - pad.at.y + pad.size.y/2.0).abs() < EPSILON);
+        assert!((bound.x2 - pad.at.x - pad.size.x / 2.0).abs() < EPSILON);
+        assert!((bound.y2 - pad.at.y - pad.size.y / 2.0).abs() < EPSILON);
+        assert!((bound.x1 - pad.at.x + pad.size.x / 2.0).abs() < EPSILON);
+        assert!((bound.y1 - pad.at.y + pad.size.y / 2.0).abs() < EPSILON);
     }
 
     #[test]
@@ -1783,10 +1792,10 @@ mod test {
         pad.size.y = 0.6;
         let bound = pad.bounding_box();
         println!("180 bound: {:?}", bound);
-        assert!((bound.x2 - pad.at.x - pad.size.x/2.0).abs() < EPSILON);
-        assert!((bound.y2 - pad.at.y - pad.size.y/2.0).abs() < EPSILON);
-        assert!((bound.x1 - pad.at.x + pad.size.x/2.0).abs() < EPSILON);
-        assert!((bound.y1 - pad.at.y + pad.size.y/2.0).abs() < EPSILON);
+        assert!((bound.x2 - pad.at.x - pad.size.x / 2.0).abs() < EPSILON);
+        assert!((bound.y2 - pad.at.y - pad.size.y / 2.0).abs() < EPSILON);
+        assert!((bound.x1 - pad.at.x + pad.size.x / 2.0).abs() < EPSILON);
+        assert!((bound.y1 - pad.at.y + pad.size.y / 2.0).abs() < EPSILON);
     }
 
     #[test]

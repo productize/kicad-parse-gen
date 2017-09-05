@@ -850,7 +850,6 @@ impl Setup {
             if &element.name[..] == name {
                 element.value1 = value;
                 return;
-
             }
         }
         self.elements.push(SetupElement {
@@ -905,7 +904,6 @@ impl NetName {
             } else {
                 Some((v[2].into(), v[3].into()))
             }
-
         } else {
             None
         }
@@ -953,5 +951,4 @@ fn test_unnamed_rename() {
         n.name.is_unnamed_net(),
         Some(("L101".into(), "Pad1".into()))
     );
-
 }

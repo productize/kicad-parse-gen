@@ -1,9 +1,9 @@
 // (c) 2017 Productize SPRL <joost@productize.be>
 
+extern crate env_logger;
 extern crate kicad_parse_gen as kicad;
 #[macro_use]
 extern crate log;
-extern crate env_logger;
 
 use std::path::PathBuf;
 use std::env;

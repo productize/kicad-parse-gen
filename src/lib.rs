@@ -3,12 +3,12 @@
 //! Kicad file format parser and generator library
 #![warn(missing_docs)]
 
-extern crate symbolic_expressions;
 #[macro_use]
 extern crate error_chain;
 #[macro_use]
 extern crate log;
 extern crate shellexpand;
+extern crate symbolic_expressions;
 // extern crate strum;
 // #[macro_use]
 // extern crate strum_macros;
@@ -160,7 +160,6 @@ impl fmt::Display for KicadFile {
 /// and matching it against the Expected type
 #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile> {
-
     let data = read_file(name)?;
     match footprint::parse(&data) {
         Ok(module) => return Ok(KicadFile::Module(module)),
@@ -234,7 +233,7 @@ pub fn write_layout(layout: &layout::Layout, name: &Path) -> Result<()> {
 /// write out a kicad `Module` to a file
 pub fn write_module(module: &footprint::Module, name: &Path) -> Result<()> {
     let s = footprint::module_to_string(&module, 0)?;
-    write_file(&name,&s)
+    write_file(&name, &s)
 }
 
 /// read a file, expecting it to be a Kicad symbol library file
@@ -393,7 +392,7 @@ impl Bound {
     pub fn width(&self) -> f64 {
         (self.x1 - self.x2).abs()
     }
-    
+
     /// calculate the height of the `Bound`
     pub fn height(&self) -> f64 {
         (self.y1 - self.y2).abs()

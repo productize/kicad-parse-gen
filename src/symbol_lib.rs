@@ -14,7 +14,7 @@ use util::read_file;
 use parse_split_quote_aware;
 use schematic;
 use str_error;
-use checkfix::{self, CheckFix, Config, CheckFixData};
+use checkfix::{self, CheckFix, CheckFixData, Config};
 
 /// a Kicad symbolic file
 #[derive(Debug, Default)]
@@ -717,7 +717,6 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
         } else if s2.starts_with("S ") {
             let rect = parse_rect(p, &s2)?;
             s.draw.push(Draw::Rectangle(rect));
-
         } else {
             s.draw.push(Draw::Other(s2.clone()));
         }
@@ -944,10 +943,20 @@ impl CheckFix for Pin {
         let name = format!("{}:{}", self.name, self.number);
         // 4.1 Using a 100mil grid, pin origin must lie on grid nodes (IEC-60617)
         if (self.x % 10) != 0 {
-            v.push(CheckFixData::new(4, 1, name.clone(), "pin x not on 100mil grid"));
+            v.push(CheckFixData::new(
+                4,
+                1,
+                name.clone(),
+                "pin x not on 100mil grid",
+            ));
         }
         if (self.y % 10) != 0 {
-            v.push(CheckFixData::new(4, 1, name.clone(), "pin y not on 100mil grid"));
+            v.push(CheckFixData::new(
+                4,
+                1,
+                name.clone(),
+                "pin y not on 100mil grid",
+            ));
         }
         // 4.1 Pin length can be incremented in steps of 50mils (1.27mm) if required e.g. for long pin numbers
         if (self.len % 5) != 0 {
@@ -960,11 +969,21 @@ impl CheckFix for Pin {
         }
         // 4.1 Pins should have a length of at least 100mils (2.54mm)
         if self.len < 100 {
-            v.push(CheckFixData::info(4, 1, name.clone(), "pin length < 100mil"));
+            v.push(CheckFixData::info(
+                4,
+                1,
+                name.clone(),
+                "pin length < 100mil",
+            ));
         }
         // 4.1 Pin length should not be more than 300mils (7.62mm)
         if self.len > 300 {
-            v.push(CheckFixData::info(4, 1, name.clone(), "pin length > 300mil"));
+            v.push(CheckFixData::info(
+                4,
+                1,
+                name.clone(),
+                "pin length > 300mil",
+            ));
         }
         // 4.7 NC pins should be of type NC
         if self.name.to_lowercase().contains("nc") {
@@ -980,11 +999,21 @@ impl CheckFix for Pin {
         // 4.7 NC pins should be invisible, others should be visible
         if self.pin_type == PinType::NotConnected {
             if self.pin_visible {
-                v.push(CheckFixData::new(4, 7, name.clone(), "Pin should be invisible"))
+                v.push(CheckFixData::new(
+                    4,
+                    7,
+                    name.clone(),
+                    "Pin should be invisible",
+                ))
             }
         } else {
             if !self.pin_visible {
-                v.push(CheckFixData::new(4, 7, name.clone(), "Pin should be visible"))
+                v.push(CheckFixData::new(
+                    4,
+                    7,
+                    name.clone(),
+                    "Pin should be visible",
+                ))
             }
         }
         // 4.8 All text fields use a common size of 50mils (1.27mm)
@@ -998,7 +1027,12 @@ impl CheckFix for Pin {
         }
         // 4.8 All text fields use a common size of 50mils (1.27mm)
         if self.name_size != 50 {
-            v.push(CheckFixData::new(4, 8, name.clone(), "Pin Name should be 50mil"))
+            v.push(CheckFixData::new(
+                4,
+                8,
+                name.clone(),
+                "Pin Name should be 50mil",
+            ))
         }
         v
     }
@@ -1042,7 +1076,6 @@ impl CheckFix for Draw {
                 }
             }
             Draw::Other(_) => (),
-
         }
         v
     }

@@ -349,7 +349,6 @@ impl Formatter for KicadFormatter {
             writer.write_all(b" ")?;
         }
         Ok(())
-
     }
 
     fn close<W>(&mut self, writer: &mut W) -> Result<()>
