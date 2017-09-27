@@ -562,10 +562,15 @@ impl BoundingBox for Segment {
     }
 }
 
+// TODO: support blind and micro via
 /// via
-// (via (at 132.1948 121.2202) (size 0.675) (drill 0.25) (layers F.Cu B.Cu) (net 19))
+// (via [blind] [micro] (at 132.1948 121.2202) (size 0.675) (drill 0.25) (layers F.Cu B.Cu) (net 19))
 #[derive(Clone, Debug, Default)]
 pub struct Via {
+    /// blind/buried via
+    pub blind: bool,
+    /// micro via
+    pub micro: bool,
     /// at
     pub at: footprint::At,
     /// size

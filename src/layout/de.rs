@@ -629,22 +629,20 @@ impl FromSexp for Segment {
         })
     }
 }
+
+// (via [blind] [micro] (at 132.1948 121.2202) (size 0.675) (drill 0.25) (layers F.Cu B.Cu) (net 19))
 impl FromSexp for Via {
     fn from_sexp(s: &Sexp) -> SResult<Via> {
-        let i = IterAtom::new(s, "via")?;
+        let mut i = IterAtom::new(s, "via")?;
         let mut via = Via::default();
-        for x in i.iter {
-            let elem = from_sexp(x)?;
-            match elem {
-                GrElement::At(x) => via.at = x,
-                GrElement::Size(x) => via.size = x,
-                GrElement::Net(x) => via.net = x,
-                GrElement::Drill(x) => via.drill = x,
-                GrElement::Layers(x) => via.layers = x,
-                _ => (), // TODO
-            }
-        }
-        Ok(via)
+        via.blind = i.maybe_literal_s("blind").is_some();
+        via.micro = i.maybe_literal_s("micro").is_some();
+        via.at = i.t("at")?;
+        via.size = i.f_in_list("size")?;
+        via.drill = i.maybe_f_in_list("drill").unwrap_or(0.0);
+        via.layers = i.t("layers")?;
+        via.net = i.maybe_i_in_list("net").unwrap_or(0);
+        i.close(via)
     }
 }
 
