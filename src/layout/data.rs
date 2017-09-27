@@ -362,7 +362,7 @@ impl BoundingBox for GrText {
 }
 
 /// line
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct GrLine {
     /// start point
     pub start: footprint::Xy,
@@ -396,7 +396,7 @@ impl BoundingBox for GrLine {
 }
 
 /// arc
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct GrArc {
     /// start point
     pub start: footprint::Xy,
@@ -431,7 +431,7 @@ impl BoundingBox for GrArc {
 
 /// `gr_circle`
 // (gr_circle (center 178.6 68.8) (end 176.1 68.7) (layer Eco2.User) (width 0.2))
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct GrCircle {
     /// center point
     pub center: footprint::Xy,

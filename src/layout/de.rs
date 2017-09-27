@@ -288,29 +288,14 @@ fn parse_other(e: &Sexp) -> Element {
 
 impl FromSexp for GrText {
     fn from_sexp(s: &Sexp) -> SResult<GrText> {
+        let mut t = GrText::default();
         let mut i = IterAtom::new(s, "gr_text")?;
-        let value = i.s("value")?;
-        let mut layer = footprint::Layer::default();
-        let mut tstamp = None;
-        let mut at = footprint::At::default();
-        let mut effects = footprint::Effects::default();
-        for x in i.iter {
-            let elem = from_sexp(x)?;
-            match elem {
-                GrElement::At(x) => at = x,
-                GrElement::Layer(x) => layer = x,
-                GrElement::TStamp(x) => tstamp = Some(x),
-                GrElement::Effects(x) => effects = x,
-                _ => (), // TODO
-            }
-        }
-        Ok(GrText {
-            value: value,
-            at: at,
-            layer: layer,
-            effects: effects,
-            tstamp: tstamp,
-        })
+        t.value = i.s("value")?;
+        t.at = i.t("at")?;
+        t.layer = i.t("layer")?;
+        t.effects = i.t("effects")?;
+        t.tstamp = i.maybe_s_in_list("tstamp");
+        i.close(t)
     }
 }
 
@@ -360,94 +345,44 @@ impl FromSexp for GrElement {
 
 impl FromSexp for GrLine {
     fn from_sexp(s: &Sexp) -> SResult<GrLine> {
-        let i = IterAtom::new(s, "gr_line")?;
-        let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
-        let mut end = footprint::Xy::new_empty(footprint::XyType::End);
-        let mut angle = 0.0_f64;
-        let mut layer = footprint::Layer::default();
-        let mut width = 0.0_f64;
-        let mut tstamp = None;
-        for x in i.iter {
-            let elem = from_sexp(x)?;
-            match elem {
-                GrElement::Start(x) => start = x,
-                GrElement::End(x) => end = x,
-                GrElement::Angle(x) => angle = x,
-                GrElement::Layer(x) => layer = x,
-                GrElement::TStamp(x) => tstamp = Some(x),
-                GrElement::Width(x) => width = x,
-                _ => (), // TODO
-            }
-        }
-        Ok(GrLine {
-            start: start,
-            end: end,
-            angle: angle,
-            layer: layer,
-            width: width,
-            tstamp: tstamp,
-        })
+        let mut l = GrLine::default();
+        let mut i = IterAtom::new(s, "gr_line")?;
+        l.start = i.t("start")?;
+        l.end = i.t("end")?;
+        l.angle = i.maybe_f_in_list("angle").unwrap_or(0.0);
+        l.layer = i.t("layer")?;
+        l.width = i.maybe_f_in_list("width").unwrap_or(0.0);
+        l.tstamp = i.maybe_s_in_list("tstamp");
+        i.close(l)
     }
 }
 
 impl FromSexp for GrArc {
     fn from_sexp(s: &Sexp) -> SResult<GrArc> {
-        let i = IterAtom::new(s, "gr_arc")?;
-        let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
-        let mut end = footprint::Xy::new_empty(footprint::XyType::End);
-        let mut angle = 0.0_f64;
-        let mut layer = footprint::Layer::default();
-        let mut width = 0.0_f64;
-        let mut tstamp = None;
-        for x in i.iter {
-            let elem = from_sexp(x)?;
-            match elem {
-                GrElement::Start(x) => start = x,
-                GrElement::End(x) => end = x,
-                GrElement::Angle(x) => angle = x,
-                GrElement::Layer(x) => layer = x,
-                GrElement::TStamp(x) => tstamp = Some(x),
-                GrElement::Width(x) => width = x,
-                _ => (), // TODO
-            }
-        }
-        Ok(GrArc {
-            start: start,
-            end: end,
-            angle: angle,
-            layer: layer,
-            width: width,
-            tstamp: tstamp,
-        })
+        let mut a = GrArc::default();
+        let mut i = IterAtom::new(s, "gr_arc")?;
+        a.start = i.t("start")?;
+        a.end = i.t("end")?;
+        a.angle = i.f_in_list("angle")?;
+        a.layer = i.t("layer")?;
+        a.width = i.maybe_f_in_list("width").unwrap_or(0.0);
+        a.tstamp = i.maybe_s_in_list("tstamp");
+        // TODO: maybe status field?
+        i.close(a)
     }
 }
 
 impl FromSexp for GrCircle {
     fn from_sexp(s: &Sexp) -> SResult<GrCircle> {
-        let i = IterAtom::new(s, "gr_circle")?;
-        let mut center = footprint::Xy::new_empty(footprint::XyType::Center);
-        let mut end = footprint::Xy::new_empty(footprint::XyType::End);
-        let mut layer = footprint::Layer::default();
-        let mut width = 0.0_f64;
-        let mut tstamp = None;
-        for x in i.iter {
-            let elem = from_sexp(x)?;
-            match elem {
-                GrElement::Center(x) => center = x,
-                GrElement::End(x) => end = x,
-                GrElement::Layer(x) => layer = x,
-                GrElement::TStamp(x) => tstamp = Some(x),
-                GrElement::Width(x) => width = x,
-                _ => (), // TODO
-            }
-        }
-        Ok(GrCircle {
-            center: center,
-            end: end,
-            layer: layer,
-            width: width,
-            tstamp: tstamp,
-        })
+        let mut c = GrCircle::default();
+        let mut i = IterAtom::new(s, "gr_circle")?;
+        c.center = i.t("center")?;
+        c.end = i.t("end")?;
+        c.layer = i.t("layer")?;
+        c.width = i.maybe_f_in_list("width").unwrap_or(0.0);
+        c.tstamp = i.maybe_s_in_list("tstamp");
+        // TODO: status field?
+        i.close(c)
     }
 }
 

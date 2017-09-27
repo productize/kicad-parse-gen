@@ -234,7 +234,6 @@ impl FromSexp for FpText {
 // (pad 1 smd rect (at -0.95 0.885) (size 0.802 0.972) (layers F.Cu F.Paste F.Mask))
 impl FromSexp for Pad {
     fn from_sexp(s: &Sexp) -> SResult<Pad> {
-        println!("XXX: {}", s);
         let mut i = IterAtom::new(s, "pad")?;
         let name = i.s("name")?;
         let t = i.s("type")?;
