@@ -9,24 +9,13 @@ use symbolic_expressions::iteratom::*;
 // TODO: get rid of Part
 #[derive(Debug)]
 enum Part {
-    At(footprint::At),
-    Layer(footprint::Layer),
-    Hide,
-    Effects(footprint::Effects),
-    Layers(footprint::Layers),
-    Width(f64),
-    Angle(f64),
-    Xy(footprint::Xy),
-    Pts(footprint::Pts),
     Thickness(f64),
     Net(footprint::Net),
-    Drill(footprint::Drill),
     SolderPasteMargin(f64),
     SolderMaskMargin(f64),
     Clearance(f64),
     ThermalGap(f64),
     ZoneConnect(i64),
-    Italic,
 }
 
 struct Offset(f64, f64);
@@ -206,36 +195,16 @@ impl FromSexp for Drill {
 
 impl FromSexp for Part {
     fn from_sexp(s: &Sexp) -> SResult<Part> {
-        match s.string() {
-            Ok(sx) => match &sx[..] {
-                "hide" => Ok(Part::Hide),
-                "italic" => Ok(Part::Italic),
-                x => Err(format!("unknown part in element: {}", x).into()),
-            },
-            _ => {
-                let name = &(s.list_name()?)[..];
-                match name {
-                    "at" => wrap(s, from_sexp, Part::At),
-                    "layer" => wrap(s, from_sexp, Part::Layer),
-                    "effects" => wrap(s, from_sexp, Part::Effects),
-                    "layers" => wrap(s, from_sexp, Part::Layers),
-                    "width" => parse_part_float(s, Part::Width),
-                    "angle" => parse_part_float(s, Part::Angle),
-                    "start" | "end" | "size" | "center" | "rect_delta" => {
-                        wrap(s, from_sexp, Part::Xy)
-                    }
-                    "pts" => wrap(s, from_sexp, Part::Pts),
-                    "thickness" => parse_part_float(s, Part::Thickness),
-                    "net" => wrap(s, from_sexp, Part::Net),
-                    "drill" => wrap(s, from_sexp, Part::Drill),
-                    "solder_paste_margin" => parse_part_float(s, Part::SolderPasteMargin),
-                    "solder_mask_margin" => parse_part_float(s, Part::SolderMaskMargin),
-                    "clearance" => parse_part_float(s, Part::Clearance),
-                    "thermal_gap" => parse_part_float(s, Part::ThermalGap),
-                    "zone_connect" => parse_part_int(s, Part::ZoneConnect),
-                    x => Err(format!("unknown part {}", x).into()),
-                }
-            }
+        let name = &(s.list_name()?)[..];
+        match name {
+            "thickness" => parse_part_float(s, Part::Thickness),
+            "net" => wrap(s, from_sexp, Part::Net),
+            "solder_paste_margin" => parse_part_float(s, Part::SolderPasteMargin),
+            "solder_mask_margin" => parse_part_float(s, Part::SolderMaskMargin),
+            "clearance" => parse_part_float(s, Part::Clearance),
+            "thermal_gap" => parse_part_float(s, Part::ThermalGap),
+            "zone_connect" => parse_part_int(s, Part::ZoneConnect),
+            x => Err(format!("unknown part {}", x).into()),
         }
     }
 }
