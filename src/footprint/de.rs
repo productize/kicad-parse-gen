@@ -1,10 +1,33 @@
 // (c) 2016-2017 Productize SPRL <joost@productize.be>
 
 use Sexp;
+use footprint;
 use footprint::data::*;
-use Part;
 use wrap;
 use symbolic_expressions::iteratom::*;
+
+// TODO: get rid of Part
+#[derive(Debug)]
+enum Part {
+    At(footprint::At),
+    Layer(footprint::Layer),
+    Hide,
+    Effects(footprint::Effects),
+    Layers(footprint::Layers),
+    Width(f64),
+    Angle(f64),
+    Xy(footprint::Xy),
+    Pts(footprint::Pts),
+    Thickness(f64),
+    Net(footprint::Net),
+    Drill(footprint::Drill),
+    SolderPasteMargin(f64),
+    SolderMaskMargin(f64),
+    Clearance(f64),
+    ThermalGap(f64),
+    ZoneConnect(i64),
+    Italic,
+}
 
 struct Offset(f64, f64);
 

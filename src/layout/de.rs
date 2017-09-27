@@ -7,12 +7,30 @@
 use footprint;
 use wrap;
 use Sexp;
-use GrElement;
 use symbolic_expressions::iteratom::*;
 
 use layout::data::*;
 
 // TODO: switch more to IterAtom like in footprint/de.rs
+
+// TODO: get rid of GrElement, using IterAtom allows dealing
+// with the elements cleanly
+enum GrElement {
+    Start(footprint::Xy),
+    End(footprint::Xy),
+    Center(footprint::Xy),
+    Angle(f64),
+    Layer(footprint::Layer),
+    Width(f64),
+    Size(f64),
+    Drill(f64),
+    TStamp(String),
+    At(footprint::At),
+    Effects(footprint::Effects),
+    Net(i64),
+    Status(String),
+    Layers(footprint::Layers),
+}
 
 struct Version(i64);
 

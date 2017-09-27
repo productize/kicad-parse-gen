@@ -240,49 +240,6 @@ pub fn read_fp_lib_table(name: &Path) -> Result<fp_lib_table::FpLibTable> {
     }
 }
 
-// put here so it is accessible to all subfiles privately
-#[derive(Debug)]
-enum Part {
-    At(footprint::At),
-    Layer(footprint::Layer),
-    Hide,
-    Effects(footprint::Effects),
-    Layers(footprint::Layers),
-    Width(f64),
-    Angle(f64),
-    Xy(footprint::Xy),
-    Pts(footprint::Pts),
-    Thickness(f64),
-    Net(footprint::Net),
-    Drill(footprint::Drill),
-    SolderPasteMargin(f64),
-    SolderMaskMargin(f64),
-    Clearance(f64),
-    ThermalGap(f64),
-    ZoneConnect(i64),
-    Italic,
-}
-
-// put here so it is accessible to all subfiles privately
-// TODO: get rid of GrElement, using IterAtom allows dealing
-// with the elements cleanly
-enum GrElement {
-    Start(footprint::Xy),
-    End(footprint::Xy),
-    Center(footprint::Xy),
-    Angle(f64),
-    Layer(footprint::Layer),
-    Width(f64),
-    Size(f64),
-    Drill(f64),
-    TStamp(String),
-    At(footprint::At),
-    Effects(footprint::Effects),
-    Net(i64),
-    Status(String),
-    Layers(footprint::Layers),
-}
-
 fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> SResult<Y>
 where
     F: Fn(&Sexp) -> SResult<X>,
