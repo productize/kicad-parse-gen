@@ -1,5 +1,7 @@
 // (c) 2016-2017 Productize SPRL <joost@productize.be>
 
+use std::f64::EPSILON;
+
 use {Adjust, Bound, BoundingBox};
 use symbolic_expressions::iteratom::SResult;
 
@@ -1178,7 +1180,7 @@ impl BoundingBox for FpPoly {
 
 impl FpPoly {
     fn is_fab(&self) -> bool {
-        return self.layer.t == LayerType::Fab;
+        self.layer.t == LayerType::Fab
     }
 }
 
@@ -1414,7 +1416,7 @@ impl CheckFix for Module {
                 ));
             }
             // 7.3 aspect ratio should be 1:1
-            if reference.effects.font.size.x != reference.effects.font.size.y {
+            if (reference.effects.font.size.x - reference.effects.font.size.y).abs() > EPSILON {
                 v.push(CheckFixData::new(
                     7,
                     3,
@@ -1424,7 +1426,7 @@ impl CheckFix for Module {
             }
             // 7.3 font height should be 1.0
             // this is kind of big :(
-            if reference.effects.font.size.y != font_size {
+            if (reference.effects.font.size.y - font_size).abs() > EPSILON {
                 v.push(CheckFixData::info(
                     7,
                     3,
@@ -1434,7 +1436,7 @@ impl CheckFix for Module {
             }
             // 7.3 font width should be 1.0
             // this is kind of big :(
-            if reference.effects.font.size.x != font_size {
+            if (reference.effects.font.size.x - font_size).abs() > EPSILON {
                 v.push(CheckFixData::info(
                     7,
                     3,
@@ -1443,7 +1445,7 @@ impl CheckFix for Module {
                 ));
             }
             // 7.4 font thickness should be 0.15
-            if reference.effects.font.thickness != font_thickness {
+            if (reference.effects.font.thickness - font_thickness).abs() > EPSILON {
                 v.push(CheckFixData::info(
                     7,
                     3,
