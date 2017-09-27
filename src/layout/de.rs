@@ -492,8 +492,7 @@ impl FromSexp for Zone {
         let layer = i.t("layer")?;
         let tstamp = i.s_in_list("tstamp")?;
         let hatch = i.t("hatch")?;
-        let priority = i.maybe_i_in_list("priority");
-        let priority = match priority {
+        let priority = match i.maybe_i_in_list("priority") {
             Some(p) => p as u64,
             None => 0_u64,
         };
@@ -663,6 +662,7 @@ impl FromSexp for Layout {
     fn from_sexp(s: &Sexp) -> SResult<Layout> {
         let i = IterAtom::new(s, "kicad_pcb")?;
         let mut layout = Layout::default();
+        // TODO: read in order instead of matching on iter
         for e in i.iter {
             match &(e.list_name()?)[..] {
                 "version" => layout.version = Version::from_sexp(e)?.0,
