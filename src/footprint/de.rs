@@ -264,8 +264,10 @@ impl FromSexp for FpText {
     }
 }
 
+// (pad 1 smd rect (at -0.95 0.885) (size 0.802 0.972) (layers F.Cu F.Paste F.Mask))
 impl FromSexp for Pad {
     fn from_sexp(s: &Sexp) -> SResult<Pad> {
+        println!("XXX: {}", s);
         let mut i = IterAtom::new(s, "pad")?;
         let name = i.s("name")?;
         let t = i.s("type")?;
@@ -274,15 +276,25 @@ impl FromSexp for Pad {
         let shape = PadShape::from_string(&shape)?;
         let mut pad = Pad::new(name, t, shape);
         // println!("{}", pad);
+        if let Some(at) = i.maybe_t::<At>() {
+            pad.at = at;
+        }
+        if let Some(xy) = i.maybe_t::<Xy>() {
+            if xy.t == XyType::Size {
+                pad.size = xy;
+            } else if xy.t == XyType::RectDelta {
+                pad.rect_delta = Some(xy);
+            }
+            // else ignore
+        }
+        pad.drill = i.maybe_t::<Drill>();
+        if let Some(layers) = i.maybe_t::<Layers>() {
+            pad.layers = layers;
+        }
         let parts = i.vec()?;
         for part in parts {
             match part {
-                Part::At(ref at) => pad.at.clone_from(at),
-                Part::Xy(ref xy) if xy.t == XyType::Size => pad.size.clone_from(xy),
-                Part::Xy(ref xy) if xy.t == XyType::RectDelta => pad.rect_delta = Some(xy.clone()),
-                Part::Layers(ref l) => pad.layers.clone_from(l),
                 Part::Net(n) => pad.set_net(n),
-                Part::Drill(n) => pad.set_drill(n),
                 Part::SolderPasteMargin(n) => pad.solder_paste_margin = Some(n),
                 Part::SolderMaskMargin(n) => pad.solder_mask_margin = Some(n),
                 Part::Clearance(n) => pad.clearance = Some(n),
@@ -295,74 +307,102 @@ impl FromSexp for Pad {
     }
 }
 
+// (fp_poly (pts (xy 0.7 0.65) (xy 0.7 1.15) (xy 1.2 1.15) (xy 1.2 0.65) (xy 0.7 0.65)) (layer Dwgs.User) (width 0.15))
 impl FromSexp for FpPoly {
     fn from_sexp(s: &Sexp) -> SResult<FpPoly> {
         let mut i = IterAtom::new(s, "fp_poly")?;
         let mut fp_poly = FpPoly::default();
-        let parts = i.vec()?;
-        for part in &parts[..] {
-            match *part {
-                Part::Pts(ref pts) => fp_poly.pts.clone_from(pts),
-                Part::Width(w) => fp_poly.width = w,
-                Part::Layer(ref layer) => fp_poly.layer.clone_from(layer),
-                ref x => println!("fp_poly: ignoring {:?}", x),
-            }
+        if let Some(pts) = i.maybe_t::<Pts>() {
+            fp_poly.pts = pts;
         }
+        if let Some(layer) = i.maybe_t::<Layer>() {
+            fp_poly.layer = layer;
+        }
+        if let Some(width) = i.maybe_f_in_list("width") {
+            fp_poly.width = width;
+        }
+        i.close(&fp_poly)?;
         Ok(fp_poly)
     }
 }
 
+// (fp_line (start -1.5 -1.5) (end -1.5 1.5) (layer F.SilkS) (width 0.1))
 impl FromSexp for FpLine {
     fn from_sexp(s: &Sexp) -> SResult<FpLine> {
         let mut i = IterAtom::new(s, "fp_line")?;
         let mut fp_line = FpLine::default();
-        let parts = i.vec()?;
-        for part in &parts[..] {
-            match *part {
-                Part::Xy(ref xy) if xy.t == XyType::Start => fp_line.start.clone_from(xy),
-                Part::Xy(ref xy) if xy.t == XyType::End => fp_line.end.clone_from(xy),
-                Part::Layer(ref layer) => fp_line.layer.clone_from(layer),
-                Part::Width(w) => fp_line.width = w,
-                ref x => return Err(format!("fp_line: unknown {:?}", x).into()),
+        if let Some(xy) = i.maybe_t::<Xy>() {
+            if xy.t == XyType::Start {
+                fp_line.start = xy;
             }
         }
+        if let Some(xy) = i.maybe_t::<Xy>() {
+            if xy.t == XyType::End {
+                fp_line.end = xy;
+            }
+        }
+        if let Some(layer) = i.maybe_t::<Layer>() {
+            fp_line.layer = layer;
+        }
+        if let Some(width) = i.maybe_f_in_list("width") {
+            fp_line.width = width;
+        }
+        i.close(&fp_line)?;
         Ok(fp_line)
     }
 }
 
+// (fp_circle (center -2.6 -2.6) (end -2.467417 -2.467417) (layer F.SilkS) (width 0.1875))
 impl FromSexp for FpCircle {
     fn from_sexp(s: &Sexp) -> SResult<FpCircle> {
         let mut i = IterAtom::new(s, "fp_circle")?;
         let mut fp_circle = FpCircle::default();
-        let parts = i.vec()?;
-        for part in &parts[..] {
-            match *part {
-                Part::Xy(ref xy) if xy.t == XyType::Center => fp_circle.center.clone_from(xy),
-                Part::Xy(ref xy) if xy.t == XyType::End => fp_circle.end.clone_from(xy),
-                Part::Layer(ref layer) => fp_circle.layer.clone_from(layer),
-                Part::Width(w) => fp_circle.width = w,
-                ref x => return Err(format!("fp_circle: unexpected {:?}", x).into()),
+        if let Some(xy) = i.maybe_t::<Xy>() {
+            if xy.t == XyType::Center {
+                fp_circle.center = xy;
             }
         }
+        if let Some(xy) = i.maybe_t::<Xy>() {
+            if xy.t == XyType::End {
+                fp_circle.end = xy;
+            }
+        }
+        if let Some(layer) = i.maybe_t::<Layer>() {
+            fp_circle.layer = layer;
+        }
+        if let Some(width) = i.maybe_f_in_list("width") {
+            fp_circle.width = width;
+        }
+        i.close(&fp_circle)?;
         Ok(fp_circle)
     }
 }
 
+// (fp_arc (start 4.15 4.25) (end 5.15 4.25) (angle 86.6) (layer F.SilkS) (width 0.1))
 impl FromSexp for FpArc {
     fn from_sexp(s: &Sexp) -> SResult<FpArc> {
         let mut i = IterAtom::new(s, "fp_arc")?;
         let mut fp_arc = FpArc::default();
-        let parts = i.vec()?;
-        for part in &parts[..] {
-            match *part {
-                Part::Xy(ref xy) if xy.t == XyType::Start => fp_arc.start.clone_from(xy),
-                Part::Xy(ref xy) if xy.t == XyType::End => fp_arc.end.clone_from(xy),
-                Part::Angle(w) => fp_arc.angle = w,
-                Part::Layer(ref layer) => fp_arc.layer.clone_from(layer),
-                Part::Width(w) => fp_arc.width = w,
-                ref x => return Err(format!("fp_arc: unexpected {:?}", x).into()),
+        if let Some(xy) = i.maybe_t::<Xy>() {
+            if xy.t == XyType::Start {
+                fp_arc.start = xy;
             }
         }
+        if let Some(xy) = i.maybe_t::<Xy>() {
+            if xy.t == XyType::End {
+                fp_arc.end = xy;
+            }
+        }
+        if let Some(angle) = i.maybe_f_in_list("angle") {
+            fp_arc.angle = angle;
+        }
+        if let Some(layer) = i.maybe_t::<Layer>() {
+            fp_arc.layer = layer;
+        }
+        if let Some(width) = i.maybe_f_in_list("width") {
+            fp_arc.width = width;
+        }
+        i.close(&fp_arc)?;
         Ok(fp_arc)
     }
 }
