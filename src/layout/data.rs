@@ -122,7 +122,7 @@ impl BoundingBox for Zone {
 }
 
 /// a zone hatch
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Hatch {
     /// hatching style
     pub style: String,
@@ -131,7 +131,7 @@ pub struct Hatch {
 }
 
 /// a zone connect pads
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct ConnectPads {
     /// connection type
     pub connection: Option<String>,
@@ -141,7 +141,7 @@ pub struct ConnectPads {
 
 /// keepout of a zone
 //  (keepout (tracks not_allowed) (vias not_allowed) (copperpour allowed))
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Keepout {
     /// tracks
     pub tracks: bool,
@@ -334,7 +334,7 @@ pub struct NetClass {
 }
 
 /// text
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct GrText {
     /// text
     pub value: String,
@@ -469,7 +469,7 @@ impl BoundingBox for GrCircle {
 }
 
 /// dimension
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Dimension {
     /// name
     pub name: String,

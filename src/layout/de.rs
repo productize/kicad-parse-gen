@@ -454,33 +454,21 @@ impl FromSexp for GrCircle {
 
 impl FromSexp for Dimension {
     fn from_sexp(s: &Sexp) -> SResult<Dimension> {
+        let mut d = Dimension::default();
         let mut i = IterAtom::new(s, "dimension")?;
-        let name = i.s("name")?;
-        let width = i.f_in_list("width")?;
-        let layer = i.t("layer")?;
-        let tstamp = i.maybe_s_in_list("tstamp");
-        let text = i.t("text")?;
-        let feature1 = i.t_in_list("feature1")?;
-        let feature2 = i.t_in_list("feature2")?;
-        let crossbar = i.t_in_list("crossbar")?;
-        let arrow1a = i.t_in_list("arrow1a")?;
-        let arrow1b = i.t_in_list("arrow1b")?;
-        let arrow2a = i.t_in_list("arrow2a")?;
-        let arrow2b = i.t_in_list("arrow2b")?;
-        i.close(Dimension {
-            name: name,
-            width: width,
-            layer: layer,
-            tstamp: tstamp,
-            text: text,
-            feature1: feature1,
-            feature2: feature2,
-            crossbar: crossbar,
-            arrow1a: arrow1a,
-            arrow1b: arrow1b,
-            arrow2a: arrow2a,
-            arrow2b: arrow2b,
-        })
+        d.name = i.s("name")?;
+        d.width = i.f_in_list("width")?;
+        d.layer = i.t("layer")?;
+        d.tstamp = i.maybe_s_in_list("tstamp");
+        d.text = i.t("text")?;
+        d.feature1 = i.t_in_list("feature1")?;
+        d.feature2 = i.t_in_list("feature2")?;
+        d.crossbar = i.t_in_list("crossbar")?;
+        d.arrow1a = i.t_in_list("arrow1a")?;
+        d.arrow1b = i.t_in_list("arrow1b")?;
+        d.arrow2a = i.t_in_list("arrow2a")?;
+        d.arrow2b = i.t_in_list("arrow2b")?;
+        i.close(d)
     }
 }
 
@@ -492,10 +480,7 @@ impl FromSexp for Zone {
         let layer = i.t("layer")?;
         let tstamp = i.s_in_list("tstamp")?;
         let hatch = i.t("hatch")?;
-        let priority = match i.maybe_i_in_list("priority") {
-            Some(p) => p as u64,
-            None => 0_u64,
-        };
+        let priority = i.maybe_i_in_list("priority").unwrap_or(0) as u64;
         let connect_pads = i.t("connect_pads")?;
         let min_thickness = i.f_in_list("min_thickness")?;
         let keepout = i.maybe_t();
@@ -538,36 +523,30 @@ impl FromSexp for Zone {
 impl FromSexp for Hatch {
     fn from_sexp(s: &Sexp) -> SResult<Hatch> {
         let mut i = IterAtom::new(s, "hatch")?;
-        let h = Hatch {
-            style: i.s("style")?,
-            pitch: i.f("pitch")?,
-        };
+        let mut h = Hatch::default();
+        h.style = i.s("style")?;
+        h.pitch = i.f("pitch")?;
         i.close(h)
     }
 }
 
 impl FromSexp for ConnectPads {
     fn from_sexp(s: &Sexp) -> SResult<ConnectPads> {
+        let mut connect_pads = ConnectPads::default();
         let mut i = IterAtom::new(s, "connect_pads")?;
-        let connection = i.maybe_s();
-        let clearance = i.f_in_list("clearance")?;
-        i.close(ConnectPads {
-            connection: connection,
-            clearance: clearance,
-        })
+        connect_pads.connection = i.maybe_s();
+        connect_pads.clearance = i.f_in_list("clearance")?;
+        i.close(connect_pads)
     }
 }
 impl FromSexp for Keepout {
     fn from_sexp(s: &Sexp) -> SResult<Keepout> {
+        let mut keepout = Keepout::default();
         let mut i = IterAtom::new(s, "keepout")?;
-        let tracks = !i.s_in_list("tracks")?.starts_with("not");
-        let vias = !i.s_in_list("vias")?.starts_with("not");
-        let copperpour = !i.s_in_list("copperpour")?.starts_with("not");
-        i.close(Keepout {
-            tracks: tracks,
-            vias: vias,
-            copperpour: copperpour,
-        })
+        keepout.tracks = !i.s_in_list("tracks")?.starts_with("not");
+        keepout.vias = !i.s_in_list("vias")?.starts_with("not");
+        keepout.copperpour = !i.s_in_list("copperpour")?.starts_with("not");
+        i.close(keepout)
     }
 }
 
