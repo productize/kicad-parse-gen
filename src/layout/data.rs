@@ -153,7 +153,7 @@ pub struct Keepout {
 
 /// fill of a zone
 //  (fill yes (arc_segments 16) (thermal_gap 0.508) (thermal_bridge_width 0.508))
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Fill {
     /// if it is filled (default no)
     pub filled: bool,

@@ -574,23 +574,16 @@ impl FromSexp for Keepout {
 //  (fill yes (arc_segments 16) (thermal_gap 0.508) (thermal_bridge_width 0.508))
 impl FromSexp for Fill {
     fn from_sexp(s: &Sexp) -> SResult<Fill> {
+        let mut fill = Fill::default();
         let mut i = IterAtom::new(s, "fill")?;
-        let filled = i.maybe_s().is_some();
-        let mode = i.maybe_s_in_list("mode").is_some();
-        let arc_segments = i.i_in_list("arc_segments")?;
-        let thermal_gap = i.f_in_list("thermal_gap")?;
-        let thermal_bridge_width = i.f_in_list("thermal_bridge_width")?;
-        let smoothing = i.maybe_s_in_list("smoothing");
-        let radius = i.maybe_f_in_list("radius").unwrap_or(0.0);
-        Ok(Fill {
-            filled: filled,
-            segment: mode,
-            arc_segments: arc_segments,
-            thermal_gap: thermal_gap,
-            thermal_bridge_width: thermal_bridge_width,
-            smoothing: smoothing,
-            corner_radius: radius,
-        })
+        fill.filled = i.maybe_literal_s("yes").is_some();
+        fill.segment = i.maybe_s_in_list("mode").is_some();
+        fill.arc_segments = i.i_in_list("arc_segments")?;
+        fill.thermal_gap = i.f_in_list("thermal_gap")?;
+        fill.thermal_bridge_width = i.f_in_list("thermal_bridge_width")?;
+        fill.smoothing = i.maybe_s_in_list("smoothing");
+        fill.corner_radius = i.maybe_f_in_list("radius").unwrap_or(0.0);
+        i.close(fill)
     }
 }
 
