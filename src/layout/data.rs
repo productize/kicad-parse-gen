@@ -526,8 +526,8 @@ impl BoundingBox for Dimension {
 }
 
 /// segment
-// (segment (start 117.5548 123.4602) (end 118.3848 122.6302) (width 0.2032) (layer B.Cu) (net 0) (tstamp 55E99398))
-#[derive(Clone, Debug)]
+// (segment (start 117.5548 123.4602) (end 118.3848 122.6302) (width 0.2032) (layer B.Cu) (net 0) (tstamp 55E99398) (status foo))
+#[derive(Clone, Debug, Default)]
 pub struct Segment {
     /// start point
     pub start: footprint::Xy,

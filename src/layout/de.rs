@@ -594,39 +594,19 @@ impl FromSexp for Fill {
     }
 }
 
+// (segment (start 211 61.1) (end 211.1 61) (width 0.2032) (layer F.Cu) (net 20) [(tstamp 55A0DB7E)] [(status foo)])
 impl FromSexp for Segment {
     fn from_sexp(s: &Sexp) -> SResult<Segment> {
-        let i = IterAtom::new(s, "segment")?;
-        let mut start = footprint::Xy::new_empty(footprint::XyType::Start);
-        let mut end = footprint::Xy::new_empty(footprint::XyType::End);
-        let mut layer = footprint::Layer::default();
-        let mut width = 0.0_f64;
-        let mut tstamp = None;
-        let mut net = 0;
-        let mut status = None;
-        // TODO: perhaps we can get rid of GrElement now we have IterAtom...
-        for x in i.iter {
-            let elem = from_sexp(x)?;
-            match elem {
-                GrElement::Start(x) => start = x,
-                GrElement::End(x) => end = x,
-                GrElement::Layer(x) => layer = x,
-                GrElement::TStamp(x) => tstamp = Some(x),
-                GrElement::Width(x) => width = x,
-                GrElement::Net(x) => net = x,
-                GrElement::Status(x) => status = Some(x),
-                _ => (), // TODO
-            }
-        }
-        Ok(Segment {
-            start: start,
-            end: end,
-            width: width,
-            layer: layer,
-            net: net,
-            tstamp: tstamp,
-            status: status,
-        })
+        let mut i = IterAtom::new(s, "segment")?;
+        let mut segment = Segment::default();
+        segment.start = i.t("start")?;
+        segment.end = i.t("end")?;
+        segment.width = i.f_in_list("width")?;
+        segment.layer = i.t("layer")?;
+        segment.net = i.i_in_list("net")?;
+        segment.tstamp = i.maybe_s_in_list("tstamp");
+        segment.status = i.maybe_s_in_list("status");
+        i.close(segment)
     }
 }
 
