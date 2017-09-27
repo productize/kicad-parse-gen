@@ -265,7 +265,7 @@ pub struct SetupElement {
 }
 
 /// a netname
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct NetName(pub String);
 
 impl<'a> From<&'a str> for NetName {
@@ -298,7 +298,7 @@ impl NetName {
 }
 
 /// a net
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Default)]
 pub struct Net {
     /// net number
     pub num: i64,

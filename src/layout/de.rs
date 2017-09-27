@@ -13,25 +13,6 @@ use layout::data::*;
 
 // TODO: switch more to IterAtom like in footprint/de.rs
 
-// TODO: get rid of GrElement, using IterAtom allows dealing
-// with the elements cleanly
-enum GrElement {
-    Start(footprint::Xy),
-    End(footprint::Xy),
-    Center(footprint::Xy),
-    Angle(f64),
-    Layer(footprint::Layer),
-    Width(f64),
-    Size(f64),
-    Drill(f64),
-    TStamp(String),
-    At(footprint::At),
-    Effects(footprint::Effects),
-    Net(i64),
-    Status(String),
-    Layers(footprint::Layers),
-}
-
 struct Version(i64);
 
 impl FromSexp for Version {
@@ -77,57 +58,45 @@ struct FillSegments(footprint::Pts);
 impl FromSexp for FillSegments {
     fn from_sexp(s: &Sexp) -> SResult<FillSegments> {
         let mut i = IterAtom::new(s, "fill_segments")?;
-        Ok(FillSegments(i.t("pts")?))
+        let f = FillSegments(i.t("pts")?);
+        i.close(f)
     }
 }
 
 impl FromSexp for Net {
     fn from_sexp(s: &Sexp) -> SResult<Net> {
+        let mut net = Net::default();
         let mut i = IterAtom::new(s, "net")?;
-        let num = i.i("num")?;
-        let name = i.s("name")?;
-        i.close(Net {
-            name: name.into(),
-            num: num,
-        })
+        net.num = i.i("num")?;
+        net.name = i.s("name")?.into();
+        i.close(net)
     }
 }
 
 impl FromSexp for Host {
     fn from_sexp(s: &Sexp) -> SResult<Host> {
+        let mut host = Host::default();
         let mut i = IterAtom::new(s, "host")?;
-        let tool = i.s("tool")?;
-        let build = i.s("build")?;
-        i.close(Host {
-            tool: tool,
-            build: build,
-        })
+        host.tool = i.s("tool")?;
+        host.build = i.s("build")?;
+        i.close(host)
     }
 }
 
 impl FromSexp for General {
     fn from_sexp(s: &Sexp) -> SResult<General> {
+        let mut g = General::default();
         let mut i = IterAtom::new(s, "general")?;
-        let links = i.i_in_list("links")?;
-        let no_connects = i.i_in_list("no_connects")?;
-        let area: Area = i.t("area")?;
-        let thickness = i.f_in_list("thickness")?;
-        let drawings = i.i_in_list("drawings")?;
-        let tracks = i.i_in_list("tracks")?;
-        let zones = i.i_in_list("zones")?;
-        let modules = i.i_in_list("modules")?;
-        let nets = i.i_in_list("nets")?;
-        i.close(General {
-            links: links,
-            no_connects: no_connects,
-            area: area,
-            thickness: thickness,
-            drawings: drawings,
-            tracks: tracks,
-            zones: zones,
-            modules: modules,
-            nets: nets,
-        })
+        g.links = i.i_in_list("links")?;
+        g.no_connects = i.i_in_list("no_connects")?;
+        g.area = i.t("area")?;
+        g.thickness = i.f_in_list("thickness")?;
+        g.drawings = i.i_in_list("drawings")?;
+        g.tracks = i.i_in_list("tracks")?;
+        g.zones = i.i_in_list("zones")?;
+        g.modules = i.i_in_list("modules")?;
+        g.nets = i.i_in_list("nets")?;
+        i.close(g)
     }
 }
 
@@ -298,50 +267,6 @@ impl FromSexp for GrText {
         i.close(t)
     }
 }
-
-impl FromSexp for GrElement {
-    fn from_sexp(s: &Sexp) -> SResult<GrElement> {
-        match &(s.list_name()?)[..] {
-            "start" => wrap(s, from_sexp, GrElement::Start),
-            "end" => wrap(s, from_sexp, GrElement::End),
-            "center" => wrap(s, from_sexp, GrElement::Center),
-            "angle" => {
-                let l2 = s.named_value_f("angle")?;
-                Ok(GrElement::Angle(l2))
-            }
-            "layer" => wrap(s, from_sexp, GrElement::Layer),
-            "width" => {
-                let l2 = s.named_value_f("width")?;
-                Ok(GrElement::Width(l2))
-            }
-            "size" => {
-                let l2 = s.named_value_f("size")?;
-                Ok(GrElement::Size(l2))
-            }
-            "drill" => {
-                let l2 = s.named_value_f("drill")?;
-                Ok(GrElement::Drill(l2))
-            }
-            "tstamp" => {
-                let l2 = s.named_value_s("tstamp")?;
-                Ok(GrElement::TStamp(l2))
-            }
-            "status" => {
-                let l2 = s.named_value_s("status")?;
-                Ok(GrElement::Status(l2))
-            }
-            "net" => {
-                let l2 = s.named_value_i("net")?;
-                Ok(GrElement::Net(l2))
-            }
-            "at" => wrap(s, from_sexp, GrElement::At),
-            "layers" => wrap(s, from_sexp, GrElement::Layers),
-            "effects" => wrap(s, from_sexp, GrElement::Effects),
-            x => Err(format!("unknown element {} in {}", x, s).into()),
-        }
-    }
-}
-
 
 impl FromSexp for GrLine {
     fn from_sexp(s: &Sexp) -> SResult<GrLine> {
