@@ -36,7 +36,7 @@ impl FromSexp for At {
         let x = i.f("x")?;
         let y = i.f("y")?;
         let rot = i.maybe_f().unwrap_or(0.0);
-        Ok(At::new(x, y, rot))
+        i.close(At::new(x, y, rot))
     }
 }
 
@@ -45,7 +45,7 @@ impl FromSexp for Layer {
         let mut i = IterAtom::new(s, "layer")?;
         let layer = i.s("layername")?;
         let layer = Layer::from_string(&layer)?;
-        Ok(layer)
+        i.close(layer)
     }
 }
 
@@ -54,7 +54,7 @@ impl FromSexp for Effects {
         let mut i = IterAtom::new(s, "effects")?;
         let font = i.t("font")?;
         let justify = i.maybe_t();
-        Ok(Effects::from_font(font, justify))
+        i.close(Effects::from_font(font, justify))
     }
 }
 
@@ -86,8 +86,7 @@ impl FromSexp for Font {
         if i.maybe_literal_s("italic").is_some() {
             font.italic = true
         }
-        i.close(&font)?;
-        Ok(font)
+        i.close(font)
     }
 }
 
@@ -144,7 +143,7 @@ impl FromSexp for Xy {
         let mut i = IterAtom::new(s, name)?;
         let x = i.f("x")?;
         let y = i.f("y")?;
-        Ok(Xy::new(x, y, t))
+        i.close(Xy::new(x, y, t))
     }
 }
 
@@ -163,7 +162,7 @@ impl FromSexp for Xyz {
         let x = i.f("y")?;
         let y = i.f("y")?;
         let z = i.f("z")?;
-        Ok(Xyz::new(x, y, z))
+        i.close(Xyz::new(x, y, z))
     }
 }
 
@@ -172,7 +171,7 @@ impl FromSexp for Net {
         let mut i = IterAtom::new(s, "net")?;
         let num = i.i("num")?;
         let name = i.s("name")?;
-        Ok(Net {
+        i.close(Net {
             num: num,
             name: name.into(),
         })
@@ -228,8 +227,7 @@ impl FromSexp for FpText {
         if let Some(effects) = i.maybe_t::<footprint::Effects>() {
             fp.effects = effects;
         }
-        i.close(&fp)?;
-        Ok(fp)
+        i.close(fp)
     }
 }
 
@@ -290,8 +288,7 @@ impl FromSexp for FpPoly {
         if let Some(width) = i.maybe_f_in_list("width") {
             fp_poly.width = width;
         }
-        i.close(&fp_poly)?;
-        Ok(fp_poly)
+        i.close(fp_poly)
     }
 }
 
@@ -316,8 +313,7 @@ impl FromSexp for FpLine {
         if let Some(width) = i.maybe_f_in_list("width") {
             fp_line.width = width;
         }
-        i.close(&fp_line)?;
-        Ok(fp_line)
+        i.close(fp_line)
     }
 }
 
@@ -342,8 +338,7 @@ impl FromSexp for FpCircle {
         if let Some(width) = i.maybe_f_in_list("width") {
             fp_circle.width = width;
         }
-        i.close(&fp_circle)?;
-        Ok(fp_circle)
+        i.close(fp_circle)
     }
 }
 
@@ -371,8 +366,7 @@ impl FromSexp for FpArc {
         if let Some(width) = i.maybe_f_in_list("width") {
             fp_arc.width = width;
         }
-        i.close(&fp_arc)?;
-        Ok(fp_arc)
+        i.close(fp_arc)
     }
 }
 
@@ -380,12 +374,13 @@ impl FromSexp for FpArc {
 impl FromSexp for Model {
     fn from_sexp(s: &Sexp) -> SResult<Model> {
         let mut i = IterAtom::new(s, "model")?;
-        Ok(Model {
+        let model = Model {
             name: i.s("name")?,
             at: i.t_in_list("at")?,
             scale: i.t_in_list("scale")?,
             rotate: i.t_in_list("rotate")?,
-        })
+        };
+        i.close(model)
     }
 }
 
