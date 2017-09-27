@@ -632,29 +632,19 @@ impl FromSexp for Segment {
 impl FromSexp for Via {
     fn from_sexp(s: &Sexp) -> SResult<Via> {
         let i = IterAtom::new(s, "via")?;
-        let mut at = footprint::At::default();
-        let mut size = 0.0_f64;
-        let mut drill = 0.0_f64;
-        let mut layers = footprint::Layers::default();
-        let mut net = 0;
+        let mut via = Via::default();
         for x in i.iter {
             let elem = from_sexp(x)?;
             match elem {
-                GrElement::At(x) => at = x,
-                GrElement::Size(x) => size = x,
-                GrElement::Net(x) => net = x,
-                GrElement::Drill(x) => drill = x,
-                GrElement::Layers(x) => layers = x,
+                GrElement::At(x) => via.at = x,
+                GrElement::Size(x) => via.size = x,
+                GrElement::Net(x) => via.net = x,
+                GrElement::Drill(x) => via.drill = x,
+                GrElement::Layers(x) => via.layers = x,
                 _ => (), // TODO
             }
         }
-        Ok(Via {
-            at: at,
-            size: size,
-            drill: drill,
-            layers: layers,
-            net: net,
-        })
+        Ok(via)
     }
 }
 
@@ -664,7 +654,7 @@ impl FromSexp for Layout {
         let mut layout = Layout::default();
         // TODO: read in order instead of matching on iter
         for e in i.iter {
-            match &(e.list_name()?)[..] {
+            match (e.list_name()?).as_str() {
                 "version" => layout.version = Version::from_sexp(e)?.0,
                 "host" => layout.host = from_sexp(e)?,
                 "general" => layout.general = from_sexp(e)?,

@@ -564,7 +564,7 @@ impl BoundingBox for Segment {
 
 /// via
 // (via (at 132.1948 121.2202) (size 0.675) (drill 0.25) (layers F.Cu B.Cu) (net 19))
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Via {
     /// at
     pub at: footprint::At,
