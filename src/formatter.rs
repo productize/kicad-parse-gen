@@ -148,8 +148,8 @@ impl KicadFormatter {
                 let wrap = if self.is("fp_poly") { 4 } else { 5 };
                 if self.pts_xy_count > 0 && self.pts_xy_count % wrap == 0 {
                     return Some(indent);
-                } else if self.pts_xy_count == 0 &&
-                    (self.is("polygon") || self.is("filled_polygon"))
+                } else if self.pts_xy_count == 0
+                    && (self.is("polygon") || self.is("filled_polygon"))
                 {
                     return Some(indent);
                 }
@@ -371,8 +371,8 @@ impl Formatter for KicadFormatter {
                     writer.write_all(b"\n")?;
                 }
                 return Ok(());
-            } else if self.stack.is_empty() &&
-                (&s == "module" || &s == "kicad_pcb" || &s == "fp_lib_table")
+            } else if self.stack.is_empty()
+                && (&s == "module" || &s == "kicad_pcb" || &s == "fp_lib_table")
             {
                 writer.write_all(b"\n")?;
             }

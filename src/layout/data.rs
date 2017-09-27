@@ -456,8 +456,8 @@ impl Adjust for GrCircle {
 
 impl BoundingBox for GrCircle {
     fn bounding_box(&self) -> Bound {
-        let r = (self.center.x - self.end.x) * (self.center.x - self.end.x) +
-            (self.center.y - self.end.y) * (self.center.y - self.end.y);
+        let r = (self.center.x - self.end.x) * (self.center.x - self.end.x)
+            + (self.center.y - self.end.y) * (self.center.y - self.end.y);
         let r = r.sqrt();
         Bound::new(
             self.center.x - r,

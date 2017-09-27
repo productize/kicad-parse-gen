@@ -1578,15 +1578,11 @@ pub fn parse_file(filename: &Path) -> Result<Schematic> {
 pub fn filename_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<PathBuf> {
     let path = match schematic.filename {
         Some(ref path) => Ok(path),
-        None => Err(
-            "can't load sheet when there is no filename for the schematic".to_string(),
-        ),
+        None => Err("can't load sheet when there is no filename for the schematic".to_string()),
     }?;
     let dir = match path.parent() {
         Some(dir) => Ok(dir),
-        None => Err(
-            "can't load sheet when I don't know the dir of the schematic".to_string(),
-        ),
+        None => Err("can't load sheet when I don't know the dir of the schematic".to_string()),
     }?;
     Ok(dir.join(&sheet.filename))
 }
