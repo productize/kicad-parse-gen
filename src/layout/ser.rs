@@ -372,6 +372,12 @@ impl IntoSexp for Segment {
 impl IntoSexp for Via {
     fn into_sexp(&self) -> Sexp {
         let mut v = Sexp::start("via");
+        if self.blind {
+            v.push("blind")
+        }
+        if self.micro {
+            v.push("micro")
+        }
         v.push(self.at.into_sexp());
         v.push(("size", &self.size));
         if self.drill != 0.0 {
