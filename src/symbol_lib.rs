@@ -317,7 +317,7 @@ impl Symbol {
 
     /// is a symbol a graphics item?
     pub fn is_graphics(&self) -> bool {
-        self.reference.starts_with("#") && self.pins().is_empty()
+        self.reference.starts_with('#') && self.pins().is_empty()
     }
 
     /// is a symbol a basic symbol?
@@ -1085,7 +1085,7 @@ impl CheckFix for Symbol {
     fn check(&self, config: &Config) -> Vec<CheckFixData> {
         let mut v = vec![];
         // 1.7 valid name
-        let name = if self.name.starts_with("~") {
+        let name = if self.name.starts_with('~') {
             self.name.chars().skip(1).collect::<String>()
         } else {
             self.name.clone()

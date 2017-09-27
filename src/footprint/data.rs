@@ -448,11 +448,11 @@ impl Element {
 
     fn is_fab(&self) -> bool {
         match *self {
-            Element::Pad(_) => false,
             Element::FpPoly(ref e) => e.is_fab(),
             Element::FpLine(ref e) => e.is_fab(),
             Element::FpCircle(ref e) => e.is_fab(),
             Element::FpArc(ref e) => e.is_fab(),
+            Element::Pad(_) |
             Element::FpText(_) |
             Element::At(_) |
             Element::Layer(_) |
@@ -1490,7 +1490,7 @@ impl CheckFix for Module {
             }
             // 7.4 font height should be 1.0
             // this is kind of big :(
-            if value.effects.font.size.y != font_size {
+            if (value.effects.font.size.y - font_size).abs() > EPSILON {
                 v.push(CheckFixData::info(
                     7,
                     3,
@@ -1500,7 +1500,7 @@ impl CheckFix for Module {
             }
             // 7.4 font width should be 1.0
             // this is kind of big :(
-            if value.effects.font.size.x != font_size {
+            if (value.effects.font.size.x - font_size).abs() > EPSILON {
                 v.push(CheckFixData::info(
                     7,
                     3,
@@ -1509,7 +1509,7 @@ impl CheckFix for Module {
                 ));
             }
             // 7.4 font thickness should be 0.15
-            if value.effects.font.thickness != font_thickness {
+            if (value.effects.font.thickness - font_thickness).abs() > EPSILON {
                 v.push(CheckFixData::info(
                     7,
                     3,
@@ -1543,7 +1543,7 @@ impl CheckFix for Module {
                 ));
             }
             // 7.4 aspect ratio should be 1:1
-            if reference.effects.font.size.x != reference.effects.font.size.y {
+            if (reference.effects.font.size.x - reference.effects.font.size.y).abs() > EPSILON {
                 v.push(CheckFixData::new(
                     7,
                     4,
@@ -1553,7 +1553,7 @@ impl CheckFix for Module {
             }
             // 7.4 font height should be 1.0
             // this is kind of big :(
-            if reference.effects.font.size.y != font_size {
+            if (reference.effects.font.size.y - font_size).abs() > EPSILON {
                 v.push(CheckFixData::info(
                     7,
                     3,
@@ -1563,7 +1563,7 @@ impl CheckFix for Module {
             }
             // 7.4 font width should be 1.0
             // this is kind of big :(
-            if reference.effects.font.size.x != font_size {
+            if (reference.effects.font.size.x - font_size).abs() > EPSILON {
                 v.push(CheckFixData::info(
                     7,
                     3,
@@ -1572,7 +1572,7 @@ impl CheckFix for Module {
                 ));
             }
             // 7.4 font thickness should be 0.15
-            if reference.effects.font.thickness != font_thickness {
+            if (reference.effects.font.thickness - font_thickness).abs() > EPSILON {
                 v.push(CheckFixData::info(
                     7,
                     3,

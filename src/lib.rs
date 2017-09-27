@@ -212,7 +212,7 @@ pub fn write_layout(layout: &layout::Layout, name: &Path) -> Result<()> {
 
 /// write out a kicad `Module` to a file
 pub fn write_module(module: &footprint::Module, name: &Path) -> Result<()> {
-    let s = footprint::module_to_string(&module, 0)?;
+    let s = footprint::module_to_string(module, 0)?;
     write_file(&name, &s)
 }
 
