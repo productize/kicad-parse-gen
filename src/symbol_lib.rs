@@ -661,7 +661,7 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
     p.next(); // skip line like # name
     assume_line!(p, "#");
     let s = p.here();
-    let v = &parse_split_quote_aware(&s);
+    let v = &parse_split_quote_aware(&s)?;
     if v.len() != 10 {
         return str_error(format!("unexpected elements in {}", s));
     }
@@ -696,7 +696,7 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
         }
     }
     if p.here().starts_with("ALIAS") {
-        let v = parse_split_quote_aware(&p.here());
+        let v = parse_split_quote_aware(&p.here())?;
         for alias in v.into_iter().skip(1) {
             s.aliases.push(alias)
         }
@@ -741,7 +741,7 @@ fn bool_from<T: PartialEq + fmt::Display>(i: T, t: T, f: T) -> Result<bool> {
 // F0 "L" 0 50 40 H V C CNN
 fn parse_field(p: &mut ParseState, line: &str) -> Result<Field> {
     let mut f = Field::default();
-    let v = &parse_split_quote_aware(line);
+    let v = &parse_split_quote_aware(line)?;
     if v.len() != 9 && v.len() != 10 {
         return str_error(format!("unexpected elements in {}", line));
     }
@@ -775,7 +775,7 @@ fn parse_field(p: &mut ParseState, line: &str) -> Result<Field> {
 
 fn parse_pin(p: &mut ParseState, line: &str) -> Result<Pin> {
     let mut pin = Pin::default();
-    let v = &parse_split_quote_aware(line);
+    let v = &parse_split_quote_aware(line)?;
     if v.len() != 12 && v.len() != 13 {
         return str_error(format!("unexpected elements in {}", line));
     }
@@ -801,7 +801,7 @@ fn parse_pin(p: &mut ParseState, line: &str) -> Result<Pin> {
 // S -800 1200 800 -1200 0 1 10 f
 fn parse_rect(p: &mut ParseState, line: &str) -> Result<Rectangle> {
     let mut rect = Rectangle::default();
-    let v = &parse_split_quote_aware(line);
+    let v = &parse_split_quote_aware(line)?;
     if v.len() != 9 {
         return str_error(format!("unexpected elements in {}", line));
     }

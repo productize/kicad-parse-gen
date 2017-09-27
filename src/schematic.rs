@@ -1246,7 +1246,7 @@ fn parse_component_p(p: &mut ParseState, d: &mut Component) -> Result<()> {
 
 fn parse_component_f(p: &mut ParseState, d: &mut Component) -> Result<()> {
     // println!("{}", p.here());
-    let v = parse_split_quote_aware(&p.here());
+    let v = parse_split_quote_aware(&p.here())?;
     // for i in &v[..] {
     //    println!("'{}'", i)
     // }

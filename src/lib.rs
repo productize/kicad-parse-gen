@@ -27,80 +27,60 @@ pub use util::read_file;
 /// write file utility wrapper function
 pub use util::write_file;
 
-fn parse_split_quote_aware(s: &str) -> Vec<String> {
-    let mut v: Vec<String> = vec![];
-    let mut in_q: bool = false;
-    let mut q_seen: bool = false;
-    let mut s2: String = String::from("");
-    for c in s.chars() {
-        if !in_q && c == '\"' {
-            in_q = true;
-            // s2.push(c);
-            continue;
-        }
-        if in_q && c == '\"' {
-            in_q = false;
-            // s2.push(c);
-            q_seen = true;
-            continue;
-        }
-        if !in_q && c == ' ' {
-            if !s2.is_empty() || q_seen {
-                v.push(s2.clone());
-                s2.clear();
-            }
-            q_seen = false;
-            continue;
-        }
-        s2.push(c);
-    }
-    if !s2.is_empty() || q_seen {
-        v.push(s2.clone())
-    }
-    v
-}
-
-fn parse_split_quote_aware_n(n: usize, s: &str) -> Result<Vec<String>> {
+fn parse_split_quote_aware_int(n_opt: Option<usize>, s: &str) -> Result<Vec<String>> {
     let mut i = 0;
     let mut v: Vec<String> = vec![];
-    let mut in_q: bool = false;
-    let mut q_seen: bool = false;
-    let mut s2: String = String::from("");
+    // if we are inside our outside a quoted string
+    let mut inside_quotation = false;
+    let mut quotation_seen = false;
+    let mut s2: String = "".into();
     for c in s.chars() {
-        if i == n {
-            // if we're in the nth. just keep collecting in current string
-            s2.push(c);
+        if let Some(n) = n_opt {
+            if i == n {
+                // if we're in the nth. just keep collecting in current string
+                s2.push(c);
+                continue;
+            }
+        }
+        // detection of starting "
+        if !inside_quotation && c == '\"' {
+            inside_quotation = true;
             continue;
         }
-        if !in_q && c == '\"' {
-            in_q = true;
-            // s2.push(c);
+        // detection of final "
+        if inside_quotation && c == '\"' {
+            inside_quotation = false;
+            quotation_seen = true;
             continue;
         }
-        if in_q && c == '\"' {
-            in_q = false;
-            // s2.push(c);
-            q_seen = true;
-            continue;
-        }
-        if !in_q && c == ' ' {
-            if !s2.is_empty() || q_seen {
+        // detection of space before or in between parts
+        if !inside_quotation && c == ' ' {
+            if !s2.is_empty() || quotation_seen {
                 i += 1;
                 v.push(s2.clone());
                 s2.clear();
             }
-            q_seen = false;
+            quotation_seen = false;
             continue;
         }
         s2.push(c);
     }
-    if !s2.is_empty() || q_seen {
+    if !s2.is_empty() || quotation_seen {
         v.push(s2.clone())
     }
-    if v.len() < n {
-        return str_error(format!("expecting {} elements in {}", n, s));
+    if let Some(n) = n_opt {
+        if v.len() < n {
+            return str_error(format!("expecting {} elements in {}", n, s));
+        }
     }
     Ok(v)
+}
+
+fn parse_split_quote_aware_n(n: usize, s: &str) -> Result<Vec<String>> {
+    parse_split_quote_aware_int(Some(n), s)
+}
+fn parse_split_quote_aware(s: &str) -> Result<Vec<String>> {
+    parse_split_quote_aware_int(None, s)
 }
 
 /// types of Kicad files that can be found
