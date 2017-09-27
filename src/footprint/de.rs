@@ -82,30 +82,22 @@ impl FromSexp for Justify {
     }
 }
 
+// (font (size 0.625 0.625) (thickness 0.1))
 impl FromSexp for Font {
     fn from_sexp(s: &Sexp) -> SResult<Font> {
         let mut i = IterAtom::new(s, "font")?;
-        let parts = i.vec()?;
         let mut font = Font::default();
-        for part in &parts[..] {
-            // println!("part: {}", part);
-            match *part {
-                Part::Xy(ref xy) if xy.t == XyType::Size => {
-                    font.size.x = xy.x;
-                    font.size.y = xy.y;
-                    Ok(())
-                }
-                Part::Thickness(ref t) => {
-                    font.thickness = *t;
-                    Ok(())
-                }
-                Part::Italic => {
-                    font.italic = true;
-                    Ok(())
-                }
-                ref x => Err(format!("unknown element in font: {:?}", x)),
-            }?
+        if let Some(xy) = i.maybe_t::<Xy>() {
+            font.size.x = xy.x;
+            font.size.y = xy.y;
         }
+        if let Some(thickness) = i.maybe_f_in_list("thickness") {
+            font.thickness = thickness;
+        }
+        if i.maybe_literal_s("italic").is_some() {
+            font.italic = true
+        }
+        i.close(&font)?;
         Ok(font)
     }
 }
@@ -248,22 +240,26 @@ impl FromSexp for Part {
     }
 }
 
+//   (fp_text value MOSFET-N-GSD (at 0 2.6) (layer F.SilkS) hide (effects (font (size 0.625 0.625) (thickness 0.1))))
 impl FromSexp for FpText {
     fn from_sexp(s: &Sexp) -> SResult<FpText> {
         let mut i = IterAtom::new(s, "fp_text")?;
         let name = i.s("name")?;
         let value = i.s("value")?;
-        let parts = i.vec()?;
-        let mut fp = FpText::new(name.clone(), value.clone());
-        for part in &parts[..] {
-            match *part {
-                Part::At(ref at) => fp.at.clone_from(at),
-                Part::Layer(ref layer) => fp.set_layer(layer),
-                Part::Hide => fp.hide = true,
-                Part::Effects(ref effects) => fp.set_effects(effects),
-                ref x => return Err(format!("fp_text: unknown {:?}", x).into()),
-            }
+        let mut fp = FpText::new(name, value);
+        if let Some(at) = i.maybe_t::<footprint::At>() {
+            fp.at = at;
         }
+        if let Some(layer) = i.maybe_t::<footprint::Layer>() {
+            fp.layer = layer;
+        }
+        if i.maybe_literal_s("hide").is_some() {
+            fp.hide = true
+        }
+        if let Some(effects) = i.maybe_t::<footprint::Effects>() {
+            fp.effects = effects;
+        }
+        i.close(&fp)?;
         Ok(fp)
     }
 }
