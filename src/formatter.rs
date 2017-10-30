@@ -3,9 +3,7 @@
 use std::io;
 
 use Sexp;
-use symbolic_expressions::Result;
-use symbolic_expressions::Formatter;
-
+use symbolic_expressions::{Formatter, SexpError};
 // custom symbolic_expressions formatter that aims to be
 // kicad compatible
 
@@ -86,7 +84,7 @@ impl KicadFormatter {
         false
     }
 
-    fn indent<W: io::Write>(&self, writer: &mut W, nls: i64) -> Result<()> {
+    fn indent<W: io::Write>(&self, writer: &mut W, nls: i64) -> Result<(), SexpError> {
         for _ in 0..nls {
             writer.write_all(b"\n")?;
         }
@@ -96,7 +94,7 @@ impl KicadFormatter {
         Ok(())
     }
 
-    fn indent_plus<W: io::Write>(&mut self, writer: &mut W, nls: i64) -> Result<()> {
+    fn indent_plus<W: io::Write>(&mut self, writer: &mut W, nls: i64) -> Result<(),SexpError> {
         self.indent += 1;
         let res = self.indent(writer, nls);
         self.indent -= 1;
@@ -279,7 +277,7 @@ impl KicadFormatter {
 }
 
 impl Formatter for KicadFormatter {
-    fn open<W>(&mut self, writer: &mut W, value: Option<&Sexp>) -> Result<()>
+    fn open<W>(&mut self, writer: &mut W, value: Option<&Sexp>) -> Result<(), SexpError>
     where
         W: io::Write,
     {
@@ -338,7 +336,7 @@ impl Formatter for KicadFormatter {
         writer.write_all(b"(").map_err(From::from)
     }
 
-    fn element<W>(&mut self, writer: &mut W, value: &Sexp) -> Result<()>
+    fn element<W>(&mut self, writer: &mut W, value: &Sexp) -> Result<(), SexpError>
     where
         W: io::Write,
     {
@@ -351,7 +349,7 @@ impl Formatter for KicadFormatter {
         Ok(())
     }
 
-    fn close<W>(&mut self, writer: &mut W) -> Result<()>
+    fn close<W>(&mut self, writer: &mut W) -> Result<(), SexpError>
     where
         W: io::Write,
     {

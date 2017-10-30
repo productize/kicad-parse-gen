@@ -22,10 +22,7 @@ error_chain! {
         Int(num::ParseIntError) #[doc = "Int error"];
         EnvVar(env::VarError) #[doc = "Env Var error"];
         Shellexpand(shellexpand::LookupError<env::VarError>) #[doc = "Shell expand lookup error"];
-    }
-
-    links {
-        SymbolicExpression(symbolic_expressions::Error, symbolic_expressions::ErrorKind) #[doc = "symbolic expression library error"];
+        SymbolicExpression(symbolic_expressions::Error) #[doc = "Symbolic Expressions error"];
     }
 }
 

@@ -5,6 +5,7 @@ use footprint;
 use footprint::data::*;
 use wrap;
 use symbolic_expressions::iteratom::*;
+use symbolic_expressions::SexpError;
 
 // TODO: get rid of Part
 #[derive(Debug)]
@@ -21,7 +22,7 @@ enum Part {
 struct Offset(f64, f64);
 
 impl FromSexp for Offset {
-    fn from_sexp(s: &Sexp) -> SResult<Offset> {
+    fn from_sexp(s: &Sexp) -> Result<Offset, SexpError> {
         let mut i = IterAtom::new(s, "offset")?;
         let x = i.f("x")?;
         let y = i.f("y")?;
@@ -31,7 +32,7 @@ impl FromSexp for Offset {
 
 // (at 0.0 -4.0) (at -2.575 -1.625 180)
 impl FromSexp for At {
-    fn from_sexp(s: &Sexp) -> SResult<At> {
+    fn from_sexp(s: &Sexp) -> Result<At, SexpError> {
         let mut i = IterAtom::new(s, "at")?;
         let x = i.f("x")?;
         let y = i.f("y")?;
@@ -41,7 +42,7 @@ impl FromSexp for At {
 }
 
 impl FromSexp for Layer {
-    fn from_sexp(s: &Sexp) -> SResult<Layer> {
+    fn from_sexp(s: &Sexp) -> Result<Layer, SexpError> {
         let mut i = IterAtom::new(s, "layer")?;
         let layer = i.s("layername")?;
         let layer = Layer::from_string(&layer)?;
@@ -50,7 +51,7 @@ impl FromSexp for Layer {
 }
 
 impl FromSexp for Effects {
-    fn from_sexp(s: &Sexp) -> SResult<Effects> {
+    fn from_sexp(s: &Sexp) -> Result<Effects, SexpError> {
         let mut i = IterAtom::new(s, "effects")?;
         let font = i.t("font")?;
         let justify = i.maybe_t();
@@ -59,7 +60,7 @@ impl FromSexp for Effects {
 }
 
 impl FromSexp for Justify {
-    fn from_sexp(s: &Sexp) -> SResult<Justify> {
+    fn from_sexp(s: &Sexp) -> Result<Justify, SexpError> {
         let mut i = IterAtom::new(s, "justify")?;
         let s = i.s("mirror")?;
         match &s[..] {
@@ -73,7 +74,7 @@ impl FromSexp for Justify {
 
 // (font (size 0.625 0.625) (thickness 0.1))
 impl FromSexp for Font {
-    fn from_sexp(s: &Sexp) -> SResult<Font> {
+    fn from_sexp(s: &Sexp) -> Result<Font, SexpError> {
         let mut i = IterAtom::new(s, "font")?;
         let mut font = Font::default();
         if let Some(xy) = i.maybe_t::<Xy>() {
@@ -91,7 +92,7 @@ impl FromSexp for Font {
 }
 
 impl FromSexp for Layers {
-    fn from_sexp(s: &Sexp) -> SResult<Layers> {
+    fn from_sexp(s: &Sexp) -> Result<Layers, SexpError> {
         let mut l = Layers::default();
         let i = IterAtom::new(s, "layers")?;
         for v1 in i.iter {
@@ -103,7 +104,7 @@ impl FromSexp for Layers {
     }
 }
 
-fn parse_part_float<F>(e: &Sexp, make: F) -> SResult<Part>
+fn parse_part_float<F>(e: &Sexp, make: F) -> Result<Part, SexpError>
 where
     F: Fn(f64) -> Part,
 {
@@ -115,7 +116,7 @@ where
     Ok(make(f))
 }
 
-fn parse_part_int<F>(e: &Sexp, make: F) -> SResult<Part>
+fn parse_part_int<F>(e: &Sexp, make: F) -> Result<Part, SexpError>
 where
     F: Fn(i64) -> Part,
 {
@@ -128,9 +129,9 @@ where
 }
 
 impl FromSexp for Xy {
-    fn from_sexp(s: &Sexp) -> SResult<Xy> {
+    fn from_sexp(s: &Sexp) -> Result<Xy, SexpError> {
         let name: &str = &s.list_name()?[..];
-        let t: SResult<XyType> = match name {
+        let t: Result<XyType, SexpError> = match name {
             "xy" => Ok(XyType::Xy),
             "start" => Ok(XyType::Start),
             "end" => Ok(XyType::End),
@@ -148,7 +149,7 @@ impl FromSexp for Xy {
 }
 
 impl FromSexp for Pts {
-    fn from_sexp(s: &Sexp) -> SResult<Pts> {
+    fn from_sexp(s: &Sexp) -> Result<Pts, SexpError> {
         let mut i = IterAtom::new(s, "pts")?;
         let r = i.vec()?;
         Ok(Pts { elements: r })
@@ -157,7 +158,7 @@ impl FromSexp for Pts {
 
 
 impl FromSexp for Xyz {
-    fn from_sexp(s: &Sexp) -> SResult<Xyz> {
+    fn from_sexp(s: &Sexp) -> Result<Xyz, SexpError> {
         let mut i = IterAtom::new(s, "xyz")?;
         let x = i.f("y")?;
         let y = i.f("y")?;
@@ -167,7 +168,7 @@ impl FromSexp for Xyz {
 }
 
 impl FromSexp for Net {
-    fn from_sexp(s: &Sexp) -> SResult<Net> {
+    fn from_sexp(s: &Sexp) -> Result<Net, SexpError> {
         let mut i = IterAtom::new(s, "net")?;
         let num = i.i("num")?;
         let name = i.s("name")?;
@@ -179,7 +180,7 @@ impl FromSexp for Net {
 }
 
 impl FromSexp for Drill {
-    fn from_sexp(s: &Sexp) -> SResult<Drill> {
+    fn from_sexp(s: &Sexp) -> Result<Drill, SexpError> {
         let mut i = IterAtom::new(s, "drill")?;
         let mut drill = Drill::default();
         drill.shape = i.maybe_literal_s("oval");
@@ -193,7 +194,7 @@ impl FromSexp for Drill {
 }
 
 impl FromSexp for Part {
-    fn from_sexp(s: &Sexp) -> SResult<Part> {
+    fn from_sexp(s: &Sexp) -> Result<Part, SexpError> {
         let name = &(s.list_name()?)[..];
         match name {
             "thickness" => parse_part_float(s, Part::Thickness),
@@ -210,7 +211,7 @@ impl FromSexp for Part {
 
 //   (fp_text value MOSFET-N-GSD (at 0 2.6) (layer F.SilkS) hide (effects (font (size 0.625 0.625) (thickness 0.1))))
 impl FromSexp for FpText {
-    fn from_sexp(s: &Sexp) -> SResult<FpText> {
+    fn from_sexp(s: &Sexp) -> Result<FpText, SexpError> {
         let mut i = IterAtom::new(s, "fp_text")?;
         let name = i.s("name")?;
         let value = i.s("value")?;
@@ -233,7 +234,7 @@ impl FromSexp for FpText {
 
 // (pad 1 smd rect (at -0.95 0.885) (size 0.802 0.972) (layers F.Cu F.Paste F.Mask))
 impl FromSexp for Pad {
-    fn from_sexp(s: &Sexp) -> SResult<Pad> {
+    fn from_sexp(s: &Sexp) -> Result<Pad, SexpError> {
         let mut i = IterAtom::new(s, "pad")?;
         let name = i.s("name")?;
         let t = i.s("type")?;
@@ -275,7 +276,7 @@ impl FromSexp for Pad {
 
 // (fp_poly (pts (xy 0.7 0.65) (xy 0.7 1.15) (xy 1.2 1.15) (xy 1.2 0.65) (xy 0.7 0.65)) (layer Dwgs.User) (width 0.15))
 impl FromSexp for FpPoly {
-    fn from_sexp(s: &Sexp) -> SResult<FpPoly> {
+    fn from_sexp(s: &Sexp) -> Result<FpPoly, SexpError> {
         let mut i = IterAtom::new(s, "fp_poly")?;
         let mut fp_poly = FpPoly::default();
         if let Some(pts) = i.maybe_t::<Pts>() {
@@ -293,7 +294,7 @@ impl FromSexp for FpPoly {
 
 // (fp_line (start -1.5 -1.5) (end -1.5 1.5) (layer F.SilkS) (width 0.1))
 impl FromSexp for FpLine {
-    fn from_sexp(s: &Sexp) -> SResult<FpLine> {
+    fn from_sexp(s: &Sexp) -> Result<FpLine, SexpError> {
         let mut i = IterAtom::new(s, "fp_line")?;
         let mut fp_line = FpLine::default();
         if let Some(xy) = i.maybe_t::<Xy>() {
@@ -318,7 +319,7 @@ impl FromSexp for FpLine {
 
 // (fp_circle (center -2.6 -2.6) (end -2.467417 -2.467417) (layer F.SilkS) (width 0.1875))
 impl FromSexp for FpCircle {
-    fn from_sexp(s: &Sexp) -> SResult<FpCircle> {
+    fn from_sexp(s: &Sexp) -> Result<FpCircle, SexpError> {
         let mut i = IterAtom::new(s, "fp_circle")?;
         let mut fp_circle = FpCircle::default();
         if let Some(xy) = i.maybe_t::<Xy>() {
@@ -343,7 +344,7 @@ impl FromSexp for FpCircle {
 
 // (fp_arc (start 4.15 4.25) (end 5.15 4.25) (angle 86.6) (layer F.SilkS) (width 0.1))
 impl FromSexp for FpArc {
-    fn from_sexp(s: &Sexp) -> SResult<FpArc> {
+    fn from_sexp(s: &Sexp) -> Result<FpArc, SexpError> {
         let mut i = IterAtom::new(s, "fp_arc")?;
         let mut fp_arc = FpArc::default();
         if let Some(xy) = i.maybe_t::<Xy>() {
@@ -371,7 +372,7 @@ impl FromSexp for FpArc {
 
 // (model C_0603J.wrl (at (xyz 0 0 0)) (scale (xyz 1 1 1)) (rotate (xyz 0 0 0)))
 impl FromSexp for Model {
-    fn from_sexp(s: &Sexp) -> SResult<Model> {
+    fn from_sexp(s: &Sexp) -> Result<Model, SexpError> {
         let mut i = IterAtom::new(s, "model")?;
         let model = Model {
             name: i.s("name")?,
@@ -383,19 +384,19 @@ impl FromSexp for Model {
     }
 }
 
-fn parse_string_element(s: &Sexp) -> SResult<String> {
+fn parse_string_element(s: &Sexp) -> Result<String, SexpError> {
     let name = s.list_name()?;
     let mut i = IterAtom::new(s, name)?;
     Ok(i.s("element")?)
 }
 
-fn parse_float_element(s: &Sexp) -> SResult<f64> {
+fn parse_float_element(s: &Sexp) -> Result<f64, SexpError> {
     let name = s.list_name()?;
     let mut i = IterAtom::new(s, name)?;
     Ok(i.f("element")?)
 }
 
-fn parse_stamp_element(s: &Sexp) -> SResult<i64> {
+fn parse_stamp_element(s: &Sexp) -> Result<i64, SexpError> {
     let name = s.list_name()?;
     let mut i = IterAtom::new(s, name)?;
     let s = i.s("element")?;
@@ -404,7 +405,7 @@ fn parse_stamp_element(s: &Sexp) -> SResult<i64> {
 }
 
 impl FromSexp for Element {
-    fn from_sexp(s: &Sexp) -> SResult<Element> {
+    fn from_sexp(s: &Sexp) -> Result<Element, SexpError> {
         match *s {
             Sexp::String(ref s) => match &s[..] {
                 "locked" => Ok(Element::Locked),
@@ -439,7 +440,7 @@ impl FromSexp for Element {
 }
 
 impl FromSexp for Module {
-    fn from_sexp(s: &Sexp) -> SResult<Module> {
+    fn from_sexp(s: &Sexp) -> Result<Module, SexpError> {
         let mut i = IterAtom::new(s, "module")?;
         let name = i.s("name")?;
         let mut module = Module::new(name);

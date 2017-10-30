@@ -13,14 +13,12 @@ extern crate symbolic_expressions;
 // #[macro_use]
 // extern crate strum_macros;
 
-
 use std::fmt;
 use std::path::{Path, PathBuf};
+use std::result;
 
-pub use symbolic_expressions::Sexp;
+pub use symbolic_expressions::{Sexp,SexpError};
 pub use error::*;
-
-use symbolic_expressions::iteratom::SResult;
 
 /// read file utility wrapper function
 pub use util::read_file;
@@ -174,7 +172,7 @@ pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile> {
     match fp_lib_table::parse(&data) {
         Ok(p) => return Ok(KicadFile::FpLibTable(p)),
         Err(x) => if expected == Expected::FpLibTable {
-            return Err(x);
+            return Err(x.into());
         },
     }
     Ok(KicadFile::Unknown(PathBuf::from(name)))
@@ -240,9 +238,9 @@ pub fn read_fp_lib_table(name: &Path) -> Result<fp_lib_table::FpLibTable> {
     }
 }
 
-fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> SResult<Y>
+fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> result::Result<Y,SexpError>
 where
-    F: Fn(&Sexp) -> SResult<X>,
+    F: Fn(&Sexp) -> result::Result<X,SexpError>,
     G: Fn(X) -> Y,
 {
     Ok(wrapper(make(s)?))

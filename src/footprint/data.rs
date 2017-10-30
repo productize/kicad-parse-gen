@@ -3,12 +3,12 @@
 use std::f64::EPSILON;
 
 use {Adjust, Bound, BoundingBox};
-use symbolic_expressions::iteratom::SResult;
 
 pub use layout::NetName;
 
-
 use checkfix::{CheckFix, CheckFixData, Config};
+
+use symbolic_expressions::SexpError;
 
 /// implement to allow a Module and it's sub Element be flippable
 pub trait Flip {
@@ -795,7 +795,7 @@ pub enum PadType {
 
 impl PadType {
     /// convert a &str to a pad type
-    pub fn from_string(s: &str) -> SResult<PadType> {
+    pub fn from_string(s: &str) -> Result<PadType,SexpError> {
         match s {
             "smd" => Ok(PadType::Smd),
             "thru_hole" => Ok(PadType::Pth),
@@ -820,7 +820,7 @@ pub enum PadShape {
 
 impl PadShape {
     /// convert a &str to a pad shape
-    pub fn from_string(s: &str) -> SResult<PadShape> {
+    pub fn from_string(s: &str) -> Result<PadShape, SexpError> {
         match s {
             "rect" => Ok(PadShape::Rect),
             "circle" => Ok(PadShape::Circle),
@@ -931,7 +931,7 @@ impl PartialEq for Layer {
 
 impl Layer {
     /// create a layer from a String
-    pub fn from_string(s: &str) -> SResult<Layer> {
+    pub fn from_string(s: &str) -> Result<Layer, SexpError> {
         let sp: Vec<&str> = s.split('.').collect();
         let mut side = LayerSide::None;
         let s_t = if sp.len() == 2 {

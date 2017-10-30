@@ -8,6 +8,7 @@ use footprint;
 use wrap;
 use Sexp;
 use symbolic_expressions::iteratom::*;
+use symbolic_expressions::SexpError;
 
 use layout::data::*;
 
@@ -16,7 +17,7 @@ use layout::data::*;
 struct Version(i64);
 
 impl FromSexp for Version {
-    fn from_sexp(s: &Sexp) -> SResult<Version> {
+    fn from_sexp(s: &Sexp) -> Result<Version, SexpError> {
         let mut i = IterAtom::new(s, "version")?;
         let v = Version(i.i("value")?);
         i.close(v)
@@ -26,7 +27,7 @@ impl FromSexp for Version {
 struct Page(String);
 
 impl FromSexp for Page {
-    fn from_sexp(s: &Sexp) -> SResult<Page> {
+    fn from_sexp(s: &Sexp) -> Result<Page, SexpError> {
         let mut i = IterAtom::new(s, "page")?;
         let p = Page(i.s("value")?);
         i.close(p)
@@ -36,7 +37,7 @@ impl FromSexp for Page {
 struct Polygon(footprint::Pts);
 
 impl FromSexp for Polygon {
-    fn from_sexp(s: &Sexp) -> SResult<Polygon> {
+    fn from_sexp(s: &Sexp) -> Result<Polygon, SexpError> {
         let mut i = IterAtom::new(s, "polygon")?;
         let p = Polygon(i.t("pts")?);
         i.close(p)
@@ -46,7 +47,7 @@ impl FromSexp for Polygon {
 struct FilledPolygon(footprint::Pts);
 
 impl FromSexp for FilledPolygon {
-    fn from_sexp(s: &Sexp) -> SResult<FilledPolygon> {
+    fn from_sexp(s: &Sexp) -> Result<FilledPolygon, SexpError> {
         let mut i = IterAtom::new(s, "filled_polygon")?;
         let f = FilledPolygon(i.t("pts")?);
         i.close(f)
@@ -56,7 +57,7 @@ impl FromSexp for FilledPolygon {
 struct FillSegments(footprint::Pts);
 
 impl FromSexp for FillSegments {
-    fn from_sexp(s: &Sexp) -> SResult<FillSegments> {
+    fn from_sexp(s: &Sexp) -> Result<FillSegments, SexpError> {
         let mut i = IterAtom::new(s, "fill_segments")?;
         let f = FillSegments(i.t("pts")?);
         i.close(f)
@@ -64,7 +65,7 @@ impl FromSexp for FillSegments {
 }
 
 impl FromSexp for Net {
-    fn from_sexp(s: &Sexp) -> SResult<Net> {
+    fn from_sexp(s: &Sexp) -> Result<Net, SexpError> {
         let mut net = Net::default();
         let mut i = IterAtom::new(s, "net")?;
         net.num = i.i("num")?;
@@ -74,7 +75,7 @@ impl FromSexp for Net {
 }
 
 impl FromSexp for Host {
-    fn from_sexp(s: &Sexp) -> SResult<Host> {
+    fn from_sexp(s: &Sexp) -> Result<Host, SexpError> {
         let mut host = Host::default();
         let mut i = IterAtom::new(s, "host")?;
         host.tool = i.s("tool")?;
@@ -84,7 +85,7 @@ impl FromSexp for Host {
 }
 
 impl FromSexp for General {
-    fn from_sexp(s: &Sexp) -> SResult<General> {
+    fn from_sexp(s: &Sexp) -> Result<General, SexpError> {
         let mut g = General::default();
         let mut i = IterAtom::new(s, "general")?;
         g.links = i.i_in_list("links")?;
@@ -101,7 +102,7 @@ impl FromSexp for General {
 }
 
 impl FromSexp for Area {
-    fn from_sexp(s: &Sexp) -> SResult<Area> {
+    fn from_sexp(s: &Sexp) -> Result<Area, SexpError> {
         let mut i = IterAtom::new(s, "area")?;
         let a = Area {
             x1: i.f("x1")?,
@@ -116,7 +117,7 @@ impl FromSexp for Area {
 struct LayerVec(Vec<Layer>);
 
 impl FromSexp for LayerVec {
-    fn from_sexp(s: &Sexp) -> SResult<LayerVec> {
+    fn from_sexp(s: &Sexp) -> Result<LayerVec, SexpError> {
         let i = IterAtom::new(s, "layers")?;
         let mut v = vec![];
         for x in i.iter {
@@ -128,7 +129,7 @@ impl FromSexp for LayerVec {
 }
 
 impl FromSexp for Layer {
-    fn from_sexp(s: &Sexp) -> SResult<Layer> {
+    fn from_sexp(s: &Sexp) -> Result<Layer, SexpError> {
         let mut i = IterAtom::new_nameless(s, "layer")?;
         let num = i.i("num")?;
         let layer = footprint::Layer::from_string(&i.s("layer")?)?;
@@ -144,7 +145,7 @@ impl FromSexp for Layer {
 }
 
 impl FromSexp for LayerType {
-    fn from_sexp(s: &Sexp) -> SResult<LayerType> {
+    fn from_sexp(s: &Sexp) -> Result<LayerType, SexpError> {
         let x = s.string()?;
         match &x[..] {
             "signal" => Ok(LayerType::Signal),
@@ -158,7 +159,7 @@ impl FromSexp for LayerType {
 }
 
 impl FromSexp for SetupElement {
-    fn from_sexp(s: &Sexp) -> SResult<SetupElement> {
+    fn from_sexp(s: &Sexp) -> Result<SetupElement, SexpError> {
         let mut i = IterAtom::new_nameless(s, "setup_element")?;
         let m = SetupElement {
             name: i.s("name")?,
@@ -170,8 +171,8 @@ impl FromSexp for SetupElement {
 }
 
 impl FromSexp for NetClass {
-    fn from_sexp(s: &Sexp) -> SResult<NetClass> {
-        fn parse(e: &Sexp, name: &str) -> SResult<f64> {
+    fn from_sexp(s: &Sexp) -> Result<NetClass, SexpError> {
+        fn parse(e: &Sexp, name: &str) -> Result<f64, SexpError> {
             let mut i = IterAtom::new(e, name)?;
             let r = i.f("element")?;
             i.close(r)
@@ -225,7 +226,7 @@ impl FromSexp for NetClass {
 }
 
 impl FromSexp for Setup {
-    fn from_sexp(s: &Sexp) -> SResult<Setup> {
+    fn from_sexp(s: &Sexp) -> Result<Setup, SexpError> {
         let mut elements = vec![];
         let mut pcbplotparams = vec![];
         let i = IterAtom::new(s, "setup")?;
@@ -256,7 +257,7 @@ fn parse_other(e: &Sexp) -> Element {
 }
 
 impl FromSexp for GrText {
-    fn from_sexp(s: &Sexp) -> SResult<GrText> {
+    fn from_sexp(s: &Sexp) -> Result<GrText, SexpError> {
         let mut t = GrText::default();
         let mut i = IterAtom::new(s, "gr_text")?;
         t.value = i.s("value")?;
@@ -269,7 +270,7 @@ impl FromSexp for GrText {
 }
 
 impl FromSexp for GrLine {
-    fn from_sexp(s: &Sexp) -> SResult<GrLine> {
+    fn from_sexp(s: &Sexp) -> Result<GrLine, SexpError> {
         let mut l = GrLine::default();
         let mut i = IterAtom::new(s, "gr_line")?;
         l.start = i.t("start")?;
@@ -283,7 +284,7 @@ impl FromSexp for GrLine {
 }
 
 impl FromSexp for GrArc {
-    fn from_sexp(s: &Sexp) -> SResult<GrArc> {
+    fn from_sexp(s: &Sexp) -> Result<GrArc, SexpError> {
         let mut a = GrArc::default();
         let mut i = IterAtom::new(s, "gr_arc")?;
         a.start = i.t("start")?;
@@ -298,7 +299,7 @@ impl FromSexp for GrArc {
 }
 
 impl FromSexp for GrCircle {
-    fn from_sexp(s: &Sexp) -> SResult<GrCircle> {
+    fn from_sexp(s: &Sexp) -> Result<GrCircle, SexpError> {
         let mut c = GrCircle::default();
         let mut i = IterAtom::new(s, "gr_circle")?;
         c.center = i.t("center")?;
@@ -313,7 +314,7 @@ impl FromSexp for GrCircle {
 
 
 impl FromSexp for Dimension {
-    fn from_sexp(s: &Sexp) -> SResult<Dimension> {
+    fn from_sexp(s: &Sexp) -> Result<Dimension, SexpError> {
         let mut d = Dimension::default();
         let mut i = IterAtom::new(s, "dimension")?;
         d.name = i.s("name")?;
@@ -333,7 +334,7 @@ impl FromSexp for Dimension {
 }
 
 impl FromSexp for Zone {
-    fn from_sexp(s: &Sexp) -> SResult<Zone> {
+    fn from_sexp(s: &Sexp) -> Result<Zone, SexpError> {
         let mut i = IterAtom::new(s, "zone")?;
         let net = i.i_in_list("net")?;
         let net_name = i.s_in_list("net_name")?;
@@ -381,7 +382,7 @@ impl FromSexp for Zone {
 }
 
 impl FromSexp for Hatch {
-    fn from_sexp(s: &Sexp) -> SResult<Hatch> {
+    fn from_sexp(s: &Sexp) -> Result<Hatch, SexpError> {
         let mut i = IterAtom::new(s, "hatch")?;
         let mut h = Hatch::default();
         h.style = i.s("style")?;
@@ -391,7 +392,7 @@ impl FromSexp for Hatch {
 }
 
 impl FromSexp for ConnectPads {
-    fn from_sexp(s: &Sexp) -> SResult<ConnectPads> {
+    fn from_sexp(s: &Sexp) -> Result<ConnectPads, SexpError> {
         let mut connect_pads = ConnectPads::default();
         let mut i = IterAtom::new(s, "connect_pads")?;
         connect_pads.connection = i.maybe_s();
@@ -400,7 +401,7 @@ impl FromSexp for ConnectPads {
     }
 }
 impl FromSexp for Keepout {
-    fn from_sexp(s: &Sexp) -> SResult<Keepout> {
+    fn from_sexp(s: &Sexp) -> Result<Keepout, SexpError> {
         let mut keepout = Keepout::default();
         let mut i = IterAtom::new(s, "keepout")?;
         keepout.tracks = !i.s_in_list("tracks")?.starts_with("not");
@@ -412,7 +413,7 @@ impl FromSexp for Keepout {
 
 //  (fill yes (arc_segments 16) (thermal_gap 0.508) (thermal_bridge_width 0.508))
 impl FromSexp for Fill {
-    fn from_sexp(s: &Sexp) -> SResult<Fill> {
+    fn from_sexp(s: &Sexp) -> Result<Fill, SexpError> {
         let mut fill = Fill::default();
         let mut i = IterAtom::new(s, "fill")?;
         fill.filled = i.maybe_literal_s("yes").is_some();
@@ -428,7 +429,7 @@ impl FromSexp for Fill {
 
 // (segment (start 211 61.1) (end 211.1 61) (width 0.2032) (layer F.Cu) (net 20) [(tstamp 55A0DB7E)] [(status foo)])
 impl FromSexp for Segment {
-    fn from_sexp(s: &Sexp) -> SResult<Segment> {
+    fn from_sexp(s: &Sexp) -> Result<Segment, SexpError> {
         let mut i = IterAtom::new(s, "segment")?;
         let mut segment = Segment::default();
         segment.start = i.t("start")?;
@@ -444,7 +445,7 @@ impl FromSexp for Segment {
 
 // (via [blind] [micro] (at 132.1948 121.2202) (size 0.675) (drill 0.25) (layers F.Cu B.Cu) (net 19))
 impl FromSexp for Via {
-    fn from_sexp(s: &Sexp) -> SResult<Via> {
+    fn from_sexp(s: &Sexp) -> Result<Via, SexpError> {
         let mut i = IterAtom::new(s, "via")?;
         let mut via = Via::default();
         via.blind = i.maybe_literal_s("blind").is_some();
@@ -459,7 +460,7 @@ impl FromSexp for Via {
 }
 
 impl FromSexp for Layout {
-    fn from_sexp(s: &Sexp) -> SResult<Layout> {
+    fn from_sexp(s: &Sexp) -> Result<Layout, SexpError> {
         let i = IterAtom::new(s, "kicad_pcb")?;
         let mut layout = Layout::default();
         // TODO: read in order instead of matching on iter

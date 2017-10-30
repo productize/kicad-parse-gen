@@ -3,12 +3,12 @@
 // filename: fp-lib-table
 // format: new-style
 
-use Result;
 use symbolic_expressions;
-use symbolic_expressions::{IntoSexp, Sexp};
+use symbolic_expressions::{IntoSexp, Sexp, SexpError};
 use formatter::KicadFormatter;
 use symbolic_expressions::iteratom::*;
 use shellexpand;
+use error;
 
 /// a fp-lib-table
 #[derive(Debug, Clone)]
@@ -34,7 +34,7 @@ pub struct Lib {
 
 impl Lib {
     /// return the URI with environment variables substituted
-    pub fn get_expanded_uri(&self) -> Result<String> {
+    pub fn get_expanded_uri(&self) -> error::Result<String> {
         let s = shellexpand::full(&self.uri)?;
         Ok(s.into())
     }
@@ -63,7 +63,7 @@ impl IntoSexp for Lib {
 }
 
 impl FromSexp for FpLibTable {
-    fn from_sexp(s: &Sexp) -> SResult<FpLibTable> {
+    fn from_sexp(s: &Sexp) -> Result<FpLibTable, SexpError> {
         let mut i = IterAtom::new(s, "fp_lib_table")?;
         let libs = i.vec()?;
         Ok(FpLibTable { libs: libs })
@@ -71,7 +71,7 @@ impl FromSexp for FpLibTable {
 }
 
 impl FromSexp for Lib {
-    fn from_sexp(s: &Sexp) -> SResult<Lib> {
+    fn from_sexp(s: &Sexp) -> Result<Lib, SexpError> {
         let mut i = IterAtom::new(s, "lib")?;
         let name = i.s_in_list("name")?;
         let type_ = i.s_in_list("type")?;
@@ -89,14 +89,14 @@ impl FromSexp for Lib {
 }
 
 /// parse a &str to an `FpLibTable`
-pub fn parse(s: &str) -> Result<FpLibTable> {
+pub fn parse(s: &str) -> Result<FpLibTable, SexpError> {
     let t = symbolic_expressions::parser::parse_str(s)?;
     let s = symbolic_expressions::from_sexp(&t)?;
     Ok(s)
 }
 
 /// convert an `FpLibTable` to a formatted symbolic-expressions String
-pub fn to_string(fp_lib_table: &FpLibTable, indent_level: i64) -> Result<String> {
+pub fn to_string(fp_lib_table: &FpLibTable, indent_level: i64) -> error::Result<String> {
     let formatter = KicadFormatter::new(indent_level);
     symbolic_expressions::ser::to_string_with_formatter(&fp_lib_table.into_sexp(), formatter)
         .map_err(From::from)
