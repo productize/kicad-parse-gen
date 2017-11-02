@@ -9,12 +9,12 @@ use std::str::FromStr;
 use std::path::PathBuf;
 
 // get from parent
-use Result;
 use util::read_file;
 use parse_split_quote_aware;
 use schematic;
 use str_error;
 use checkfix::{self, CheckFix, CheckFixData, Config};
+use KicadError;
 
 /// a Kicad symbolic file
 #[derive(Debug, Default)]
@@ -233,7 +233,7 @@ impl Default for Fill {
 }
 
 impl Fill {
-    fn make(s: &str) -> Result<Fill> {
+    fn make(s: &str) -> Result<Fill, KicadError> {
         match s {
             "F" => Ok(Fill::Filled),
             "f" => Ok(Fill::DotFilled),
@@ -476,7 +476,7 @@ impl Default for PinOrientation {
 }
 
 impl PinOrientation {
-    fn make(s: &str) -> Result<PinOrientation> {
+    fn make(s: &str) -> Result<PinOrientation, KicadError> {
         match s {
             "U" => Ok(PinOrientation::Up),
             "D" => Ok(PinOrientation::Down),
@@ -512,7 +512,7 @@ impl Default for PinType {
 }
 
 impl PinType {
-    fn make(s: &str) -> Result<PinType> {
+    fn make(s: &str) -> Result<PinType, KicadError> {
         match s {
             "I" => Ok(PinType::Input),
             "O" => Ok(PinType::Output),
@@ -553,7 +553,7 @@ impl Default for PinShape {
 }
 
 impl PinShape {
-    fn make(s: &str) -> Result<PinShape> {
+    fn make(s: &str) -> Result<PinShape, KicadError> {
         if s.is_empty() {
             Ok(PinShape::Line)
         } else {
@@ -621,28 +621,28 @@ impl ParseState {
     }
 }
 
-fn assume_string(e: &'static str, s: &str) -> Result<()> {
+fn assume_string(e: &'static str, s: &str) -> Result<(), KicadError> {
     if *e != *s {
         return str_error(format!("expecting: {}, actually: {}", e, s));
     }
     Ok(())
 }
 
-fn i64_from_string(p: &ParseState, s: &str) -> Result<i64> {
+fn i64_from_string(p: &ParseState, s: &str) -> Result<i64, KicadError> {
     match i64::from_str(s) {
         Ok(i) => Ok(i),
         _ => str_error(format!("int parse error in {}; line: {}", s, p.here())),
     }
 }
 
-fn f64_from_string(p: &ParseState, s: &str) -> Result<f64> {
+fn f64_from_string(p: &ParseState, s: &str) -> Result<f64, KicadError> {
     match f64::from_str(s) {
         Ok(i) => Ok(i),
         _ => str_error(format!("float parse error in {}; line: {}", s, p.here())),
     }
 }
 
-fn bool_from_string(s: &str, t: &'static str, f: &'static str) -> Result<bool> {
+fn bool_from_string(s: &str, t: &'static str, f: &'static str) -> Result<bool, KicadError> {
     if &s[..] == t {
         return Ok(true);
     }
@@ -657,7 +657,7 @@ fn char_at(s: &str, p: usize) -> char {
     v[..][p]
 }
 
-fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
+fn parse_symbol(p: &mut ParseState) -> Result<Symbol, KicadError> {
     p.next(); // skip line like # name
     assume_line!(p, "#");
     let s = p.here();
@@ -728,7 +728,7 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol> {
 }
 
 #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
-fn bool_from<T: PartialEq + fmt::Display>(i: T, t: T, f: T) -> Result<bool> {
+fn bool_from<T: PartialEq + fmt::Display>(i: T, t: T, f: T) -> Result<bool, KicadError> {
     if i == t {
         return Ok(true);
     }
@@ -739,7 +739,7 @@ fn bool_from<T: PartialEq + fmt::Display>(i: T, t: T, f: T) -> Result<bool> {
 }
 
 // F0 "L" 0 50 40 H V C CNN
-fn parse_field(p: &mut ParseState, line: &str) -> Result<Field> {
+fn parse_field(p: &mut ParseState, line: &str) -> Result<Field, KicadError> {
     let mut f = Field::default();
     let v = &parse_split_quote_aware(line)?;
     if v.len() != 9 && v.len() != 10 {
@@ -773,7 +773,7 @@ fn parse_field(p: &mut ParseState, line: &str) -> Result<Field> {
 
 // X +3.3V 1 0 0 0 U 30 30 0 0 W N
 
-fn parse_pin(p: &mut ParseState, line: &str) -> Result<Pin> {
+fn parse_pin(p: &mut ParseState, line: &str) -> Result<Pin, KicadError> {
     let mut pin = Pin::default();
     let v = &parse_split_quote_aware(line)?;
     if v.len() != 12 && v.len() != 13 {
@@ -799,7 +799,7 @@ fn parse_pin(p: &mut ParseState, line: &str) -> Result<Pin> {
 }
 
 // S -800 1200 800 -1200 0 1 10 f
-fn parse_rect(p: &mut ParseState, line: &str) -> Result<Rectangle> {
+fn parse_rect(p: &mut ParseState, line: &str) -> Result<Rectangle, KicadError> {
     let mut rect = Rectangle::default();
     let v = &parse_split_quote_aware(line)?;
     if v.len() != 9 {
@@ -816,7 +816,7 @@ fn parse_rect(p: &mut ParseState, line: &str) -> Result<Rectangle> {
     Ok(rect)
 }
 
-fn parse(s: &str) -> Result<SymbolLib> {
+fn parse(s: &str) -> Result<SymbolLib, KicadError> {
     let mut lib = SymbolLib::default();
     let v: Vec<&str> = s.lines().collect();
     let p = &mut ParseState::new(v);
@@ -836,12 +836,12 @@ fn parse(s: &str) -> Result<SymbolLib> {
 }
 
 /// parse a &str to a symbol lib
-pub fn parse_str(s: &str) -> Result<SymbolLib> {
+pub fn parse_str(s: &str) -> Result<SymbolLib, KicadError> {
     parse(s)
 }
 
 /// parse a file to a symbol lib
-pub fn parse_file(filename: &PathBuf) -> Result<SymbolLib> {
+pub fn parse_file(filename: &PathBuf) -> Result<SymbolLib, KicadError> {
     let name = filename.to_str().unwrap();
     let s = read_file(name)?;
     parse(&s[..])

@@ -1,12 +1,12 @@
 // (c) 2016-2017 Productize SPRL <joost@productize.be>
 
 // from parent
-use Result;
 use str_error;
 use footprint;
 use Sexp;
 use layout::{Adjust, Bound, BoundingBox};
 use std::{fmt, result};
+use KicadError;
 
 /// a Kicad layout
 #[derive(Debug)]
@@ -654,9 +654,9 @@ impl Layout {
     }
 
     /// update net names in a layout
-    pub fn update_net_names<F>(&mut self, update: F) -> Result<()>
+    pub fn update_net_names<F>(&mut self, update: F) -> Result<(), KicadError>
     where
-        F: Fn(&mut NetName) -> Result<()>,
+        F: Fn(&mut NetName) -> Result<(), KicadError>,
     {
         for element in &mut self.elements {
             match *element {
@@ -728,7 +728,7 @@ impl Layout {
     }
 
     /// modify a module
-    pub fn modify_module<F>(&mut self, reference: &str, fun: F) -> Result<()>
+    pub fn modify_module<F>(&mut self, reference: &str, fun: F) -> Result<(), KicadError>
     where
         F: Fn(&mut footprint::Module) -> (),
     {
@@ -915,7 +915,7 @@ impl NetName {
     }
 
     /// update the component name in an unnamed net
-    pub fn set_unnamed_net(&mut self, new_name: &str) -> Result<()> {
+    pub fn set_unnamed_net(&mut self, new_name: &str) -> Result<(), KicadError> {
         if let Some((_, pad)) = self.is_unnamed_net() {
             self.0 = format!("Net-({}-{})", new_name, pad);
             Ok(())

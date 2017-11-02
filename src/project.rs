@@ -7,8 +7,7 @@
 // update=
 
 // get from parent
-use Result;
-use str_error;
+use {str_error, KicadError};
 
 /// a Kicad project
 #[derive(Debug)]
@@ -18,7 +17,7 @@ pub struct Project {
 }
 
 /// parse a &str to a project
-pub fn parse_str(s: &str) -> Result<Project> {
+pub fn parse_str(s: &str) -> Result<Project, KicadError> {
     if !s.starts_with("update=") {
         str_error("not a kicad project file!".to_string())
     } else {

@@ -2,36 +2,56 @@
 
 use std::io;
 use symbolic_expressions;
-use std::num;
 use std::env;
 use shellexpand;
 
-error_chain! {
+/// errors that can happen in this library
+#[derive(Debug)]
+pub enum KicadError {
+    /// parse error
+    Parse(String),
+    /// other error
+    Other(String),
+    /// IO Error
+    Io(io::Error),
+    /// env var error
+    EnvVar(env::VarError),
+    /// shell expand lookup error
+    ShellExpand(shellexpand::LookupError<env::VarError>),
+    /// symbolic expressions error
+    SymbolicExpression(symbolic_expressions::SexpError),
+}
 
-    errors {
-/// kicad parse error
-        Parse(s: String) {
-            description("parse error")
-            display("parse error: '{}'", s)
-        }
+impl From<symbolic_expressions::SexpError> for KicadError {
+    fn from(e: symbolic_expressions::SexpError) -> KicadError {
+        KicadError::SymbolicExpression(e)
     }
+}
 
-    foreign_links {
-        Io(io::Error) #[doc = "IO error"];
-        Float(num::ParseFloatError) #[doc = "Float error"];
-        Int(num::ParseIntError) #[doc = "Int error"];
-        EnvVar(env::VarError) #[doc = "Env Var error"];
-        Shellexpand(shellexpand::LookupError<env::VarError>) #[doc = "Shell expand lookup error"];
-        SymbolicExpression(symbolic_expressions::Error) #[doc = "Symbolic Expressions error"];
+impl From<shellexpand::LookupError<env::VarError>> for KicadError {
+    fn from(e: shellexpand::LookupError<env::VarError>) -> KicadError {
+        KicadError::ShellExpand(e)
+    }
+}
+
+impl From<io::Error> for KicadError {
+    fn from(e: io::Error) -> KicadError {
+        KicadError::Io(e)
+    }
+}
+
+impl From<String> for KicadError {
+    fn from(s: String) -> KicadError {
+        KicadError::Other(s)
     }
 }
 
 /// create an other error
-pub fn str_error<T>(s: String) -> Result<T> {
-    Err(s.into())
+pub fn str_error<T>(s: String) -> Result<T, KicadError> {
+    Err(KicadError::Other(s))
 }
 
 /// create a parse error
-pub fn parse_error<T>(s: String) -> Result<T> {
-    Err(ErrorKind::Parse(s).into())
+pub fn parse_error<T>(s: String) -> Result<T, KicadError> {
+    Err(KicadError::Parse(s))
 }

@@ -7,10 +7,9 @@ use std::fmt;
 use std::str::FromStr;
 use std::path::{Path, PathBuf};
 use std::collections::HashMap;
-use std::result;
 
 // get from parent
-use {Bound, BoundingBox, Result};
+use {Bound, BoundingBox, KicadError};
 use util::read_file;
 use str_error;
 use parse_split_quote_aware;
@@ -151,7 +150,7 @@ impl Schematic {
     }
 
     /// return all components including from sub-sheets
-    pub fn all_components(&self) -> Result<Vec<Component>> {
+    pub fn all_components(&self) -> Result<Vec<Component>, KicadError> {
         let mut v = vec![];
         for x in &self.elements {
             match *x {
@@ -172,7 +171,7 @@ impl Schematic {
     }
 
     /// get a component by reference
-    pub fn component_by_reference(&self, reference: &str) -> Result<Component> {
+    pub fn component_by_reference(&self, reference: &str) -> Result<Component, KicadError> {
         for x in &self.elements {
             match *x {
                 Element::Component(ref c) => if c.reference == *reference {
@@ -204,7 +203,7 @@ impl Schematic {
 }
 
 impl fmt::Display for Schematic {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         writeln!(f, "EESchema Schematic File Version 2")?;
         for v in &self.libraries[..] {
             writeln!(f, "LIBS:{}", v)?
@@ -326,7 +325,7 @@ impl Default for Description {
 }
 
 impl fmt::Display for Description {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         writeln!(f, "$Descr {} {} {}", self.size, self.dimx, self.dimy)?;
         writeln!(f, "encoding utf-8")?;
         writeln!(f, "Sheet {} {}", self.sheet, self.sheet_count)?;
@@ -376,7 +375,7 @@ impl BoundingBox for Element {
 }
 
 impl fmt::Display for Element {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
             Element::Component(ref c) => write!(f, "{}", c),
             Element::Wire(ref c) => write!(f, "{}", c),
@@ -583,7 +582,7 @@ impl Component {
 }
 
 impl fmt::Display for Component {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         writeln!(f, "$Comp")?;
         writeln!(f, "L {} {}", self.name, self.reference)?;
         writeln!(f, "{}", self.u)?;
@@ -633,7 +632,7 @@ pub enum Orientation {
 
 impl Orientation {
     /// create a new component orientation from a char
-    pub fn new(c: char) -> Result<Orientation> {
+    pub fn new(c: char) -> Result<Orientation, KicadError> {
         match c {
             'H' => Ok(Orientation::Horizontal),
             'V' => Ok(Orientation::Vertical),
@@ -643,7 +642,7 @@ impl Orientation {
 }
 
 impl fmt::Display for Orientation {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
             Orientation::Horizontal => write!(f, "H"),
             Orientation::Vertical => write!(f, "V"),
@@ -669,7 +668,7 @@ pub enum Justify {
 
 impl Justify {
     /// create a justification based on a char
-    pub fn new(c: char) -> Result<Justify> {
+    pub fn new(c: char) -> Result<Justify, KicadError> {
         match c {
             'C' => Ok(Justify::Center),
             'R' => Ok(Justify::Right),
@@ -682,7 +681,7 @@ impl Justify {
 }
 
 impl fmt::Display for Justify {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
             Justify::Left => write!(f, "L"),
             Justify::Right => write!(f, "R"),
@@ -724,7 +723,7 @@ pub struct ComponentField {
 }
 
 impl ComponentField {
-    fn new(p: &ParseState, v: &[String]) -> Result<ComponentField> {
+    fn new(p: &ParseState, v: &[String]) -> Result<ComponentField, KicadError> {
         if v.len() != 10 && v.len() != 11 {
             return str_error(format!(
                 "expecting 10 or 11 parts got {} in {}",
@@ -781,7 +780,7 @@ impl ComponentField {
 }
 
 impl fmt::Display for ComponentField {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(f, "F {} \"{}\" {} ", self.i, self.value, self.orientation)?;
         write!(
             f,
@@ -855,7 +854,7 @@ impl Default for Sheet {
 }
 
 impl fmt::Display for Sheet {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         writeln!(f, "$Sheet")?;
         writeln!(f, "S {} {} {} {}", self.x, self.y, self.dimx, self.dimy)?;
         writeln!(f, "U {}", self.unique)?;
@@ -904,7 +903,7 @@ impl Default for SheetLabel {
 }
 
 impl fmt::Display for SheetLabel {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(
             f,
             "\"{}\" {} {} {} {} {}",
@@ -934,7 +933,7 @@ pub enum LabelForm {
 }
 
 impl fmt::Display for LabelForm {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let c = match *self {
             LabelForm::Input => 'I',
             LabelForm::Output => 'O',
@@ -960,7 +959,7 @@ pub enum LabelSide {
 }
 
 impl fmt::Display for LabelSide {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let c = match *self {
             LabelSide::Left => 'L',
             LabelSide::Right => 'R',
@@ -983,7 +982,7 @@ pub enum WireType {
 }
 
 impl fmt::Display for WireType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let c = match *self {
             WireType::Wire => "Wire",
             WireType::Notes => "Notes",
@@ -1009,7 +1008,7 @@ pub struct Wire {
 }
 
 impl fmt::Display for Wire {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         writeln!(f, "Wire {} Line", self.type_)?;
         writeln!(f, "\t{} {} {} {}", self.x1, self.y1, self.x2, self.y2)
     }
@@ -1025,7 +1024,7 @@ pub struct Connection {
 }
 
 impl fmt::Display for Connection {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         writeln!(f, "Connection ~ {} {}", self.x, self.y)
     }
 }
@@ -1040,7 +1039,7 @@ pub struct NoConnect {
 }
 
 impl fmt::Display for NoConnect {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         writeln!(f, "NoConn ~ {} {}", self.x, self.y)
     }
 }
@@ -1059,7 +1058,7 @@ pub enum TextType {
 }
 
 impl fmt::Display for TextType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let x = match *self {
             TextType::Note => "Notes",
             TextType::Global => "GLabel",
@@ -1108,7 +1107,7 @@ pub struct Text {
 }
 
 impl fmt::Display for Text {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let italic = if self.italic { "Italic" } else { "~" };
         write!(f, "Text {} ", self.t)?;
         // trick to get left-aligned adjusted numbers: convert to string first...
@@ -1133,28 +1132,28 @@ fn char_at(s: &str, p: usize) -> char {
 }
 
 
-fn assume_string(e: &'static str, s: &str) -> Result<()> {
+fn assume_string(e: &'static str, s: &str) -> Result<(), KicadError> {
     if *e != *s {
         return str_error(format!("expecting: {}, actually: {}", e, s));
     }
     Ok(())
 }
 
-fn i64_from_string(p: &ParseState, s: &str) -> Result<i64> {
+fn i64_from_string(p: &ParseState, s: &str) -> Result<i64, KicadError> {
     match i64::from_str(&s[..]) {
         Ok(i) => Ok(i),
         _ => str_error(format!("int parse error in {}; line: {}", s, p.here())),
     }
 }
 
-fn f64_from_string(p: &ParseState, s: &str) -> Result<f64> {
+fn f64_from_string(p: &ParseState, s: &str) -> Result<f64, KicadError> {
     match f64::from_str(s) {
         Ok(i) => Ok(i),
         _ => str_error(format!("float parse error in {}; line: {}", s, p.here())),
     }
 }
 
-fn bool_from_string(s: &str, t: &'static str, f: &'static str) -> Result<bool> {
+fn bool_from_string(s: &str, t: &'static str, f: &'static str) -> Result<bool, KicadError> {
     if &s[..] == t {
         return Ok(true);
     }
@@ -1164,7 +1163,7 @@ fn bool_from_string(s: &str, t: &'static str, f: &'static str) -> Result<bool> {
     str_error(format!("unknown boolean {}, expected {} or {}", s, t, f))
 }
 
-fn bool_from<T: PartialEq + fmt::Display>(i: &T, t: &T, f: &T) -> Result<bool> {
+fn bool_from<T: PartialEq + fmt::Display>(i: &T, t: &T, f: &T) -> Result<bool, KicadError> {
     if i == t {
         return Ok(true);
     }
@@ -1174,7 +1173,7 @@ fn bool_from<T: PartialEq + fmt::Display>(i: &T, t: &T, f: &T) -> Result<bool> {
     str_error(format!("unknown boolean {}, expected {} or {}", i, t, f))
 }
 
-fn word_and_qstring<F>(d: &mut Description, name: &'static str, s: &str, setter: F) -> Result<()>
+fn word_and_qstring<F>(d: &mut Description, name: &'static str, s: &str, setter: F) -> Result<(), KicadError>
 where
     F: Fn(&mut Description, String) -> (),
 {
@@ -1185,7 +1184,7 @@ where
 }
 
 
-fn parse_description(p: &mut ParseState) -> Result<Description> {
+fn parse_description(p: &mut ParseState) -> Result<Description, KicadError> {
     let mut d = Description::default();
     let v = parse_split_quote_aware_n(4, &p.here())?;
     d.size = v[1].clone();
@@ -1220,31 +1219,31 @@ fn parse_description(p: &mut ParseState) -> Result<Description> {
     Ok(d)
 }
 
-fn parse_component_l(p: &mut ParseState, d: &mut Component) -> Result<()> {
+fn parse_component_l(p: &mut ParseState, d: &mut Component) -> Result<(), KicadError> {
     let v = parse_split_quote_aware_n(3, &p.here())?;
     d.set_name(v[1].clone());
     d.set_reference(v[2].clone());
     Ok(())
 }
 
-fn parse_component_u(p: &mut ParseState, d: &mut Component) -> Result<()> {
+fn parse_component_u(p: &mut ParseState, d: &mut Component) -> Result<(), KicadError> {
     d.u = p.here();
     Ok(())
 }
 
-fn parse_component_ar(p: &mut ParseState, d: &mut Component) -> Result<()> {
+fn parse_component_ar(p: &mut ParseState, d: &mut Component) -> Result<(), KicadError> {
     d.ar_path.push(p.here());
     Ok(())
 }
 
-fn parse_component_p(p: &mut ParseState, d: &mut Component) -> Result<()> {
+fn parse_component_p(p: &mut ParseState, d: &mut Component) -> Result<(), KicadError> {
     let v = parse_split_quote_aware_n(3, &p.here())?;
     d.x = i64_from_string(p, &v[1])?;
     d.y = i64_from_string(p, &v[2])?;
     Ok(())
 }
 
-fn parse_component_f(p: &mut ParseState, d: &mut Component) -> Result<()> {
+fn parse_component_f(p: &mut ParseState, d: &mut Component) -> Result<(), KicadError> {
     // println!("{}", p.here());
     let v = parse_split_quote_aware(&p.here())?;
     // for i in &v[..] {
@@ -1255,7 +1254,7 @@ fn parse_component_f(p: &mut ParseState, d: &mut Component) -> Result<()> {
     Ok(())
 }
 
-fn parse_component_rotation(p: &mut ParseState, d: &mut Component) -> Result<()> {
+fn parse_component_rotation(p: &mut ParseState, d: &mut Component) -> Result<(), KicadError> {
     p.next(); // skip redundant position line
     let s = p.here();
     let v: Vec<&str> = s.split_whitespace().collect();
@@ -1276,7 +1275,7 @@ fn parse_component_rotation(p: &mut ParseState, d: &mut Component) -> Result<()>
     Ok(())
 }
 
-fn parse_component(p: &mut ParseState) -> Result<Component> {
+fn parse_component(p: &mut ParseState) -> Result<Component, KicadError> {
     let mut d = Component::default();
     p.next();
     loop {
@@ -1299,7 +1298,7 @@ fn parse_component(p: &mut ParseState) -> Result<Component> {
 }
 
 // S 5250 2300 950  3100
-fn parse_sheet_s(p: &mut ParseState, s: &mut Sheet) -> Result<()> {
+fn parse_sheet_s(p: &mut ParseState, s: &mut Sheet) -> Result<(), KicadError> {
     let v = parse_split_quote_aware_n(5, &p.here())?;
     s.x = i64_from_string(p, &v[1])?;
     s.y = i64_from_string(p, &v[2])?;
@@ -1309,13 +1308,13 @@ fn parse_sheet_s(p: &mut ParseState, s: &mut Sheet) -> Result<()> {
 }
 
 // U 5655A9F3
-fn parse_sheet_u(p: &mut ParseState, s: &mut Sheet) -> Result<()> {
+fn parse_sheet_u(p: &mut ParseState, s: &mut Sheet) -> Result<(), KicadError> {
     let v = parse_split_quote_aware_n(2, &p.here())?;
     s.unique = v[1].clone();
     Ok(())
 }
 
-fn parse_label_form(s: &str) -> Result<LabelForm> {
+fn parse_label_form(s: &str) -> Result<LabelForm, KicadError> {
     match &s[..] {
         "I" => Ok(LabelForm::Input),
         "O" => Ok(LabelForm::Output),
@@ -1326,7 +1325,7 @@ fn parse_label_form(s: &str) -> Result<LabelForm> {
     }
 }
 
-fn parse_label_side(s: &str) -> Result<LabelSide> {
+fn parse_label_side(s: &str) -> Result<LabelSide, KicadError> {
     match &s[..] {
         "L" => Ok(LabelSide::Left),
         "R" => Ok(LabelSide::Right),
@@ -1338,7 +1337,7 @@ fn parse_label_side(s: &str) -> Result<LabelSide> {
 
 
 // F3 "P0.02/AIN0" I L 5250 2450 60
-fn parse_sheet_label(p: &ParseState, s: &str) -> Result<SheetLabel> {
+fn parse_sheet_label(p: &ParseState, s: &str) -> Result<SheetLabel, KicadError> {
     let mut l = SheetLabel::default();
     let v = parse_split_quote_aware_n(7, s)?;
     l.name = v[1].clone();
@@ -1350,7 +1349,7 @@ fn parse_sheet_label(p: &ParseState, s: &str) -> Result<SheetLabel> {
     Ok(l)
 }
 
-fn parse_sheet_f(p: &mut ParseState, s: &mut Sheet, f: &str) -> Result<()> {
+fn parse_sheet_f(p: &mut ParseState, s: &mut Sheet, f: &str) -> Result<(), KicadError> {
     // s.u = p.here();
     let mut f = String::from(f);
     f.remove(0);
@@ -1371,7 +1370,7 @@ fn parse_sheet_f(p: &mut ParseState, s: &mut Sheet, f: &str) -> Result<()> {
 }
 
 
-fn parse_sheet(p: &mut ParseState) -> Result<Sheet> {
+fn parse_sheet(p: &mut ParseState) -> Result<Sheet, KicadError> {
     let mut s = Sheet::default();
     p.next();
     loop {
@@ -1396,7 +1395,7 @@ fn parse_sheet(p: &mut ParseState) -> Result<Sheet> {
 
 // Wire Wire Line
 //	6100 3050 5850 3050
-fn parse_wire(p: &mut ParseState) -> Result<Wire> {
+fn parse_wire(p: &mut ParseState) -> Result<Wire, KicadError> {
     let t = p.here();
     let v: Vec<&str> = t.split_whitespace().collect();
     if v.len() != 3 {
@@ -1427,7 +1426,7 @@ fn parse_wire(p: &mut ParseState) -> Result<Wire> {
 }
 
 // Connection ~ 5250 3050
-fn parse_connection(p: &mut ParseState) -> Result<Connection> {
+fn parse_connection(p: &mut ParseState) -> Result<Connection, KicadError> {
     let s = p.here();
     let v: Vec<&str> = s.split_whitespace().collect();
     if v.len() != 4 {
@@ -1439,7 +1438,7 @@ fn parse_connection(p: &mut ParseState) -> Result<Connection> {
 }
 
 // NoConnect ~ 5250 3050
-fn parse_no_connect(p: &mut ParseState) -> Result<NoConnect> {
+fn parse_no_connect(p: &mut ParseState) -> Result<NoConnect, KicadError> {
     let s = p.here();
     let v: Vec<&str> = s.split_whitespace().collect();
     if v.len() != 4 {
@@ -1454,7 +1453,7 @@ fn parse_no_connect(p: &mut ParseState) -> Result<NoConnect> {
 //IAMBOLDITALIC
 //Text Notes 8025 5400 0    60   ~ 0
 //IAMANOTE
-fn parse_text(p: &mut ParseState) -> Result<Text> {
+fn parse_text(p: &mut ParseState) -> Result<Text, KicadError> {
     let s = p.here();
     let v: Vec<&str> = s.split_whitespace().collect();
     if v.len() < 8 {
@@ -1499,7 +1498,7 @@ fn parse_text(p: &mut ParseState) -> Result<Text> {
 }
 
 /// parse a &str to a Kicad schematic, optionally setting the filename
-pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
+pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic, KicadError> {
     let mut sch = Schematic::default();
     sch.filename = filename;
     let v: Vec<&str> = s.lines().collect();
@@ -1564,18 +1563,18 @@ pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic> {
 
 
 /// parse a &str as a Kicad schematic
-pub fn parse_str(s: &str) -> Result<Schematic> {
+pub fn parse_str(s: &str) -> Result<Schematic, KicadError> {
     parse(None, s)
 }
 
 /// parse a file as a Kicad schematic
-pub fn parse_file(filename: &Path) -> Result<Schematic> {
+pub fn parse_file(filename: &Path) -> Result<Schematic, KicadError> {
     let s = read_file(filename)?;
     parse(Some(PathBuf::from(filename)), &s[..])
 }
 
 /// get the filename for a sheet in a schematic
-pub fn filename_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<PathBuf> {
+pub fn filename_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<PathBuf, KicadError> {
     let path = match schematic.filename {
         Some(ref path) => Ok(path),
         None => Err("can't load sheet when there is no filename for the schematic".to_string()),
@@ -1589,7 +1588,7 @@ pub fn filename_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<PathBu
 
 
 /// parse a file as a Kicad schematic for a sheet
-pub fn parse_file_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<Schematic> {
+pub fn parse_file_for_sheet(schematic: &Schematic, sheet: &Sheet) -> Result<Schematic, KicadError> {
     let f = filename_for_sheet(schematic, sheet)?;
     parse_file(&f)
 }

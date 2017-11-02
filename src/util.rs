@@ -2,13 +2,13 @@
 
 use std::fs::File;
 use std::io::Read;
+use std::io;
 use std::io::Write;
 use std::path::Path;
-
-use Result;
+use KicadError;
 
 /// read a file
-pub fn read_file<P>(path: P) -> Result<String>
+pub fn read_file<P>(path: P) -> Result<String, io::Error>
 where
     P: AsRef<Path>,
 {
@@ -19,7 +19,7 @@ where
 }
 
 /// write a file
-pub fn write_file<P>(name: P, data: &str) -> Result<()>
+pub fn write_file<P>(name: P, data: &str) -> Result<(), KicadError>
 where
     P: AsRef<Path>,
 {

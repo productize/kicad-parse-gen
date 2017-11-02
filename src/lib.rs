@@ -4,8 +4,6 @@
 #![warn(missing_docs)]
 
 #[macro_use]
-extern crate error_chain;
-#[macro_use]
 extern crate log;
 extern crate shellexpand;
 extern crate symbolic_expressions;
@@ -25,7 +23,7 @@ pub use util::read_file;
 /// write file utility wrapper function
 pub use util::write_file;
 
-fn parse_split_quote_aware_int(n_opt: Option<usize>, s: &str) -> Result<Vec<String>> {
+fn parse_split_quote_aware_int(n_opt: Option<usize>, s: &str) -> Result<Vec<String>, KicadError> {
     let mut i = 0;
     let mut v: Vec<String> = vec![];
     // if we are inside our outside a quoted string
@@ -74,10 +72,10 @@ fn parse_split_quote_aware_int(n_opt: Option<usize>, s: &str) -> Result<Vec<Stri
     Ok(v)
 }
 
-fn parse_split_quote_aware_n(n: usize, s: &str) -> Result<Vec<String>> {
+fn parse_split_quote_aware_n(n: usize, s: &str) -> Result<Vec<String>, KicadError> {
     parse_split_quote_aware_int(Some(n), s)
 }
-fn parse_split_quote_aware(s: &str) -> Result<Vec<String>> {
+fn parse_split_quote_aware(s: &str) -> Result<Vec<String>, KicadError> {
     parse_split_quote_aware_int(None, s)
 }
 
@@ -137,7 +135,7 @@ impl fmt::Display for KicadFile {
 /// try to read a file, trying to parse it as the different formats
 /// and matching it against the Expected type
 #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
-pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile> {
+pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile, KicadError> {
     let data = read_file(name)?;
     match footprint::parse(&data) {
         Ok(module) => return Ok(KicadFile::Module(module)),
@@ -179,7 +177,7 @@ pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile> {
 }
 
 /// read a file, expecting it to be a Kicad module file
-pub fn read_module(name: &Path) -> Result<footprint::Module> {
+pub fn read_module(name: &Path) -> Result<footprint::Module, KicadError> {
     match read_kicad_file(name, Expected::Module)? {
         KicadFile::Module(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),
@@ -187,7 +185,7 @@ pub fn read_module(name: &Path) -> Result<footprint::Module> {
 }
 
 /// read a file, expecting it to be a Kicad schematic
-pub fn read_schematic(name: &Path) -> Result<schematic::Schematic> {
+pub fn read_schematic(name: &Path) -> Result<schematic::Schematic, KicadError> {
     match read_kicad_file(name, Expected::Schematic)? {
         KicadFile::Schematic(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),
@@ -195,7 +193,7 @@ pub fn read_schematic(name: &Path) -> Result<schematic::Schematic> {
 }
 
 /// read a file, expecting it to be a Kicad layout file
-pub fn read_layout(name: &Path) -> Result<layout::Layout> {
+pub fn read_layout(name: &Path) -> Result<layout::Layout, KicadError> {
     match read_kicad_file(name, Expected::Layout)? {
         KicadFile::Layout(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),
@@ -203,19 +201,19 @@ pub fn read_layout(name: &Path) -> Result<layout::Layout> {
 }
 
 /// write out a kicad Layout to a file
-pub fn write_layout(layout: &layout::Layout, name: &Path) -> Result<()> {
+pub fn write_layout(layout: &layout::Layout, name: &Path) -> Result<(), KicadError> {
     let s = layout::layout_to_string(layout, 0)?;
     write_file(name, &s)
 }
 
 /// write out a kicad `Module` to a file
-pub fn write_module(module: &footprint::Module, name: &Path) -> Result<()> {
+pub fn write_module(module: &footprint::Module, name: &Path) -> Result<(), KicadError> {
     let s = footprint::module_to_string(module, 0)?;
     write_file(&name, &s)
 }
 
 /// read a file, expecting it to be a Kicad symbol library file
-pub fn read_symbol_lib(name: &Path) -> Result<symbol_lib::SymbolLib> {
+pub fn read_symbol_lib(name: &Path) -> Result<symbol_lib::SymbolLib, KicadError> {
     match read_kicad_file(name, Expected::SymbolLib)? {
         KicadFile::SymbolLib(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),
@@ -223,7 +221,7 @@ pub fn read_symbol_lib(name: &Path) -> Result<symbol_lib::SymbolLib> {
 }
 
 /// read a file, expecting it to be a Kicad project file
-pub fn read_project(name: &Path) -> Result<project::Project> {
+pub fn read_project(name: &Path) -> Result<project::Project, KicadError> {
     match read_kicad_file(name, Expected::Project)? {
         KicadFile::Project(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),
@@ -231,7 +229,7 @@ pub fn read_project(name: &Path) -> Result<project::Project> {
 }
 
 /// read a file, expecting it to be an fp-lib-table
-pub fn read_fp_lib_table(name: &Path) -> Result<fp_lib_table::FpLibTable> {
+pub fn read_fp_lib_table(name: &Path) -> Result<fp_lib_table::FpLibTable, KicadError> {
     match read_kicad_file(name, Expected::FpLibTable)? {
         KicadFile::FpLibTable(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),

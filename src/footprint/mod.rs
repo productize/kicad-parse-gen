@@ -7,16 +7,16 @@ use std::fmt;
 use std::result;
 
 // get from parent
-use Result;
 use symbolic_expressions;
 use symbolic_expressions::IntoSexp;
 use formatter::KicadFormatter;
+use KicadError;
 
 // pub use footprint;
 pub use footprint::data::*;
 
 /// convert a Kicad Module (footprint) to a String
-pub fn module_to_string(module: &Module, indent_level: i64) -> Result<String> {
+pub fn module_to_string(module: &Module, indent_level: i64) -> Result<String, KicadError> {
     let formatter = KicadFormatter::new(indent_level);
     symbolic_expressions::ser::to_string_with_formatter(&module.into_sexp(), formatter)
         .map_err(From::from)
@@ -54,7 +54,7 @@ impl fmt::Display for Layer {
 }
 
 /// parse a &str to a Kicad Module
-pub fn parse(s: &str) -> Result<Module> {
+pub fn parse(s: &str) -> Result<Module, KicadError> {
     let t = symbolic_expressions::parser::parse_str(s)?;
     let s = symbolic_expressions::from_sexp(&t)?;
     Ok(s)

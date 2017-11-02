@@ -4,17 +4,16 @@
 // format: new-style
 
 // from parent
-use Result;
 use symbolic_expressions;
 use symbolic_expressions::IntoSexp;
 use formatter::KicadFormatter;
 
 pub use layout::data::*;
 
-use {Adjust, Bound, BoundingBox};
+use {Adjust, Bound, BoundingBox, KicadError};
 
 /// convert a Kicad layout to a String
-pub fn layout_to_string(layout: &Layout, indent_level: i64) -> Result<String> {
+pub fn layout_to_string(layout: &Layout, indent_level: i64) -> Result<String, KicadError> {
     let formatter = KicadFormatter::new(indent_level);
     let mut s =
         symbolic_expressions::ser::to_string_with_formatter(&layout.into_sexp(), formatter)?;
@@ -23,7 +22,7 @@ pub fn layout_to_string(layout: &Layout, indent_level: i64) -> Result<String> {
 }
 
 /// parse a &str to a Kicad layout
-pub fn parse(s: &str) -> Result<Layout> {
+pub fn parse(s: &str) -> Result<Layout, KicadError> {
     let x = match symbolic_expressions::parser::parse_str(s) {
         Ok(s) => symbolic_expressions::from_sexp(&s),
         Err(x) => Err(format!("ParseError: {:?}", x).into()),

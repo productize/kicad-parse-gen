@@ -8,7 +8,7 @@ use symbolic_expressions::{IntoSexp, Sexp, SexpError};
 use formatter::KicadFormatter;
 use symbolic_expressions::iteratom::*;
 use shellexpand;
-use error;
+use error::KicadError;
 
 /// a fp-lib-table
 #[derive(Debug, Clone)]
@@ -34,7 +34,7 @@ pub struct Lib {
 
 impl Lib {
     /// return the URI with environment variables substituted
-    pub fn get_expanded_uri(&self) -> error::Result<String> {
+    pub fn get_expanded_uri(&self) -> Result<String, KicadError> {
         let s = shellexpand::full(&self.uri)?;
         Ok(s.into())
     }
@@ -96,7 +96,7 @@ pub fn parse(s: &str) -> Result<FpLibTable, SexpError> {
 }
 
 /// convert an `FpLibTable` to a formatted symbolic-expressions String
-pub fn to_string(fp_lib_table: &FpLibTable, indent_level: i64) -> error::Result<String> {
+pub fn to_string(fp_lib_table: &FpLibTable, indent_level: i64) -> Result<String, KicadError> {
     let formatter = KicadFormatter::new(indent_level);
     symbolic_expressions::ser::to_string_with_formatter(&fp_lib_table.into_sexp(), formatter)
         .map_err(From::from)
