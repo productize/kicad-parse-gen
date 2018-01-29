@@ -4,6 +4,8 @@ use std::io;
 use symbolic_expressions;
 use std::env;
 use shellexpand;
+use std::error;
+use std::fmt;
 
 /// errors that can happen in this library
 #[derive(Debug)]
@@ -43,6 +45,25 @@ impl From<io::Error> for KicadError {
 impl From<String> for KicadError {
     fn from(s: String) -> KicadError {
         KicadError::Other(s)
+    }
+}
+
+impl error::Error for KicadError {
+    fn description(&self) -> &str {
+        "Kicad Error"
+    }
+}
+
+impl fmt::Display for KicadError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            KicadError::Parse(ref s) => write!(f, "Kicad Parse Error: {}", s),
+            KicadError::Other(ref s) => write!(f, "Kicad Other Error: {}", s),
+            KicadError::Io(ref io) => write!(f, "Kicad IO Error: {}", io),
+            KicadError::EnvVar(ref s) => write!(f, "Kicad Env Var Error: {}", s),
+            KicadError::ShellExpand(ref s) => write!(f, "Kicad Shell Expand Error: {}", s),
+            KicadError::SymbolicExpression(ref s) => write!(f, "Kicad Symbolic Expression Error: {}", s),
+        }
     }
 }
 
