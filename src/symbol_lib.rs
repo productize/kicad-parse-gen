@@ -218,10 +218,10 @@ pub struct Rectangle {
 #[derive(Debug, Clone, PartialEq)]
 /// fill for a rectangle
 pub enum Fill {
-    /// fully filled
-    Filled,
-    /// filled with dots
-    DotFilled,
+    /// filled with foreground color
+    FilledForeground,
+    /// filled with background color
+    FilledBackground,
     /// not filled
     Transparent,
 }
@@ -235,8 +235,8 @@ impl Default for Fill {
 impl Fill {
     fn make(s: &str) -> Result<Fill, KicadError> {
         match s {
-            "F" => Ok(Fill::Filled),
-            "f" => Ok(Fill::DotFilled),
+            "F" => Ok(Fill::FilledForeground),
+            "f" => Ok(Fill::FilledBackground),
             "N" => Ok(Fill::Transparent),
             _ => Err(format!("unknown fill type {}", s).into()),
         }
@@ -430,8 +430,8 @@ impl fmt::Display for Rectangle {
 impl fmt::Display for Fill {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match *self {
-            Fill::Filled => write!(f, "F"),
-            Fill::DotFilled => write!(f, "f"),
+            Fill::FilledForeground => write!(f, "F"),
+            Fill::FilledBackground => write!(f, "f"),
             Fill::Transparent => write!(f, "N"),
         }
     }
@@ -1041,7 +1041,7 @@ impl CheckFix for Rectangle {
     fn check(&self, _: &Config) -> Vec<CheckFixData> {
         let mut v = vec![];
         // 4.2 Fill style of symbol body is set to Fill background
-        if self.fill != Fill::Filled {
+        if self.fill != Fill::FilledBackground {
             v.push(CheckFixData::new(4, 2, self, "Rectangle is not filled"))
         }
         // 4.2 Symbol body has a line width of 10mils (0.254mm)

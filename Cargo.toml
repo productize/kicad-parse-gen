@@ -1,7 +1,7 @@
 [package]
 name = "kicad_parse_gen"
-version = "7.0.0"
-authors = ["Joost Damad <joost@productize.be>"]
+version = "7.0.1"
+authors = ["Joost Damad <joost@productize.be>", "Adam Heinrich <adam@productize.be>"]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/productize/kicad-parse-gen"
 documentation = "https://docs.rs/kicad_parse_gen"
