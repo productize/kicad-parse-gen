@@ -684,23 +684,29 @@ fn parse_symbol(p: &mut ParseState) -> Result<Symbol, KicadError> {
             break;
         }
     }
-    if &p.here() == "$FPLIST" {
-        p.next();
-        // skip FPLIST for now
-        while !p.eof() {
-            if &p.here() == "$ENDFPLIST" {
-                p.next();
-                break;
+    loop{
+        if &p.here() == "DRAW" {
+            break;
+        }
+        if &p.here() == "$FPLIST" {
+            p.next();
+            // skip FPLIST for now
+            while !p.eof() {
+                if &p.here() == "$ENDFPLIST" {
+                    p.next();
+                    break;
+                }
+                p.next()
             }
-            p.next()
+        } else if p.here().starts_with("ALIAS") {
+            let v = parse_split_quote_aware(&p.here())?;
+            for alias in v.into_iter().skip(1) {
+                s.aliases.push(alias)
+            }
+            p.next();
+        } else {
+            break;
         }
-    }
-    if p.here().starts_with("ALIAS") {
-        let v = parse_split_quote_aware(&p.here())?;
-        for alias in v.into_iter().skip(1) {
-            s.aliases.push(alias)
-        }
-        p.next();
     }
     // TODO draw
     assume_line!(p, "DRAW");
