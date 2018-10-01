@@ -260,7 +260,7 @@ impl SymbolLib {
 
 impl fmt::Display for SymbolLib {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        writeln!(f, "EESchema-LIBRARY Version 2.3")?;
+        writeln!(f, "EESchema-LIBRARY Version 2.4")?;
         writeln!(f, "#encoding utf-8")?;
         writeln!(f, "#")?;
         for i in &self.symbols {
@@ -820,7 +820,7 @@ fn parse(s: &str) -> Result<SymbolLib, KicadError> {
     let mut lib = SymbolLib::default();
     let v: Vec<&str> = s.lines().collect();
     let p = &mut ParseState::new(v);
-    assume_line!(p, "EESchema-LIBRARY Version 2.3");
+    assume_line!(p, "EESchema-LIBRARY Version 2.4");
     assume_line!(p, "#encoding utf-8");
     assume_line!(p, "#");
     while !p.eof() {

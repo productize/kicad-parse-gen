@@ -204,7 +204,7 @@ impl Schematic {
 
 impl fmt::Display for Schematic {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        writeln!(f, "EESchema Schematic File Version 2")?;
+        writeln!(f, "EESchema Schematic File Version 4")?;
         for v in &self.libraries[..] {
             writeln!(f, "LIBS:{}", v)?
         }
@@ -1503,7 +1503,7 @@ pub fn parse(filename: Option<PathBuf>, s: &str) -> Result<Schematic, KicadError
     sch.filename = filename;
     let v: Vec<&str> = s.lines().collect();
     let p = &mut ParseState::new(v);
-    assume_line!(p, "EESchema Schematic File Version 2");
+    assume_line!(p, "EESchema Schematic File Version 4");
     while !p.eof() {
         {
             let s = p.here();
