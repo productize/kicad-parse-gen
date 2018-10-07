@@ -323,10 +323,10 @@ pub struct GrText {
     pub at: footprint::At,
     /// layer
     pub layer: footprint::Layer,
-    /// text effects
-    pub effects: footprint::Effects,
     /// timestamp
     pub tstamp: Option<String>,
+    /// text effects
+    pub effects: footprint::Effects,
 }
 
 impl Adjust for GrText {

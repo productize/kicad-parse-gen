@@ -259,10 +259,10 @@ impl IntoSexp for GrText {
         v.push(&self.value);
         v.push(self.at.into_sexp());
         v.push(("layer", &self.layer));
-        v.push(self.effects.into_sexp());
         if let Some(ref tstamp) = self.tstamp {
             v.push(("tstamp", tstamp));
         }
+        v.push(self.effects.into_sexp());
         v
     }
 }

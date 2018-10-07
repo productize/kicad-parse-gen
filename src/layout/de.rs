@@ -247,8 +247,8 @@ impl FromSexp for GrText {
         t.value = i.s("value")?;
         t.at = i.t("at")?;
         t.layer = i.t("layer")?;
-        t.effects = i.t("effects")?;
         t.tstamp = i.maybe_s_in_list("tstamp");
+        t.effects = i.t("effects")?;
         i.close(t)
     }
 }
