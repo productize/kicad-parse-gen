@@ -286,6 +286,8 @@ impl Rotate for Module {
 pub enum Element {
     /// solder mask margin
     SolderMaskMargin(f64),
+    /// solder paste margin
+    SolderPasteMargin(f64),
     /// layer name
     Layer(Layer),
     /// description
@@ -339,6 +341,7 @@ impl BoundingBox for Element {
             Element::Model(_) |
             Element::Attr(_) |
             Element::SolderMaskMargin(_) |
+            Element::SolderPasteMargin(_) |
             Element::Clearance(_) |
             Element::Tags(_) |
             Element::Locked |
@@ -364,6 +367,7 @@ impl Named for Element {
             Element::Model(_) => "Model",
             Element::TStamp(_) => "Tstamp",
             Element::SolderMaskMargin(_) => "SolderMaskMargin",
+            Element::SolderPasteMargin(_) => "SolderPasteMargin",
             Element::Clearance(_) => "Clearance",
             Element::Tags(_) => "Tags",
             Element::Attr(_) => "Attr",
@@ -389,6 +393,7 @@ impl Flip for Element {
             Element::Model(_) |
             Element::TStamp(_) |
             Element::SolderMaskMargin(_) |
+            Element::SolderPasteMargin(_) |
             Element::Clearance(_) |
             Element::Tags(_) |
             Element::Attr(_) |
@@ -414,6 +419,7 @@ impl Rotate for Element {
             Element::Model(_) |
             Element::TStamp(_) |
             Element::SolderMaskMargin(_) |
+            Element::SolderPasteMargin(_) |
             Element::Clearance(_) |
             Element::Tags(_) |
             Element::Attr(_) |
@@ -439,6 +445,7 @@ impl Element {
             Element::Model(_) |
             Element::TStamp(_) |
             Element::SolderMaskMargin(_) |
+            Element::SolderPasteMargin(_) |
             Element::Clearance(_) |
             Element::Tags(_) |
             Element::Attr(_) |
@@ -462,6 +469,7 @@ impl Element {
             Element::Model(_) |
             Element::TStamp(_) |
             Element::SolderMaskMargin(_) |
+            Element::SolderPasteMargin(_) |
             Element::Clearance(_) |
             Element::Tags(_) |
             Element::Attr(_) |

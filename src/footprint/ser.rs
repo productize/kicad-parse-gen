@@ -20,6 +20,7 @@ impl IntoSexp for Element {
     fn into_sexp(&self) -> Sexp {
         match *self {
             Element::SolderMaskMargin(ref s) => ("solder_mask_margin", s).into(),
+            Element::SolderPasteMargin(ref s) => ("solder_paste_margin", s).into(),
             Element::Layer(ref s) => ("layer", s).into(),
             Element::Descr(ref s) => ("descr", s).into(),
             Element::Tags(ref s) => ("tags", s).into(),
