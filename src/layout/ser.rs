@@ -371,6 +371,9 @@ impl IntoSexp for Via {
         }
         v.push(self.layers.into_sexp());
         v.push(("net", &self.net));
+        if let Some(ref tstamp) = self.tstamp {
+            v.push(("tstamp", tstamp));
+        }
         v
     }
 }

@@ -439,6 +439,7 @@ impl FromSexp for Via {
         via.drill = i.maybe_f_in_list("drill").unwrap_or(0.0);
         via.layers = i.t("layers")?;
         via.net = i.maybe_i_in_list("net").unwrap_or(0);
+        via.tstamp = i.maybe_s_in_list("tstamp");
         i.close(via)
     }
 }

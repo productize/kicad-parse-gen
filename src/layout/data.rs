@@ -562,6 +562,8 @@ pub struct Via {
     pub layers: footprint::Layers,
     /// net
     pub net: i64,
+    /// timestamp
+    pub tstamp: Option<String>,
 }
 
 impl Adjust for Via {
