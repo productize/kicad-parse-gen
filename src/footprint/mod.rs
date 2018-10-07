@@ -55,7 +55,9 @@ impl fmt::Display for Layer {
 
 /// parse a &str to a Kicad Module
 pub fn parse(s: &str) -> Result<Module, KicadError> {
-    let t = symbolic_expressions::parser::parse_str(s)?;
+    /* TODO: This use of s.replace() is very ugly! */
+    let mod_str = &s.replace("(at (xyz", "(offset (xyz");
+    let t = symbolic_expressions::parser::parse_str(mod_str)?;
     let s = symbolic_expressions::from_sexp(&t)?;
     Ok(s)
 }

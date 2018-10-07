@@ -379,7 +379,7 @@ impl FromSexp for Model {
         let mut i = IterAtom::new(s, "model")?;
         let model = Model {
             name: i.s("name")?,
-            at: i.t_in_list("at")?,
+            offset: i.t_in_list("offset")?,
             scale: i.t_in_list("scale")?,
             rotate: i.t_in_list("rotate")?,
         };

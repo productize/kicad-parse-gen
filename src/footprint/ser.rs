@@ -291,7 +291,7 @@ impl IntoSexp for Model {
     fn into_sexp(&self) -> Sexp {
         let mut v = Sexp::start("model");
         v.push(&self.name);
-        v.push(("at", self.at.into_sexp()));
+        v.push(("offset", self.offset.into_sexp()));
         v.push(("scale", self.scale.into_sexp()));
         v.push(("rotate", self.rotate.into_sexp()));
         v

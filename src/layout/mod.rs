@@ -23,7 +23,10 @@ pub fn layout_to_string(layout: &Layout, indent_level: i64) -> Result<String, Ki
 
 /// parse a &str to a Kicad layout
 pub fn parse(s: &str) -> Result<Layout, KicadError> {
-    let x = match symbolic_expressions::parser::parse_str(s) {
+    /* TODO: This use of s.replace() is very ugly! */
+    let mod_str = &s.replace("(at (xyz", "(offset (xyz");
+
+    let x = match symbolic_expressions::parser::parse_str(mod_str) {
         Ok(s) => symbolic_expressions::from_sexp(&s),
         Err(x) => Err(format!("ParseError: {:?}", x).into()),
     };

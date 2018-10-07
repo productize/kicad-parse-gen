@@ -1369,7 +1369,7 @@ pub struct Model {
     /// name
     pub name: String,
     /// location
-    pub at: Xyz,
+    pub offset: Xyz,
     /// scale
     pub scale: Xyz,
     /// rotation
