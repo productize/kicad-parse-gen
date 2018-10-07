@@ -16,6 +16,7 @@ enum Part {
     SolderMaskMargin(f64),
     Clearance(f64),
     ThermalGap(f64),
+    ThermalWidth(f64),
     ZoneConnect(i64),
 }
 
@@ -203,6 +204,7 @@ impl FromSexp for Part {
             "solder_mask_margin" => parse_part_float(s, Part::SolderMaskMargin),
             "clearance" => parse_part_float(s, Part::Clearance),
             "thermal_gap" => parse_part_float(s, Part::ThermalGap),
+            "thermal_width" => parse_part_float(s, Part::ThermalWidth),
             "zone_connect" => parse_part_int(s, Part::ZoneConnect),
             x => Err(format!("unknown part {}", x).into()),
         }
@@ -266,6 +268,7 @@ impl FromSexp for Pad {
                 Part::SolderMaskMargin(n) => pad.solder_mask_margin = Some(n),
                 Part::Clearance(n) => pad.clearance = Some(n),
                 Part::ThermalGap(n) => pad.thermal_gap = Some(n),
+                Part::ThermalWidth(n) => pad.thermal_width = Some(n),
                 Part::ZoneConnect(n) => pad.zone_connect = Some(n),
                 ref x => return Err(format!("pad: unknown {:?}", x).into()),
             }

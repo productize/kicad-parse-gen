@@ -1023,6 +1023,8 @@ pub struct Pad {
     pub clearance: Option<f64>,
     /// thermal gap
     pub thermal_gap: Option<f64>,
+    /// thermal width
+    pub thermal_width: Option<f64>,
 }
 
 impl Flip for Pad {
@@ -1079,6 +1081,9 @@ impl PartialEq for Pad {
         if self.thermal_gap != other.thermal_gap {
             return false;
         }
+        if self.thermal_width != other.thermal_width {
+            return false;
+        }
         true
     }
 }
@@ -1101,6 +1106,7 @@ impl Pad {
             solder_mask_margin: None,
             clearance: None,
             thermal_gap: None,
+            thermal_width: None,
         }
     }
 
