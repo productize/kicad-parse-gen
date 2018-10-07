@@ -88,9 +88,6 @@ impl FromSexp for General {
     fn from_sexp(s: &Sexp) -> Result<General, SexpError> {
         let mut g = General::default();
         let mut i = IterAtom::new(s, "general")?;
-        g.links = i.i_in_list("links")?;
-        g.no_connects = i.i_in_list("no_connects")?;
-        g.area = i.t("area")?;
         g.thickness = i.f_in_list("thickness")?;
         g.drawings = i.i_in_list("drawings")?;
         g.tracks = i.i_in_list("tracks")?;
@@ -98,19 +95,6 @@ impl FromSexp for General {
         g.modules = i.i_in_list("modules")?;
         g.nets = i.i_in_list("nets")?;
         i.close(g)
-    }
-}
-
-impl FromSexp for Area {
-    fn from_sexp(s: &Sexp) -> Result<Area, SexpError> {
-        let mut i = IterAtom::new(s, "area")?;
-        let a = Area {
-            x1: i.f("x1")?,
-            y1: i.f("y1")?,
-            x2: i.f("x2")?,
-            y2: i.f("y2")?,
-        };
-        i.close(a)
     }
 }
 

@@ -183,12 +183,6 @@ pub struct Host {
 /// general information
 #[derive(Clone, Debug)]
 pub struct General {
-    /// number of links
-    pub links: i64,
-    /// number of no-connect
-    pub no_connects: i64,
-    /// area of layout
-    pub area: Area,
     /// thickness
     pub thickness: f64,
     /// number of drawings
@@ -201,19 +195,6 @@ pub struct General {
     pub modules: i64,
     /// number of nets
     pub nets: i64,
-}
-
-/// area
-#[derive(Clone, Debug, Default)]
-pub struct Area {
-    /// X1 coordinate
-    pub x1: f64,
-    /// Y1 coordinate
-    pub y1: f64,
-    /// X2 coordinate
-    pub x2: f64,
-    /// Y2 coordinate
-    pub y2: f64,
 }
 
 /// layer
@@ -804,9 +785,6 @@ impl Default for Host {
 impl Default for General {
     fn default() -> General {
         General {
-            links: 0,
-            no_connects: 0,
-            area: Area::default(),
             thickness: 1.6,
             drawings: 0,
             tracks: 0,

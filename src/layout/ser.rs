@@ -45,26 +45,12 @@ impl IntoSexp for Layout {
 impl IntoSexp for General {
     fn into_sexp(&self) -> Sexp {
         let mut v = Sexp::start("general");
-        v.push(("links", &self.links));
-        v.push(("no_connects", &self.no_connects));
-        v.push(self.area.into_sexp());
         v.push(("thickness", &self.thickness));
         v.push(("drawings", &self.drawings));
         v.push(("tracks", &self.tracks));
         v.push(("zones", &self.zones));
         v.push(("modules", &self.modules));
         v.push(("nets", &self.nets));
-        v
-    }
-}
-
-impl IntoSexp for Area {
-    fn into_sexp(&self) -> Sexp {
-        let mut v = Sexp::start("area");
-        v.push(self.x1);
-        v.push(self.y1);
-        v.push(self.x2);
-        v.push(self.y2);
         v
     }
 }
