@@ -96,6 +96,8 @@ pub enum KicadFile {
     Project(project::Project),
     /// a Kicad fp-lib-table file
     FpLibTable(fp_lib_table::FpLibTable),
+    /// a Kicad sym-lib-table file
+    SymLibTable(sym_lib_table::SymLibTable),
 }
 
 /// types of Kicad files that we expect to read
@@ -113,6 +115,8 @@ pub enum Expected {
     Project,
     /// an fp-lib-table file
     FpLibTable,
+    /// an sym-lib-table file
+    SymLibTable,
     /// any Kicad file
     Any,
 }
@@ -128,6 +132,7 @@ impl fmt::Display for KicadFile {
             KicadFile::SymbolLib(_) => write!(f, "symbollib"),
             KicadFile::Project(_) => write!(f, "project"),
             KicadFile::FpLibTable(_) => write!(f, "fp-lib-table"),
+            KicadFile::SymLibTable(_) => write!(f, "sym-lib-table"),
         }
     }
 }
@@ -170,6 +175,12 @@ pub fn read_kicad_file(name: &Path, expected: Expected) -> Result<KicadFile, Kic
     match fp_lib_table::parse(&data) {
         Ok(p) => return Ok(KicadFile::FpLibTable(p)),
         Err(x) => if expected == Expected::FpLibTable {
+            return Err(x.into());
+        },
+    }
+    match sym_lib_table::parse(&data) {
+        Ok(p) => return Ok(KicadFile::SymLibTable(p)),
+        Err(x) => if expected == Expected::SymLibTable {
             return Err(x.into());
         },
     }
@@ -234,6 +245,20 @@ pub fn read_fp_lib_table(name: &Path) -> Result<fp_lib_table::FpLibTable, KicadE
         KicadFile::FpLibTable(mo) => Ok(mo),
         x => str_error(format!("unexpected {} in {}", x, name.display())),
     }
+}
+
+/// read a file, expecting it to be an sym-lib-table
+pub fn read_sym_lib_table(name: &Path) -> Result<sym_lib_table::SymLibTable, KicadError> {
+    match read_kicad_file(name, Expected::SymLibTable)? {
+        KicadFile::SymLibTable(mo) => Ok(mo),
+        x => str_error(format!("unexpected {} in {}", x, name.display())),
+    }
+}
+
+/// write out a kicad sym-lib-table to a file
+pub fn write_sym_lib_table(table: &sym_lib_table::SymLibTable, name: &Path) -> Result<(), KicadError> {
+    let s = sym_lib_table::to_string(table, 0)?;
+    write_file(name, &s)
 }
 
 fn wrap<X, Y, F, G>(s: &Sexp, make: F, wrapper: G) -> result::Result<Y,SexpError>
@@ -381,6 +406,8 @@ pub mod symbol_lib;
 pub mod project;
 /// Kicad fp-lib-table format handling
 pub mod fp_lib_table;
+/// Kicad sym-lib-table format handling
+pub mod sym_lib_table;
 /// checking and fixing related to the Kicad Library Convention
 pub mod checkfix;
 

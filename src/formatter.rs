@@ -112,6 +112,17 @@ impl KicadFormatter {
         Some(indent)
     }
 
+    fn want_indent_sym_lib_table(&self, _ele: &str) -> Option<Indent> {
+        if !self.is("sym_lib_table") {
+            return None;
+        }
+        let mut indent = Indent::default();
+        if self.parent_is("sym_lib_table") {
+            indent.before();
+        }
+        Some(indent)
+    }
+
     fn want_indent_module(&self, ele: &str) -> Option<Indent> {
         // if !self.is("module") {
         //    return None
@@ -268,6 +279,10 @@ impl KicadFormatter {
                 return i;
             }
             let i = self.want_indent_fp_lib_table(ele);
+            if i.is_some() {
+                return i;
+            }
+            let i = self.want_indent_sym_lib_table(ele);
             if i.is_some() {
                 return i;
             }
