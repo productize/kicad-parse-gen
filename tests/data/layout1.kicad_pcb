@@ -1,9 +1,6 @@
 (kicad_pcb (version 4) (host pcbnew "(2017-01-31 revision 99d7a3579)-4.0")
 
   (general
-    (links 55)
-    (no_connects 0)
-    (area 156.2 52.3 224.448402 96.800001)
     (thickness 1.6)
     (drawings 24)
     (tracks 193)
@@ -219,8 +216,7 @@
       (net 6 /D-))
     (pad 2 smd rect (at 0.85 0 270) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 1 GND))
-    (model C_0603J.wrl
-      (at (xyz 0 0 0))
+    (model C_0603J.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -250,8 +246,7 @@
       (net 7 /D+))
     (pad 2 smd rect (at 0.85 0 90) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 1 GND))
-    (model C_0603J.wrl
-      (at (xyz 0 0 0))
+    (model C_0603J.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -281,8 +276,7 @@
       (net 2 +5V))
     (pad 2 smd rect (at 0.85 0) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 1 GND))
-    (model C_0603J.wrl
-      (at (xyz 0 0 0))
+    (model C_0603J.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -312,8 +306,7 @@
       (net 3 +3V3))
     (pad 2 smd rect (at 0.85 0 270) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 1 GND))
-    (model C_0603J.wrl
-      (at (xyz 0 0 0))
+    (model C_0603J.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -345,8 +338,7 @@
       (net 8 /~RXLED2))
     (pad 2 smd rect (at 0.85 0 180) (size 1.3 1.5) (layers F.Cu F.Paste F.Mask)
       (net 9 /~RXLED))
-    (model led_0805.wrl
-      (at (xyz 0 0 0))
+    (model led_0805.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -378,8 +370,7 @@
       (net 10 /~TXLED2))
     (pad 2 smd rect (at 0.85 0 180) (size 1.3 1.5) (layers F.Cu F.Paste F.Mask)
       (net 11 /~TXLED))
-    (model led_0805.wrl
-      (at (xyz 0 0 0))
+    (model led_0805.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -440,8 +431,7 @@
       (net 23 "Net-(D3-Pad1)"))
     (pad 2 smd rect (at 0.85 0) (size 1.3 1.5) (layers F.Cu F.Paste F.Mask)
       (net 1 GND))
-    (model led_0805.wrl
-      (at (xyz 0 0 0))
+    (model led_0805.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -473,8 +463,7 @@
       (net 25 "Net-(D4-Pad2)"))
     (pad 2 smd rect (at 0.85 0) (size 1.3 1.5) (layers F.Cu F.Paste F.Mask)
       (net 1 GND))
-    (model led_0805.wrl
-      (at (xyz 0 0 0))
+    (model led_0805.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -547,8 +536,7 @@
       (net 12 /VBUS))
     (pad 2 smd rect (at 0.85 0) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 2 +5V))
-    (model C_0603J.wrl
-      (at (xyz 0 0 0))
+    (model C_0603J.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -611,8 +599,7 @@
       (net 7 /D+))
     (pad 2 smd rect (at 0.85 0) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 17 /USB+))
-    (model R_0603.wrl
-      (at (xyz 0 0 0))
+    (model R_0603.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -642,8 +629,7 @@
       (net 6 /D-))
     (pad 2 smd rect (at 0.85 0) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 18 /USB-))
-    (model R_0603.wrl
-      (at (xyz 0 0 0))
+    (model R_0603.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -673,8 +659,7 @@
       (net 19 /TXD))
     (pad 2 smd rect (at 0.85 0) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 14 /TXD2))
-    (model R_0603.wrl
-      (at (xyz 0 0 0))
+    (model R_0603.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -704,8 +689,7 @@
       (net 20 /~RTS))
     (pad 2 smd rect (at 0.85 0) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 16 /~RTS2))
-    (model R_0603.wrl
-      (at (xyz 0 0 0))
+    (model R_0603.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -735,8 +719,7 @@
       (net 21 /RXD))
     (pad 2 smd rect (at 0.85 0) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 15 /RXD2))
-    (model R_0603.wrl
-      (at (xyz 0 0 0))
+    (model R_0603.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -766,8 +749,7 @@
       (net 22 /~CTS))
     (pad 2 smd rect (at 0.85 0) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 13 /~CTS2))
-    (model R_0603.wrl
-      (at (xyz 0 0 0))
+    (model R_0603.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -797,8 +779,7 @@
       (net 8 /~RXLED2))
     (pad 2 smd rect (at 0.85 0) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 5 +3.3VP))
-    (model R_0603.wrl
-      (at (xyz 0 0 0))
+    (model R_0603.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -828,8 +809,7 @@
       (net 10 /~TXLED2))
     (pad 2 smd rect (at 0.85 0) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 5 +3.3VP))
-    (model R_0603.wrl
-      (at (xyz 0 0 0))
+    (model R_0603.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -859,8 +839,7 @@
       (net 4 VCC))
     (pad 2 smd rect (at 0.85 0) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 23 "Net-(D3-Pad1)"))
-    (model R_0603.wrl
-      (at (xyz 0 0 0))
+    (model R_0603.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -890,8 +869,7 @@
       (net 4 VCC))
     (pad 2 smd rect (at 0.85 0) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 24 "Net-(D4-Pad1)"))
-    (model R_0603.wrl
-      (at (xyz 0 0 0))
+    (model R_0603.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -928,8 +906,7 @@
       (net 3 +3V3) (solder_paste_margin -0.3))
     (pad 3 smd rect (at 0 -1.35 90) (size 1 1) (layers F.Cu F.Paste F.Mask)
       (net 2 +5V) (thermal_gap 0.5))
-    (model SOT23_3.wrl
-      (at (xyz 0 0 0))
+    (model SOT23_3.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
@@ -1012,8 +989,7 @@
       (net 5 +3.3VP))
     (pad 2 smd rect (at 0.85 0 180) (size 0.7 1) (layers F.Cu F.Paste F.Mask)
       (net 1 GND))
-    (model C_0603J.wrl
-      (at (xyz 0 0 0))
+    (model C_0603J.wrl (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
