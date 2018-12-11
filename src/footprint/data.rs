@@ -799,6 +799,8 @@ pub enum PadType {
     Pth,
     /// non-plated through-hole
     NpPth,
+    /// connector
+    Conn,
 }
 
 impl PadType {
@@ -808,6 +810,7 @@ impl PadType {
             "smd" => Ok(PadType::Smd),
             "thru_hole" => Ok(PadType::Pth),
             "np_thru_hole" => Ok(PadType::NpPth),
+            "connect" => Ok(PadType::Conn),
             x => Err(format!("unknown PadType {}", x).into()),
         }
     }
