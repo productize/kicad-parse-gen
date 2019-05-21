@@ -162,6 +162,7 @@ impl IntoSexp for PadType {
             PadType::Smd => "smd",
             PadType::Pth => "thru_hole",
             PadType::NpPth => "np_thru_hole",
+            PadType::Conn => "connect",
         }.into()
     }
 }
