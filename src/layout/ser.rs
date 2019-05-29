@@ -374,6 +374,9 @@ impl IntoSexp for Via {
         if let Some(ref tstamp) = self.tstamp {
             v.push(("tstamp", tstamp));
         }
+        if let Some(ref status) = self.status {
+            v.push(("status", status))
+        }
         v
     }
 }

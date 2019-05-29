@@ -564,6 +564,8 @@ pub struct Via {
     pub net: i64,
     /// timestamp
     pub tstamp: Option<String>,
+    /// status
+    pub status: Option<String>,
 }
 
 impl Adjust for Via {
