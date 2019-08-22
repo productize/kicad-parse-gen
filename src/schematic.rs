@@ -1255,7 +1255,12 @@ fn parse_component_f(p: &mut ParseState, d: &mut Component) -> Result<(), KicadE
 }
 
 fn parse_component_rotation(p: &mut ParseState, d: &mut Component) -> Result<(), KicadError> {
-    p.next(); // skip redundant position line
+    let s = p.here();
+    let v: Vec<&str> = s.split_whitespace().collect();
+    if v.len() != 4 {
+        p.next(); // skip unnecessary position line
+    }
+
     let s = p.here();
     let v: Vec<&str> = s.split_whitespace().collect();
     if v.len() != 4 {
