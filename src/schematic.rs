@@ -1288,7 +1288,7 @@ fn parse_component(p: &mut ParseState) -> Result<Component, KicadError> {
             Some("U") => parse_component_u(p, &mut d)?,
             Some("P") => parse_component_p(p, &mut d)?,
             Some("F") => parse_component_f(p, &mut d)?,
-            Some("1") | Some("0") => parse_component_rotation(p, &mut d)?,
+            Some("1") | Some("-1") | Some("0") => parse_component_rotation(p, &mut d)?,
             Some("AR") => parse_component_ar(p, &mut d)?,
             _ => println!("skipping unknown component line {}", s),
         }
