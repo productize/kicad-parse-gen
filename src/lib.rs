@@ -23,28 +23,32 @@ pub use util::read_file;
 /// write file utility wrapper function
 pub use util::write_file;
 
+// parse_split_quote_aware_int returns a vector containing each space-separated field of the input
+// line separately, n_opt is used to limit the maximum amount of returned fields (excess input gets
+// collected to an additional final string without processing). If n_opt is given and there are less
+// than n_opt fields in the input, this function will return an error.
 fn parse_split_quote_aware_int(n_opt: Option<usize>, s: &str) -> Result<Vec<String>, KicadError> {
-    let mut i = 0;
     let mut v: Vec<String> = vec![];
-    // if we are inside our outside a quoted string
+    // if we are inside or outside a quoted string
     let mut inside_quotation = false;
     let mut quotation_seen = false;
+    let mut escaped_char = false; // if the currently processed char is escaped
     let mut s2: String = "".into();
     for c in s.chars() {
         if let Some(n) = n_opt {
-            if i == n {
-                // if we're in the nth. just keep collecting in current string
+            if v.len() == n {
+                // if we're in the nth, just keep collecting in current string
                 s2.push(c);
                 continue;
             }
         }
         // detection of starting "
-        if !inside_quotation && c == '\"' {
+        if !inside_quotation && !escaped_char && c == '"' {
             inside_quotation = true;
             continue;
         }
         // detection of final "
-        if inside_quotation && c == '\"' {
+        if inside_quotation && !escaped_char && c == '"' {
             inside_quotation = false;
             quotation_seen = true;
             continue;
@@ -52,14 +56,21 @@ fn parse_split_quote_aware_int(n_opt: Option<usize>, s: &str) -> Result<Vec<Stri
         // detection of space before or in between parts
         if !inside_quotation && c == ' ' {
             if !s2.is_empty() || quotation_seen {
-                i += 1;
                 v.push(s2.clone());
                 s2.clear();
             }
             quotation_seen = false;
             continue;
         }
-        s2.push(c);
+        if escaped_char {
+            escaped_char = false;
+            s2.push(c);
+        } else {
+            escaped_char = c == '\\';
+            if !escaped_char {
+                s2.push(c);
+            }
+        }
     }
     if !s2.is_empty() || quotation_seen {
         v.push(s2.clone())
@@ -77,6 +88,20 @@ fn parse_split_quote_aware_n(n: usize, s: &str) -> Result<Vec<String>, KicadErro
 }
 fn parse_split_quote_aware(s: &str) -> Result<Vec<String>, KicadError> {
     parse_split_quote_aware_int(None, s)
+}
+
+#[test]
+fn test_parse_split_quote_aware() {
+    macro_rules! string_vec {
+        ($($x:expr),*) => (vec![$($x.to_string()),*]);
+    }
+
+    let src = r#"F 4 "\"Hello, world!\"" H 4500 3000 50  0001 C CNN "QuoteField""#;
+    let tgt1 = string_vec!["F", "4", "\"Hello, world!\"", "H", "4500", "3000", "50", "0001", "C", "CNN", "QuoteField"];
+    let tgt2 = string_vec!["F", r#"4 "\"Hello, world!\"" H 4500 3000 50  0001 C CNN "QuoteField""#];
+
+    assert_eq!(tgt1, parse_split_quote_aware(src).unwrap());
+    assert_eq!(tgt2, parse_split_quote_aware_n(1, src).unwrap());
 }
 
 /// types of Kicad files that can be found
@@ -411,5 +436,6 @@ pub mod sym_lib_table;
 /// checking and fixing related to the Kicad Library Convention
 pub mod checkfix;
 
-mod util;
+mod escaped;
 mod formatter;
+mod util;
