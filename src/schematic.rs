@@ -10,10 +10,11 @@ use std::collections::HashMap;
 
 // get from parent
 use {Bound, BoundingBox, KicadError};
-use util::read_file;
-use str_error;
+use escaped::Escaped;
 use parse_split_quote_aware;
 use parse_split_quote_aware_n;
+use str_error;
+use util::read_file;
 
 /// a Kicad schematic
 #[derive(Debug, Default)]
@@ -781,7 +782,7 @@ impl ComponentField {
 
 impl fmt::Display for ComponentField {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "F {} \"{}\" {} ", self.i, self.value, self.orientation)?;
+        write!(f, "F {} \"{}\" {} ", self.i, self.value.escaped(), self.orientation)?;
         write!(
             f,
             "{:3} {:3} {:3} ",
@@ -794,7 +795,7 @@ impl fmt::Display for ComponentField {
         write!(f, "{}", if self.italic { 'I' } else { 'N' })?;
         write!(f, "{}", if self.bold { 'B' } else { 'N' })?;
         if self.i > 3 {
-            write!(f, " \"{}\"", self.name)?
+            write!(f, " \"{}\"", self.name.escaped())?
         };
         Ok(())
     }
