@@ -113,7 +113,6 @@ impl Module {
         self.get_text_mut("value")
     }
 
-
     /// check if the module has the "smd" attribute
     pub fn has_smd_attr(&self) -> bool {
         for element in &self.elements {
@@ -331,18 +330,18 @@ impl BoundingBox for Element {
             Element::FpCircle(ref x) => x.bounding_box(),
             Element::FpText(ref x) => x.bounding_box(),
             Element::FpArc(ref x) => x.bounding_box(),
-            Element::At(_) |
-            Element::Layer(_) |
-            Element::TEdit(_) |
-            Element::Descr(_) |
-            Element::Path(_) |
-            Element::Model(_) |
-            Element::Attr(_) |
-            Element::SolderMaskMargin(_) |
-            Element::Clearance(_) |
-            Element::Tags(_) |
-            Element::Locked |
-            Element::TStamp(_) => Bound::default(),
+            Element::At(_)
+            | Element::Layer(_)
+            | Element::TEdit(_)
+            | Element::Descr(_)
+            | Element::Path(_)
+            | Element::Model(_)
+            | Element::Attr(_)
+            | Element::SolderMaskMargin(_)
+            | Element::Clearance(_)
+            | Element::Tags(_)
+            | Element::Locked
+            | Element::TStamp(_) => Bound::default(),
         }
     }
 }
@@ -383,16 +382,16 @@ impl Flip for Element {
             Element::FpText(ref mut p) => p.flip(),
             Element::At(ref mut p) => p.flip(),
             Element::Layer(ref mut p) => p.flip(),
-            Element::TEdit(_) |
-            Element::Descr(_) |
-            Element::Path(_) |
-            Element::Model(_) |
-            Element::TStamp(_) |
-            Element::SolderMaskMargin(_) |
-            Element::Clearance(_) |
-            Element::Tags(_) |
-            Element::Attr(_) |
-            Element::Locked => (),
+            Element::TEdit(_)
+            | Element::Descr(_)
+            | Element::Path(_)
+            | Element::Model(_)
+            | Element::TStamp(_)
+            | Element::SolderMaskMargin(_)
+            | Element::Clearance(_)
+            | Element::Tags(_)
+            | Element::Attr(_)
+            | Element::Locked => (),
         }
     }
 }
@@ -403,21 +402,21 @@ impl Rotate for Element {
             Element::Pad(ref mut p) => p.rotate(rot),
             Element::FpText(ref mut p) => p.rotate(rot),
             Element::At(ref mut p) => p.rotate(rot),
-            Element::FpPoly(_) |
-            Element::FpLine(_) |
-            Element::FpCircle(_) |
-            Element::FpArc(_) |
-            Element::Layer(_) |
-            Element::TEdit(_) |
-            Element::Descr(_) |
-            Element::Path(_) |
-            Element::Model(_) |
-            Element::TStamp(_) |
-            Element::SolderMaskMargin(_) |
-            Element::Clearance(_) |
-            Element::Tags(_) |
-            Element::Attr(_) |
-            Element::Locked => (),
+            Element::FpPoly(_)
+            | Element::FpLine(_)
+            | Element::FpCircle(_)
+            | Element::FpArc(_)
+            | Element::Layer(_)
+            | Element::TEdit(_)
+            | Element::Descr(_)
+            | Element::Path(_)
+            | Element::Model(_)
+            | Element::TStamp(_)
+            | Element::SolderMaskMargin(_)
+            | Element::Clearance(_)
+            | Element::Tags(_)
+            | Element::Attr(_)
+            | Element::Locked => (),
         }
     }
 }
@@ -425,24 +424,24 @@ impl Rotate for Element {
 impl Element {
     fn is_graphics(&self) -> bool {
         match *self {
-            Element::Pad(_) |
-            Element::FpPoly(_) |
-            Element::FpLine(_) |
-            Element::FpCircle(_) |
-            Element::FpArc(_) => true,
-            Element::FpText(_) |
-            Element::At(_) |
-            Element::Layer(_) |
-            Element::TEdit(_) |
-            Element::Descr(_) |
-            Element::Path(_) |
-            Element::Model(_) |
-            Element::TStamp(_) |
-            Element::SolderMaskMargin(_) |
-            Element::Clearance(_) |
-            Element::Tags(_) |
-            Element::Attr(_) |
-            Element::Locked => false,
+            Element::Pad(_)
+            | Element::FpPoly(_)
+            | Element::FpLine(_)
+            | Element::FpCircle(_)
+            | Element::FpArc(_) => true,
+            Element::FpText(_)
+            | Element::At(_)
+            | Element::Layer(_)
+            | Element::TEdit(_)
+            | Element::Descr(_)
+            | Element::Path(_)
+            | Element::Model(_)
+            | Element::TStamp(_)
+            | Element::SolderMaskMargin(_)
+            | Element::Clearance(_)
+            | Element::Tags(_)
+            | Element::Attr(_)
+            | Element::Locked => false,
         }
     }
 
@@ -452,20 +451,20 @@ impl Element {
             Element::FpLine(ref e) => e.is_fab(),
             Element::FpCircle(ref e) => e.is_fab(),
             Element::FpArc(ref e) => e.is_fab(),
-            Element::Pad(_) |
-            Element::FpText(_) |
-            Element::At(_) |
-            Element::Layer(_) |
-            Element::TEdit(_) |
-            Element::Descr(_) |
-            Element::Path(_) |
-            Element::Model(_) |
-            Element::TStamp(_) |
-            Element::SolderMaskMargin(_) |
-            Element::Clearance(_) |
-            Element::Tags(_) |
-            Element::Attr(_) |
-            Element::Locked => false,
+            Element::Pad(_)
+            | Element::FpText(_)
+            | Element::At(_)
+            | Element::Layer(_)
+            | Element::TEdit(_)
+            | Element::Descr(_)
+            | Element::Path(_)
+            | Element::Model(_)
+            | Element::TStamp(_)
+            | Element::SolderMaskMargin(_)
+            | Element::Clearance(_)
+            | Element::Tags(_)
+            | Element::Attr(_)
+            | Element::Locked => false,
         }
     }
 
@@ -795,7 +794,7 @@ pub enum PadType {
 
 impl PadType {
     /// convert a &str to a pad type
-    pub fn from_string(s: &str) -> Result<PadType,SexpError> {
+    pub fn from_string(s: &str) -> Result<PadType, SexpError> {
         match s {
             "smd" => Ok(PadType::Smd),
             "thru_hole" => Ok(PadType::Pth),
@@ -854,6 +853,10 @@ pub enum LayerSide {
     In1,
     /// Inner layer 2
     In2,
+    /// Inner layer 3
+    In3,
+    /// Inner layer 4
+    In4,
     /// no side
     None,
 }
@@ -945,6 +948,8 @@ impl Layer {
                 "Edge" => LayerSide::Edge,
                 "In1" => LayerSide::In1,
                 "In2" => LayerSide::In2,
+                "In3" => LayerSide::In3,
+                "In4" => LayerSide::In4,
                 "*" => LayerSide::Both,
                 x => return Err(format!("unknown layer side {}", x).into()),
             };
@@ -1136,7 +1141,8 @@ impl BoundingBox for Pad {
     fn bounding_box(&self) -> Bound {
         let x = self.at.x;
         let y = self.at.y;
-        let (dx, dy) = if (self.at.rot - 90.0).abs() < 0.1 || (self.at.rot + 90.0).abs() < 0.1
+        let (dx, dy) = if (self.at.rot - 90.0).abs() < 0.1
+            || (self.at.rot + 90.0).abs() < 0.1
             || (self.at.rot - 270.0).abs() < 0.1
             || (self.at.rot + 270.0).abs() < 0.1
         {
