@@ -7,9 +7,9 @@ use std::fmt;
 use std::result;
 
 // get from parent
+use formatter::KicadFormatter;
 use symbolic_expressions;
 use symbolic_expressions::IntoSexp;
-use formatter::KicadFormatter;
 use KicadError;
 
 // pub use footprint;
@@ -34,6 +34,8 @@ impl fmt::Display for Layer {
             LayerSide::Edge => write!(f, "Edge."),
             LayerSide::In1 => write!(f, "In1."),
             LayerSide::In2 => write!(f, "In2."),
+            LayerSide::In3 => write!(f, "In3."),
+            LayerSide::In4 => write!(f, "In4."),
             LayerSide::Both => write!(f, "*."),
             LayerSide::None => Ok(()),
         }?;
@@ -61,5 +63,5 @@ pub fn parse(s: &str) -> Result<Module, KicadError> {
 }
 
 mod data;
-mod ser;
 mod de;
+mod ser;

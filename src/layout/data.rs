@@ -1,12 +1,12 @@
 // (c) 2016-2017 Productize SPRL <joost@productize.be>
 
 // from parent
-use str_error;
 use footprint;
-use Sexp;
 use layout::{Adjust, Bound, BoundingBox};
 use std::{fmt, result};
+use str_error;
 use KicadError;
+use Sexp;
 
 /// a Kicad layout
 #[derive(Debug)]
@@ -443,6 +443,8 @@ pub struct GrCircle {
     pub width: f64,
     /// timestamp
     pub tstamp: Option<String>,
+    /// fill
+    pub fill: Option<String>,
 }
 
 impl Adjust for GrCircle {
@@ -663,16 +665,20 @@ impl Layout {
                 Element::Net(ref mut net) => {
                     update(&mut net.name)?;
                 }
-                Element::NetClass(ref mut nc) => for name in &mut nc.nets {
-                    update(name)?;
-                },
-                Element::Module(ref mut module) => for m_e in &mut module.elements {
-                    if let footprint::Element::Pad(ref mut pad) = *m_e {
-                        if let Some(ref mut net) = pad.net {
-                            update(&mut net.name)?;
+                Element::NetClass(ref mut nc) => {
+                    for name in &mut nc.nets {
+                        update(name)?;
+                    }
+                }
+                Element::Module(ref mut module) => {
+                    for m_e in &mut module.elements {
+                        if let footprint::Element::Pad(ref mut pad) = *m_e {
+                            if let Some(ref mut net) = pad.net {
+                                update(&mut net.name)?;
+                            }
                         }
                     }
-                },
+                }
                 Element::Zone(ref mut zone) => {
                     update(&mut zone.net_name)?;
                 }
@@ -697,20 +703,22 @@ impl Layout {
     pub fn get_module(&self, reference: &str) -> Option<&footprint::Module> {
         for x in &self.elements[..] {
             match *x {
-                Element::Module(ref m) => if m.is_reference_with_name(reference) {
-                    return Some(m);
-                },
-                Element::Via(_) |
-                Element::Segment(_) |
-                Element::Net(_) |
-                Element::NetClass(_) |
-                Element::GrText(_) |
-                Element::GrLine(_) |
-                Element::GrArc(_) |
-                Element::GrCircle(_) |
-                Element::Dimension(_) |
-                Element::Zone(_) |
-                Element::Other(_) => (),
+                Element::Module(ref m) => {
+                    if m.is_reference_with_name(reference) {
+                        return Some(m);
+                    }
+                }
+                Element::Via(_)
+                | Element::Segment(_)
+                | Element::Net(_)
+                | Element::NetClass(_)
+                | Element::GrText(_)
+                | Element::GrLine(_)
+                | Element::GrArc(_)
+                | Element::GrCircle(_)
+                | Element::Dimension(_)
+                | Element::Zone(_)
+                | Element::Other(_) => (),
             }
         }
         None
@@ -734,20 +742,22 @@ impl Layout {
     {
         for x in &mut self.elements {
             match *x {
-                Element::Module(ref mut m) => if m.is_reference_with_name(reference) {
-                    return Ok(fun(m));
-                },
-                Element::Via(_) |
-                Element::Segment(_) |
-                Element::Net(_) |
-                Element::NetClass(_) |
-                Element::GrText(_) |
-                Element::GrLine(_) |
-                Element::GrArc(_) |
-                Element::GrCircle(_) |
-                Element::Dimension(_) |
-                Element::Zone(_) |
-                Element::Other(_) => (),
+                Element::Module(ref mut m) => {
+                    if m.is_reference_with_name(reference) {
+                        return Ok(fun(m));
+                    }
+                }
+                Element::Via(_)
+                | Element::Segment(_)
+                | Element::Net(_)
+                | Element::NetClass(_)
+                | Element::GrText(_)
+                | Element::GrLine(_)
+                | Element::GrArc(_)
+                | Element::GrCircle(_)
+                | Element::Dimension(_)
+                | Element::Zone(_)
+                | Element::Other(_) => (),
             }
         }
         str_error(format!("did not find module with reference {}", reference))

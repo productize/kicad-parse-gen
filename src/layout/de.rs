@@ -5,10 +5,10 @@
 
 // from parent
 use footprint;
-use wrap;
-use Sexp;
 use symbolic_expressions::iteratom::*;
 use symbolic_expressions::SexpError;
+use wrap;
+use Sexp;
 
 use layout::data::*;
 
@@ -307,11 +307,11 @@ impl FromSexp for GrCircle {
         c.layer = i.t("layer")?;
         c.width = i.maybe_f_in_list("width").unwrap_or(0.0);
         c.tstamp = i.maybe_s_in_list("tstamp");
+        c.fill = i.maybe_s_in_list("fill");
         // TODO: status field?
         i.close(c)
     }
 }
-
 
 impl FromSexp for Dimension {
     fn from_sexp(s: &Sexp) -> Result<Dimension, SexpError> {
